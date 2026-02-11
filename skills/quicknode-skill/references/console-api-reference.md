@@ -409,6 +409,7 @@ Returns metrics in Prometheus exposition format, suitable for scraping.
 ## Documentation
 
 - **Console API Docs**: https://www.quicknode.com/docs/console-api
+- **Console API Docs (llms.txt)**: https://www.quicknode.com/docs/console-api/llms.txt
 - **Quicknode Dashboard**: https://dashboard.quicknode.com/
 - **API Key Management**: https://dashboard.quicknode.com/settings/api-keys
 - **Guides**: https://www.quicknode.com/guides/tags/console-api

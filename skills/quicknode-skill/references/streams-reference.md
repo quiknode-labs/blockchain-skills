@@ -465,6 +465,7 @@ curl -X DELETE https://api.quicknode.com/streams/rest/v1/streams/{streamId} \
 ## Documentation
 
 - **Streams Overview**: https://www.quicknode.com/docs/streams
+- **Streams Overview (llms.txt)**: https://www.quicknode.com/docs/streams/llms.txt
 - **Filter Functions**: https://www.quicknode.com/docs/streams/filters
 - **Destinations**: https://www.quicknode.com/docs/streams/destinations
 - **API Reference**: https://www.quicknode.com/docs/streams/rest-api/getting-started

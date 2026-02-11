@@ -513,6 +513,7 @@ wsProvider.on("block", (blockNumber) => {
 ## Documentation
 
 - **Hyperliquid Overview**: https://www.quicknode.com/docs/hyperliquid
+- **Hyperliquid Overview (llms.txt)**: : https://www.quicknode.com/docs/hyperliquid/llms.txt
 - **Hyperliquid gRPC API**: https://www.quicknode.com/docs/hyperliquid/grpc-api
 - **HyperCore Filtering**: https://www.quicknode.com/docs/hyperliquid/filtering
 - **Hyperliquid llms.txt**: https://www.quicknode.com/docs/hyperliquid/llms.txt

@@ -401,6 +401,7 @@ Use webhooks to monitor specific accounts across chains. On Solana, track accoun
 ## Documentation
 
 - **Webhooks Overview**: https://www.quicknode.com/docs/webhooks
+- **Webhooks Overview (llms.txt)**: https://www.quicknode.com/docs/webhooks/llms.txt
 - **Webhook Templates API**: https://www.quicknode.com/docs/webhooks/rest-api/webhooks/webhooks-rest-create-from-template
 - **API Reference**: https://www.quicknode.com/docs/webhooks/rest-api/getting-started
 - **Guides**: https://www.quicknode.com/guides/tags/webhooks

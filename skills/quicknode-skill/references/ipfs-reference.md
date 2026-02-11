@@ -386,4 +386,5 @@ async function safeUpload(filePath) {
 ## Documentation
 
 - **IPFS Overview**: https://www.quicknode.com/docs/ipfs
+- **IPFS Overview (llms.txt)**: https://www.quicknode.com/docs/ipfs/llms.txt
 - **Guides**: https://www.quicknode.com/guides/tags/ipfs
