@@ -1,0 +1,23 @@
+{
+  "name": "blockchain-skills",
+  "owner": {
+    "name": "Quicknode",
+    "url": "https://www.quicknode.com"
+  },
+  "metadata": {
+    "description": "Blockchain skills for Claude Code — blockchain development, smart contracts, and decentralized applications",
+    "version": "1.0.0",
+    "repository": "https://github.com/quiknode-labs/blockchain-skills"
+  },
+  "plugins": [
+    {
+      "name": "blockchain-skills",
+      "description": "Blockchain skills for technical blockchain developers and founders: Quicknode infrastructure, smart contracts, decentralized applications, blockchain development, and more",
+      "source": "./",
+      "strict": false,
+      "skills": [
+        "./skills/quicknode-skill"
+      ]
+    }
+  ]
+}
