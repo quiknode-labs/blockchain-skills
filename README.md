@@ -20,7 +20,7 @@ When an AI agent loads a skill, it gains the ability to help you build, deploy, 
 
 | Skill | Description |
 |-------|-------------|
-| `quicknode-skill` | Quicknode infrastructure - RPC endpoints (80+ chains), Streams, Webhooks, IPFS, Add-ons, Yellowstone gRPC, Hypercore, x402, Key-Value Store, SDK, Console API |
+| `quicknode-skill` | Quicknode infrastructure - RPC endpoints (80+ chains), Streams, Webhooks, IPFS, Add-ons, Yellowstone gRPC, Hypercore, x402, Key-Value Store, SDK, Admin API |
 
 ## Installation
 
