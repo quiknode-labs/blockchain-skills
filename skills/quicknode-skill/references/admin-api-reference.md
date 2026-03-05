@@ -1,4 +1,4 @@
-# Quicknode Console API Reference
+# Quicknode Admin API Reference
 
 REST API for programmatic management of Quicknode endpoints, usage monitoring, rate limits, security, billing, and teams.
 
@@ -29,7 +29,7 @@ All requests require the `x-api-key` header. Generate an API key from the Quickn
 const QN_API_KEY = process.env.QUICKNODE_API_KEY!;
 const BASE_URL = 'https://api.quicknode.com/v0';
 
-async function consoleApi<T>(
+async function adminApi<T>(
   path: string,
   options: RequestInit = {}
 ): Promise<T> {
@@ -43,20 +43,20 @@ async function consoleApi<T>(
   });
   if (!res.ok) {
     const body = await res.text();
-    throw new Error(`Console API ${res.status}: ${body}`);
+    throw new Error(`Admin API ${res.status}: ${body}`);
   }
   return res.json();
 }
 ```
 
-All examples below reuse this `consoleApi` helper.
+All examples below reuse this `adminApi` helper.
 
 ## Chains
 
 List all supported blockchain networks.
 
 ```typescript
-const chains = await consoleApi<{ data: Array<{
+const chains = await adminApi<{ data: Array<{
   id: string;
   name: string;
   network: string;
@@ -71,7 +71,7 @@ chains.data.forEach(c => console.log(`${c.name} (${c.network})`));
 ### List Endpoints
 
 ```typescript
-const endpoints = await consoleApi<{ data: Array<{
+const endpoints = await adminApi<{ data: Array<{
   id: string;
   name: string;
   chain: string;
@@ -96,13 +96,13 @@ endpoints.data.forEach(ep =>
 
 ```typescript
 // Paginate with tag filter
-const filtered = await consoleApi('/endpoints?tag=production&page=1&per_page=10');
+const filtered = await adminApi('/endpoints?tag=production&page=1&per_page=10');
 ```
 
 ### Create Endpoint
 
 ```typescript
-const newEndpoint = await consoleApi('/endpoints', {
+const newEndpoint = await adminApi('/endpoints', {
   method: 'POST',
   body: JSON.stringify({
     name: 'my-eth-mainnet',
@@ -125,14 +125,14 @@ console.log('Created:', newEndpoint.http_url);
 ### Get Endpoint
 
 ```typescript
-const endpoint = await consoleApi(`/endpoints/${endpointId}`);
+const endpoint = await adminApi(`/endpoints/${endpointId}`);
 console.log(endpoint.http_url, endpoint.status);
 ```
 
 ### Update Endpoint
 
 ```typescript
-const updated = await consoleApi(`/endpoints/${endpointId}`, {
+const updated = await adminApi(`/endpoints/${endpointId}`, {
   method: 'PATCH',
   body: JSON.stringify({ name: 'renamed-endpoint' }),
 });
@@ -142,13 +142,13 @@ const updated = await consoleApi(`/endpoints/${endpointId}`, {
 
 ```typescript
 // Pause
-await consoleApi(`/endpoints/${endpointId}/status`, {
+await adminApi(`/endpoints/${endpointId}/status`, {
   method: 'PATCH',
   body: JSON.stringify({ status: 'paused' }),
 });
 
 // Unpause
-await consoleApi(`/endpoints/${endpointId}/status`, {
+await adminApi(`/endpoints/${endpointId}/status`, {
   method: 'PATCH',
   body: JSON.stringify({ status: 'active' }),
 });
@@ -157,17 +157,17 @@ await consoleApi(`/endpoints/${endpointId}/status`, {
 ### Archive (Delete) Endpoint
 
 ```typescript
-await consoleApi(`/endpoints/${endpointId}`, { method: 'DELETE' });
+await adminApi(`/endpoints/${endpointId}`, { method: 'DELETE' });
 ```
 
 ### Tags
 
 ```typescript
 // List tags on an endpoint
-const tags = await consoleApi(`/endpoints/${endpointId}/tags`);
+const tags = await adminApi(`/endpoints/${endpointId}/tags`);
 
 // Add tags
-await consoleApi(`/endpoints/${endpointId}/tags`, {
+await adminApi(`/endpoints/${endpointId}/tags`, {
   method: 'POST',
   body: JSON.stringify({ tags: ['production', 'critical'] }),
 });
@@ -178,7 +178,7 @@ await consoleApi(`/endpoints/${endpointId}/tags`, {
 Retrieve performance metrics for an endpoint.
 
 ```typescript
-const metrics = await consoleApi<{ data: {
+const metrics = await adminApi<{ data: {
   total_requests: number;
   success_rate: number;
   avg_latency_ms: number;
@@ -202,7 +202,7 @@ console.log('Avg latency:', metrics.data.avg_latency_ms, 'ms');
 ### Get Method Rate Limits
 
 ```typescript
-const methodLimits = await consoleApi(
+const methodLimits = await adminApi(
   `/endpoints/${endpointId}/method-rate-limits`
 );
 console.log(methodLimits);
@@ -213,7 +213,7 @@ console.log(methodLimits);
 Restrict specific RPC methods on an endpoint.
 
 ```typescript
-await consoleApi(`/endpoints/${endpointId}/method-rate-limits`, {
+await adminApi(`/endpoints/${endpointId}/method-rate-limits`, {
   method: 'POST',
   body: JSON.stringify({
     method_rate_limits: [
@@ -235,7 +235,7 @@ await consoleApi(`/endpoints/${endpointId}/method-rate-limits`, {
 ### Set Global Rate Limits
 
 ```typescript
-await consoleApi(`/endpoints/${endpointId}/rate-limits`, {
+await adminApi(`/endpoints/${endpointId}/rate-limits`, {
   method: 'PUT',
   body: JSON.stringify({
     rps: 100,   // requests per second
@@ -258,7 +258,7 @@ await consoleApi(`/endpoints/${endpointId}/rate-limits`, {
 Retrieve security configuration for an endpoint.
 
 ```typescript
-const security = await consoleApi(
+const security = await adminApi(
   `/endpoints/${endpointId}/security_options`
 );
 console.log(security);
@@ -278,7 +278,7 @@ console.log(security);
 ### Total RPC Usage
 
 ```typescript
-const usage = await consoleApi<{ data: {
+const usage = await adminApi<{ data: {
   total_requests: number;
   total_credits: number;
 } }>('/usage/rpc?start_time=2025-01-01T00:00:00Z&end_time=2025-01-31T23:59:59Z');
@@ -297,7 +297,7 @@ console.log('Credits used:', usage.data.total_credits);
 ### Usage by Endpoint
 
 ```typescript
-const byEndpoint = await consoleApi(
+const byEndpoint = await adminApi(
   '/usage/rpc/by-endpoint?start_time=2025-01-01T00:00:00Z&end_time=2025-01-31T23:59:59Z'
 );
 ```
@@ -305,7 +305,7 @@ const byEndpoint = await consoleApi(
 ### Usage by Method
 
 ```typescript
-const byMethod = await consoleApi(
+const byMethod = await adminApi(
   '/usage/rpc/by-method?start_time=2025-01-01T00:00:00Z&end_time=2025-01-31T23:59:59Z'
 );
 ```
@@ -313,7 +313,7 @@ const byMethod = await consoleApi(
 ### Usage by Chain
 
 ```typescript
-const byChain = await consoleApi(
+const byChain = await adminApi(
   '/usage/rpc/by-chain?start_time=2025-01-01T00:00:00Z&end_time=2025-01-31T23:59:59Z'
 );
 ```
@@ -323,7 +323,7 @@ const byChain = await consoleApi(
 Retrieve invoice history.
 
 ```typescript
-const invoices = await consoleApi<{ data: Array<{
+const invoices = await adminApi<{ data: Array<{
   id: string;
   amount: number;
   currency: string;
@@ -342,7 +342,7 @@ invoices.data.forEach(inv =>
 List team members and roles.
 
 ```typescript
-const teams = await consoleApi<{ data: Array<{
+const teams = await adminApi<{ data: Array<{
   id: string;
   name: string;
   members: Array<{
@@ -363,7 +363,7 @@ teams.data.forEach(team => {
 Query request logs for an endpoint. Available on Enterprise plans.
 
 ```typescript
-const logs = await consoleApi<{ data: Array<{
+const logs = await adminApi<{ data: Array<{
   timestamp: string;
   method: string;
   status_code: number;
@@ -408,8 +408,8 @@ Returns metrics in Prometheus exposition format, suitable for scraping.
 
 ## Documentation
 
-- **Console API Docs**: https://www.quicknode.com/docs/console-api
-- **Console API Docs (llms.txt)**: https://www.quicknode.com/docs/console-api/llms.txt
+- **Admin API Docs**: https://www.quicknode.com/docs/admin-api
+- **Admin API Docs (llms.txt)**: https://www.quicknode.com/docs/admin-api/llms.txt
 - **Quicknode Dashboard**: https://dashboard.quicknode.com/
 - **API Key Management**: https://dashboard.quicknode.com/settings/api-keys
-- **Guides**: https://www.quicknode.com/guides/tags/console-api
+- **Guides**: https://www.quicknode.com/guides/tags/admin-api
