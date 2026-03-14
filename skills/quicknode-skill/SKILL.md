@@ -180,7 +180,7 @@ const response = await fetch(process.env.QUICKNODE_RPC_URL!, {
 // Get recommended priority fees
 const response = await rpc.request('qn_estimatePriorityFees', {
   last_n_blocks: 100,
-  account: 'YOUR_ACCOUNT'
+  account: '<your-account>'
 }).send();
 ```
 
