@@ -483,13 +483,13 @@ import { Core } from '@quicknode/sdk';
 
 const chains = {
   ethereum: new Core({
-    endpointUrl: 'https://YOUR_ETH_ENDPOINT.quiknode.pro/KEY/'
+    endpointUrl: 'https://<your-eth-endpoint>.quiknode.pro/<key>/'
   }),
   polygon: new Core({
-    endpointUrl: 'https://YOUR_POLYGON_ENDPOINT.quiknode.pro/KEY/'
+    endpointUrl: 'https://<your-polygon-endpoint>.quiknode.pro/<key>/'
   }),
   arbitrum: new Core({
-    endpointUrl: 'https://YOUR_ARB_ENDPOINT.quiknode.pro/KEY/'
+    endpointUrl: 'https://<your-arb-endpoint>.quiknode.pro/<key>/'
   }),
 };
 
