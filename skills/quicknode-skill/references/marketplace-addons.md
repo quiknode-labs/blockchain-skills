@@ -307,7 +307,7 @@ See [solana-das-api-reference.md](solana-das-api-reference.md) for complete DAS 
 
 Access Jupiter DEX aggregator for swaps via REST endpoints on your QuickNode Solana endpoint.
 
-> **Endpoint:** Set `QUICKNODE_METIS_URL` to your QuickNode Metis endpoint (e.g., `https://jupiter-swap-api.quiknode.pro/YOUR_TOKEN`). Enable the Metis - Jupiter V6 Swap API add-on in your QuickNode dashboard. Do not use the public Jupiter API for production — it has lower rate limits and no SLA.
+> **Endpoint:** Set `QUICKNODE_METIS_URL` to your QuickNode Metis endpoint (e.g., `https://jupiter-swap-api.quiknode.pro/<your-token>`). Enable the Metis - Jupiter V6 Swap API add-on in your QuickNode dashboard. Do not use the public Jupiter API for production — it has lower rate limits and no SLA.
 
 **Docs:** https://www.quicknode.com/docs/solana/metis-overview
 
@@ -369,7 +369,7 @@ High-performance streaming for Solana data.
 // Use gRPC client to connect
 
 const client = new YellowstoneClient({
-  endpoint: 'YOUR_GRPC_ENDPOINT',
+  endpoint: '<your-grpc-endpoint>',
   token: process.env.QUICKNODE_API_KEY!
 });
 

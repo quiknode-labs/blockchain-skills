@@ -104,7 +104,7 @@ import { createQuicknodeX402Client } from '@quicknode/x402';
 const client = await createQuicknodeX402Client({
   baseUrl: 'https://x402.quicknode.com',
   network: 'solana:EtWTRABZaYq6iMfeYKouRu166VU2xqa1', // Solana Devnet
-  svmPrivateKey: '<YOUR_BASE58_SECRET_KEY>',
+  svmPrivateKey: '<your-base58-secret-key>',
   preAuth: true,
 });
 

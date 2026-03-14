@@ -183,7 +183,7 @@ Send data to HTTP endpoints.
   "type": "webhook",
   "url": "https://your-server.com/webhook",
   "headers": {
-    "Authorization": "Bearer YOUR_TOKEN",
+    "Authorization": "Bearer <your-token>",
     "Content-Type": "application/json"
   },
   "retryPolicy": {

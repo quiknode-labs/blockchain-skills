@@ -65,7 +65,7 @@ const rpc = createSolanaRpc(process.env.QUICKNODE_RPC_URL!);
 
 Quicknode endpoints include authentication in the URL:
 ```
-https://{ENDPOINT_NAME}.{NETWORK}.quiknode.pro/{API_KEY}/
+https://<your-endpoint-name>.<network>.quiknode.pro/<your-api-key>/
 ```
 
 For additional security, enable JWT authentication or IP allowlisting in the Quicknode dashboard.
