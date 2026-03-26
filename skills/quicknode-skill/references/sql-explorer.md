@@ -26,13 +26,13 @@ To use SQL Explorer REST API, you need a Quicknode API key:
 
 ### Complete Working Example
 
-Here's a complete cURL example that works out of the box (just replace `YOUR_API_KEY`):
+Here's a complete cURL example that works out of the box (just replace `<your-api-key>`):
 
 ```bash
 curl -X POST 'https://api.quicknode.com/sql/rest/v1/query' \
   -H 'accept: application/json' \
   -H 'Content-Type: application/json' \
-  -H 'x-api-key: YOUR_API_KEY' \
+  -H 'x-api-key: <your-api-key>' \
   -d '{
     "query": "SELECT toDateTime(block_time) AS block_time, tid, coin, side, px AS price, sz AS size, user, fee FROM hyperliquid_trades ORDER BY block_time DESC LIMIT 10",
     "clusterId": "hyperliquid-core-mainnet"
@@ -45,7 +45,7 @@ curl -X POST 'https://api.quicknode.com/sql/rest/v1/query' \
 |-----------|-------|-------------|
 | **Endpoint** | `https://api.quicknode.com/sql/rest/v1/query` | SQL Explorer REST API endpoint |
 | **Method** | `POST` | HTTP method |
-| **Header** | `x-api-key: YOUR_API_KEY` | Your Quicknode API key for authentication |
+| **Header** | `x-api-key: <your-api-key>` | Your Quicknode API key for authentication |
 | **Header** | `Content-Type: application/json` | Request content type |
 | **Body** | `query` | SQL query string to execute |
 | **Body** | `clusterId` | Blockchain network identifier |
@@ -122,7 +122,7 @@ This ensures queries work before integrating into code.
 **For AI Agents using this reference:**
 
 1. **Query Selection**: Use the "Common Use Case Mappings" table to quickly find relevant queries for user requests
-2. **Parameter Substitution**: Look for `Parameters:` line under each query - replace placeholders like `0xYOUR_ADDRESS`, `BTC`, `YOUR_VALIDATOR` with actual values
+2. **Parameter Substitution**: Look for `Parameters:` line under each query - replace placeholders like `<user-address>`, `<coin-name>`, `<validator-address>` with actual values
 3. **Keywords**: Each query lists keywords - use these for semantic search and query discovery
 4. **Sort Keys**: Queries using sort key columns (marked with ⚡) run significantly faster - prioritize these when possible
 5. **Time Filters**: Always add time filters for better performance and cost efficiency
@@ -784,7 +784,7 @@ LIMIT 100
 
 **2. Trades by User** - Get trade history for specific user address
 **Keywords:** `user`, `trades`, `address`, `history`, `pnl`
-**Parameters:** `user` address (replace `0xYOUR_ADDRESS`)
+**Parameters:** `user` address (replace `<user-address>`)
 ```sql
 SELECT
   toDateTime(time) AS time,
@@ -795,14 +795,14 @@ SELECT
   fee,
   closed_pnl
 FROM hyperliquid_trades
-WHERE user = '0xYOUR_ADDRESS'
+WHERE user = '<user-address>'
 ORDER BY time DESC
 LIMIT 100
 ```
 
 **3. Trades by Trading Pair** - Get trades for specific trading pair/market
 **Keywords:** `market`, `pair`, `coin`, `symbol`, `asset`
-**Parameters:** `coin` name (replace `BTC` with desired pair)
+**Parameters:** `coin` name (replace `<coin-name>` with desired pair)
 ```sql
 SELECT
   toDateTime(time) AS time,
@@ -916,7 +916,7 @@ LIMIT 100
 
 **9. Fills by User** - Order fills for specific user address
 **Keywords:** `user`, `fills`, `address`, `history`, `executions`
-**Parameters:** `user` address (replace `0xYOUR_ADDRESS`)
+**Parameters:** `user` address (replace `<user-address>`)
 ```sql
 SELECT
   toDateTime(time) AS time,
@@ -928,7 +928,7 @@ SELECT
   fee,
   closed_pnl
 FROM hyperliquid_fills
-WHERE user = '0xYOUR_ADDRESS'
+WHERE user = '<user-address>'
 ORDER BY time DESC
 LIMIT 100
 ```
@@ -972,7 +972,7 @@ LIMIT 100
 
 **12. Active Orders by User** - Active orders for specific user address
 **Keywords:** `user`, `orders`, `open`, `active`, `address`
-**Parameters:** `user` address (replace `0xYOUR_ADDRESS`)
+**Parameters:** `user` address (replace `<user-address>`)
 ```sql
 SELECT
   toDateTime(timestamp) AS timestamp,
@@ -983,7 +983,7 @@ SELECT
   oid AS order_id,
   cloid AS client_order_id
 FROM hyperliquid_orders
-WHERE user = '0xYOUR_ADDRESS'
+WHERE user = '<user-address>'
 ORDER BY timestamp DESC
 LIMIT 100
 ```
@@ -1008,7 +1008,7 @@ LIMIT 100
 
 **14. Funding by User** - Funding payments for specific user address
 **Keywords:** `user`, `funding`, `address`, `payments`, `history`
-**Parameters:** `user` address (replace `0xYOUR_ADDRESS`)
+**Parameters:** `user` address (replace `<user-address>`)
 ```sql
 SELECT
   toDateTime(time) AS time,
@@ -1017,7 +1017,7 @@ SELECT
   funding_rate,
   szi AS position_size
 FROM hyperliquid_user_funding
-WHERE user = '0xYOUR_ADDRESS'
+WHERE user = '<user-address>'
 ORDER BY time DESC
 LIMIT 100
 ```
@@ -1056,7 +1056,7 @@ LIMIT 100
 
 **17. Ledger Updates by User** - Balance updates for specific user address
 **Keywords:** `ledger`, `balance`, `user`, `address`, `updates`, `deposits`, `withdrawals`
-**Parameters:** `user` address (replace `0xYOUR_ADDRESS`)
+**Parameters:** `user` address (replace `<user-address>`)
 ```sql
 SELECT
   toDateTime(time) AS time,
@@ -1064,7 +1064,7 @@ SELECT
   delta,
   hash
 FROM hyperliquid_ledger_updates
-WHERE user = '0xYOUR_ADDRESS'
+WHERE user = '<user-address>'
 ORDER BY time DESC
 LIMIT 100
 ```
@@ -1097,7 +1097,7 @@ ORDER BY name
 
 **20. Order Book Depth** - Order book depth and liquidity for specific market
 **Keywords:** `orderbook`, `depth`, `liquidity`, `bids`, `asks`, `levels`
-**Parameters:** `coin` name (replace `BTC`)
+**Parameters:** `coin` name (replace `<coin-name>`)
 ```sql
 SELECT
   coin,
@@ -1146,14 +1146,14 @@ LIMIT 50
 
 **23. Delegations by Validator** - Delegations for specific validator address
 **Keywords:** `delegations`, `staking`, `validator`, `delegators`, `stakes`
-**Parameters:** `validator_address` (replace `YOUR_VALIDATOR`)
+**Parameters:** `validator_address` (replace `<validator-address>`)
 ```sql
 SELECT
   delegator_address,
   delegation_amount,
   toDateTime(snapshot_time) AS snapshot_time
 FROM hyperliquid_staking_delegations
-WHERE validator_address = 'YOUR_VALIDATOR'
+WHERE validator_address = '<validator-address>'
 ORDER BY toFloat64(delegation_amount) DESC
 LIMIT 100
 ```
@@ -1179,7 +1179,7 @@ LIMIT 100
 
 **25. Hourly Market Volume** - Hourly volume time series for specific market
 **Keywords:** `volume`, `hourly`, `timeseries`, `chart`, `history`, `analytics`
-**Parameters:** `coin` name (replace `BTC`)
+**Parameters:** `coin` name (replace `<coin-name>`)
 ```sql
 SELECT
   toDateTime(hour) AS hour,
@@ -1533,7 +1533,7 @@ Query execution metrics:
 curl -X POST 'https://api.quicknode.com/sql/rest/v1/query' \
   -H 'accept: application/json' \
   -H 'Content-Type: application/json' \
-  -H 'x-api-key: YOUR_API_KEY' \
+  -H 'x-api-key: <your-api-key>' \
   -d '{
     "query": "SELECT * FROM hyperliquid_trades ORDER BY block_time DESC LIMIT 10",
     "clusterId": "hyperliquid-core-mainnet"
@@ -1548,7 +1548,7 @@ const response = await fetch('https://api.quicknode.com/sql/rest/v1/query', {
   headers: {
     'accept': 'application/json',
     'Content-Type': 'application/json',
-    'x-api-key': 'YOUR_API_KEY'
+    'x-api-key': '<your-api-key>'
   },
   body: JSON.stringify({
     query: 'SELECT * FROM hyperliquid_trades ORDER BY block_time DESC LIMIT 10',
@@ -1576,7 +1576,7 @@ payload = {
 headers = {
     "accept": "application/json",
     "Content-Type": "application/json",
-    "x-api-key": "YOUR_API_KEY"
+    "x-api-key": "<your-api-key>"
 }
 
 response = requests.post(url, json=payload, headers=headers)
@@ -1594,7 +1594,7 @@ uri = URI('https://api.quicknode.com/sql/rest/v1/query')
 request = Net::HTTP::Post.new(uri)
 request['accept'] = 'application/json'
 request['Content-Type'] = 'application/json'
-request['x-api-key'] = 'YOUR_API_KEY'
+request['x-api-key'] = '<your-api-key>'
 
 request.body = {
   query: 'SELECT * FROM hyperliquid_trades ORDER BY block_time DESC LIMIT 10',
@@ -1633,7 +1633,7 @@ func main() {
     req, _ := http.NewRequest("POST", url, bytes.NewBuffer(jsonData))
     req.Header.Set("accept", "application/json")
     req.Header.Set("Content-Type", "application/json")
-    req.Header.Set("x-api-key", "YOUR_API_KEY")
+    req.Header.Set("x-api-key", "<your-api-key>")
 
     client := &http.Client{}
     resp, _ := client.Do(req)
