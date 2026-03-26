@@ -20,7 +20,7 @@ When an AI agent loads a skill, it gains the ability to help you build, deploy, 
 
 | Skill | Description |
 |-------|-------------|
-| `quicknode-skill` | Quicknode infrastructure - RPC endpoints (80+ chains), Streams, Webhooks, IPFS, Add-ons, Yellowstone gRPC, Hypercore, x402, Key-Value Store, SDK, Admin API |
+| `quicknode-skill` | Quicknode infrastructure - RPC endpoints (80+ chains), Streams, Webhooks, IPFS, Add-ons, Yellowstone gRPC, Hypercore, SQL Explorer, x402, Key-Value Store, SDK, Admin API |
 
 ## Installation
 
@@ -38,6 +38,10 @@ Once installed, you can use natural language prompts to interact with Quicknode'
 - "Create a filter for large USDC transfers"
 - "Get the SOL balance for this wallet address"
 - "Check the ETH balance across multiple wallets"
+- "Query recent trades on Hyperliquid for BTC"
+- "Show me whale trades above $500k notional"
+- "Get liquidation data for the last 24 hours"
+
 ## Quicknode Integration
 
 This repository leverages Quicknode's infrastructure for reliable blockchain access:
@@ -55,6 +59,14 @@ Real-time blockchain data delivery:
 - Block and transaction streaming
 - Custom filters and transformations
 - Webhook destinations
+
+### SQL Explorer
+
+Direct SQL access to indexed blockchain data:
+- Query 371.9B+ rows of Hyperliquid (HyperCore) data
+- Standard SQL syntax with 26 pre-built queries
+- Trading, orders, fills, funding, liquidations, market data
+- REST API for programmatic access
 
 ### Add-ons
 
