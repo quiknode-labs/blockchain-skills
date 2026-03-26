@@ -44,8 +44,8 @@ Payment channels for high-frequency access:
 
 | Endpoint | Method | Description |
 |----------|--------|-------------|
-| `/:network/*` | POST | Charge-based JSON-RPC proxy |
-| `/session/:network/*` | POST | Session-based JSON-RPC proxy |
+| `/:network/*` | POST | Charge-based JSON-RPC and REST proxy |
+| `/session/:network/*` | POST | Session-based JSON-RPC and REST proxy |
 | `/llms.txt` | GET | Machine-readable documentation |
 
 Replace `:network` with slugs like `tempo-mainnet`, `ethereum-mainnet`, `solana-mainnet`, etc.
