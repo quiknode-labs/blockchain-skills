@@ -64,7 +64,7 @@ Real-time blockchain data delivery:
 
 Direct SQL access to indexed blockchain data:
 - Query 371.9B+ rows of Hyperliquid (HyperCore) data
-- Standard SQL syntax with 26 pre-built queries
+- Standard SQL syntax with pre-built queries
 - Trading, orders, fills, funding, liquidations, market data
 - REST API for programmatic access
 

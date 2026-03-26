@@ -1,12 +1,28 @@
 # Quicknode SQL Explorer Reference
 
-Direct SQL access to indexed blockchain data without infrastructure. Query billions of rows of on-chain data using standard SQL syntax through a REST API.
+Direct SQL access to indexed blockchain data without infrastructure. Query billions of rows of on-chain data using standard SQL syntax.
+
+## Access Methods
+
+SQL Explorer can be accessed in two ways:
+
+### 1. Dashboard UI (Interactive)
+Web-based SQL editor with syntax highlighting, schema browser, pre-built queries, and visualization tools. Access at [https://dashboard.quicknode.com/sql](https://dashboard.quicknode.com/sql)
+
+### 2. REST API (Programmatic)
+Execute SQL queries via HTTP POST for automation and integration. This is the recommended approach for AI agents and programmatic access.
+
+```
+POST https://api.quicknode.com/sql/rest/v1/query
+```
+
+**For AI Agents:** This reference focuses on REST API usage. Use the Dashboard UI only for obtaining your API key.
 
 ## Architecture
 
 ```
 SQL Query → REST API → ClickHouse → Indexed Blockchain Data → JSON Response
-            (Auth)     (Query Engine)  (371.9B+ rows)
+            (Auth)     (Query Engine)  
 ```
 
 ## Quick Start
@@ -34,9 +50,9 @@ curl -X POST 'https://api.quicknode.com/sql/rest/v1/query' \
   -H 'Content-Type: application/json' \
   -H 'x-api-key: <your-api-key>' \
   -d '{
-    "query": "SELECT toDateTime(block_time) AS block_time, tid, coin, side, px AS price, sz AS size, user, fee FROM hyperliquid_trades ORDER BY block_time DESC LIMIT 10",
-    "clusterId": "hyperliquid-core-mainnet"
-  }'
+  "query": "SELECT timestamp, coin, side, price, size, price * size AS notional_usd, buyer_address, seller_address, buyer_fee, seller_fee, fee_token FROM hyperliquid_trades WHERE block_time > now() - INTERVAL 1 HOUR ORDER BY block_number DESC, trade_id DESC LIMIT 3",
+  "clusterId": "hyperliquid-core-mainnet"
+}'
 ```
 
 **Request Breakdown:**
@@ -59,41 +75,63 @@ curl -X POST 'https://api.quicknode.com/sql/rest/v1/query' \
 {
   "data": [
     {
-      "block_time": "2025-03-26 10:30:45",
-      "tid": 123456789,
+      "timestamp": "2026-03-25 10:45:23.000",
       "coin": "BTC",
-      "side": "buy",
-      "price": "65000.50",
-      "size": "1.5",
-      "user": "0x1234567890abcdef1234567890abcdef12345678",
-      "fee": "4.875"
+      "side": "B",
+      "price": "95432.500000000000000000",
+      "size": "0.150000000000000000",
+      "notional_usd": "14314.875000000000000000000000000000000000",
+      "buyer_address": "0x742d35Cc6634C0532925a3b844Bc9e7595f0bEb",
+      "seller_address": "0x8dF3aad3a84da6b69A4DA8aeC3eA40d9091B2Ac",
+      "buyer_fee": "7.156437500000000000",
+      "seller_fee": "7.156437500000000000",
+      "fee_token": "USDC"
     },
     {
-      "block_time": "2025-03-26 10:30:42",
-      "tid": 123456788,
+      "timestamp": "2026-03-25 10:45:18.000",
       "coin": "ETH",
-      "side": "sell",
-      "price": "3250.75",
-      "size": "10.2",
-      "user": "0xabcdefabcdefabcdefabcdefabcdefabcdefabcd",
-      "fee": "2.456"
+      "side": "A",
+      "price": "3245.750000000000000000",
+      "size": "2.500000000000000000",
+      "notional_usd": "8114.375000000000000000000000000000000000",
+      "buyer_address": "0x1a2B3c4D5e6F7a8b9C0d1E2f3A4b5C6d7E8f9A0",
+      "seller_address": "0x9f8e7D6c5B4a3F2e1D0c9B8a7F6e5D4c3B2a1F0",
+      "buyer_fee": "4.057187500000000000",
+      "seller_fee": "4.057187500000000000",
+      "fee_token": "USDC"
+    },
+    {
+      "timestamp": "2026-03-25 10:45:12.000",
+      "coin": "SOL",
+      "side": "B",
+      "price": "142.350000000000000000",
+      "size": "50.000000000000000000",
+      "notional_usd": "7117.500000000000000000000000000000000000",
+      "buyer_address": "0x5a6B7c8D9e0F1a2b3C4d5E6f7A8b9C0d1E2f3A4",
+      "seller_address": "0x4f3E2d1C0b9A8f7E6d5C4b3A2f1E0d9C8b7A6f5",
+      "buyer_fee": "3.558750000000000000",
+      "seller_fee": "3.558750000000000000",
+      "fee_token": "USDC"
     }
   ],
   "meta": [
-    {"name": "block_time", "type": "DateTime"},
-    {"name": "tid", "type": "UInt64"},
-    {"name": "coin", "type": "String"},
-    {"name": "side", "type": "String"},
-    {"name": "price", "type": "String"},
-    {"name": "size", "type": "String"},
-    {"name": "user", "type": "FixedString(42)"},
-    {"name": "fee", "type": "String"}
+    {"name": "timestamp", "type": "DateTime64(3, 'UTC')"},
+    {"name": "coin", "type": "LowCardinality(String)"},
+    {"name": "side", "type": "Enum8('B' = 1, 'A' = 2)"},
+    {"name": "price", "type": "Decimal(38, 18)"},
+    {"name": "size", "type": "Decimal(38, 18)"},
+    {"name": "notional_usd", "type": "Decimal(38, 36)"},
+    {"name": "buyer_address", "type": "FixedString(42)"},
+    {"name": "seller_address", "type": "FixedString(42)"},
+    {"name": "buyer_fee", "type": "Decimal(38, 18)"},
+    {"name": "seller_fee", "type": "Decimal(38, 18)"},
+    {"name": "fee_token", "type": "LowCardinality(String)"}
   ],
-  "rows": 10,
+  "rows": 3,
   "statistics": {
-    "elapsed": 0.089,
-    "rows_read": 47400000,
-    "bytes_read": 2800000
+    "elapsed": 0.042,
+    "rows_read": 15847,
+    "bytes_read": 2456789
   }
 }
 ```
@@ -109,13 +147,18 @@ curl -X POST 'https://api.quicknode.com/sql/rest/v1/query' \
 
 ### Testing Your Query
 
-**Recommended workflow for agents:**
+**For AI Agents:**
 
-1. **Build and test in UI**: Use [SQL Explorer Dashboard](https://dashboard.quicknode.com/sql) to write and test your query
-2. **Get API code**: Click the **API** button in the UI to generate the exact cURL command
-3. **Execute programmatically**: Use the generated code in your application
+Execute queries directly via the REST API. Start with simple queries and add complexity as needed:
 
-This ensures queries work before integrating into code.
+```bash
+curl -X POST 'https://api.quicknode.com/sql/rest/v1/query' \
+  -H 'x-api-key: <your-api-key>' \
+  -H 'Content-Type: application/json' \
+  -d '{"query": "...", "clusterId": "hyperliquid-core-mainnet"}'
+```
+
+Check the `statistics` field in the response to monitor query performance (elapsed time, rows_read, bytes_read).
 
 ## Agent Usage Guide
 
@@ -132,11 +175,9 @@ This ensures queries work before integrating into code.
 
 ## Supported Networks
 
-| Chain | Network | Tables | Total Rows | Coverage |
-|-------|---------|--------|------------|----------|
-| Hyperliquid (HyperCore) | Mainnet | 37 | 371.9B+ | Trades, orders, fills, funding, order book diffs, perpetual markets, spot markets, blocks, transactions, system actions, builder activity, staking, ledger, clearinghouse states, oracle prices, referrals, sub-accounts, vault equities, agents, bridge events, display names, hourly metrics, daily metrics |
-
-Cluster ID: `hyperliquid-core-mainnet`
+| Chain | Network | Cluster ID | Tables | Coverage |
+|-------|---------|------------|--------|----------|
+| Hyperliquid (HyperCore) | Mainnet | `hyperliquid-core-mainnet` | 37 | Trades, orders, fills, funding, order book diffs, perpetual markets, spot markets, blocks, transactions, system actions, builder activity, staking, ledger, clearinghouse states, oracle prices, referrals, sub-accounts, vault equities, agents, bridge events, display names, hourly metrics, daily metrics |
 
 ## REST API
 
@@ -163,540 +204,869 @@ Include API key in `x-api-key` header with every request.
 
 ```json
 {
-  "data": [
-    {
-      "block_time": "2025-03-25 10:30:45",
-      "action_type": "swap",
-      "user": "0x1234...",
-      "evm_transaction_hash": "0xabcd..."
+    "meta": [
+        {
+            "name": "block_number",
+            "type": "UInt64"
+        },
+        {
+            "name": "block_time",
+            "type": "DateTime64(6, 'UTC')"
+        }
+    ],
+    "data": [
+        {
+            "block_number": 936231661,
+            "block_time": "2026-03-26 19:45:01.625244",
+            "trade_id": 496316863559640,
+            "coin": "cash:HOOD",
+            "timestamp": "2026-03-26 19:45:01.625",
+            "transaction_hash": "0x0fd9a48c5a19906511530437cdc2ed0205c00071f51caf37b3a24fdf191d6a4f",
+            "price": 70.495,
+            "size": 0.709,
+            "side": "A",
+            "buyer_address": "0xcee1cc9b396bde5944482f64f3e18be7b8d5df73",
+            "buyer_order_id": 362256178610,
+            "buyer_fee": -0.000149,
+            "buyer_closed_pnl": 0,
+            "buyer_start_position": 305.417,
+            "buyer_crossed": 0,
+            "buyer_dir": "Open Long",
+            "buyer_twap_id": null,
+            "buyer_builder_address": null,
+            "buyer_builder_fee": null,
+            "seller_address": "0x399965e15d4e61ec3529cc98b7f7ebb93b733336",
+            "seller_order_id": 362256236744,
+            "seller_fee": 0.001679,
+            "seller_closed_pnl": -0.005672,
+            "seller_start_position": 35.543,
+            "seller_crossed": 1,
+            "seller_dir": "Close Long",
+            "seller_twap_id": null,
+            "seller_builder_address": "0x4950994884602d1b6c6d96e4fe30f58205c39395",
+            "seller_builder_fee": null,
+            "fee_token": "USDT0",
+            "total_builder_fee": null,
+            "liquidated_user": null,
+            "liquidation_mark_price": null,
+            "liquidation_method": null,
+            "indexed_at": "2026-03-26 19:45:02.580"
+        }
+    ],
+    "rows": 10,
+    "rows_before_limit_at_least": 892148168,
+    "statistics": {
+        "elapsed": 1.269332554,
+        "rows_read": 892148586,
+        "bytes_read": 14274604630
     }
-  ],
-  "meta": [
-    {"name": "block_time", "type": "DateTime"},
-    {"name": "action_type", "type": "String"},
-    {"name": "user", "type": "String"},
-    {"name": "evm_transaction_hash", "type": "String"}
-  ],
-  "rows": 1,
-  "statistics": {
-    "elapsed": 0.156,
-    "rows_read": 1000000,
-    "bytes_read": 50000000
-  }
 }
 ```
 
-## Available Tables (37)
+## Available Tables
 
 ### Trading Tables
 
 #### hyperliquid_trades
-**Rows:** 47.4B | **Sort Keys:** ⚡ block_number, tid, user | **Partition:** toYYYYMM(block_time)
+**Sort Keys:** ⚡ block_number, trade_id | **Partition:** toYYYYMM(block_time)
 
 Individual trade executions on Hyperliquid.
 
 | Column | Type | Sort Key | Description |
 |--------|------|----------|-------------|
-| block_number | UInt64 | Yes | Block number |
-| block_time | DateTime | No | Block timestamp |
-| tid | UInt64 | Yes | Trade ID |
-| time | DateTime | No | Trade timestamp |
-| coin | String | No | Trading pair |
-| side | String | No | Trade side (buy/sell) |
-| px | String | No | Execution price |
-| sz | String | No | Trade size |
-| hash | FixedString(66) | No | Transaction hash |
-| fee | String | No | Trading fee |
-| fee_token | String | No | Fee token |
-| crossed | Bool | No | Crossed spread |
-| user | FixedString(42) | Yes | User address |
-| dir | String | No | Direction |
-| start_position | String | No | Starting position size |
-| closed_pnl | String | No | Closed PnL |
-| builder_address | Nullable(FixedString(42)) | No | Builder address |
-| builder_fee | String | No | Builder fee |
-| indexed_at | DateTime | No | Indexing timestamp |
+| block_number | UInt64 | Yes | Block Number |
+| block_time | DateTime | No | Block Time |
+| trade_id | UInt64 | Yes | Trade Id |
+| coin | String | No | Coin |
+| timestamp | DateTime | No | Timestamp |
+| transaction_hash | FixedString | No | Transaction Hash |
+| price | Decimal | No | Price |
+| size | Decimal | No | Size |
+| side | Enum | No | Side |
+| buyer_address | FixedString | No | Buyer Address |
+| buyer_order_id | UInt64 | No | Buyer Order Id |
+| buyer_fee | Decimal | No | Buyer Fee |
+| buyer_closed_pnl | Decimal | No | Buyer Closed Pnl |
+| buyer_start_position | Decimal | No | Buyer Start Position |
+| buyer_crossed | UInt64 | No | Buyer Crossed |
+| buyer_dir | String | No | Buyer Dir |
+| buyer_twap_id | UInt64 | No | Buyer Twap Id |
+| buyer_builder_address | FixedString | No | Buyer Builder Address |
+| buyer_builder_fee | Decimal | No | Buyer Builder Fee |
+| seller_address | FixedString | No | Seller Address |
+| seller_order_id | UInt64 | No | Seller Order Id |
+| seller_fee | Decimal | No | Seller Fee |
+| seller_closed_pnl | Decimal | No | Seller Closed Pnl |
+| seller_start_position | Decimal | No | Seller Start Position |
+| seller_crossed | UInt64 | No | Seller Crossed |
+| seller_dir | String | No | Seller Dir |
+| seller_twap_id | UInt64 | No | Seller Twap Id |
+| seller_builder_address | FixedString | No | Seller Builder Address |
+| seller_builder_fee | Decimal | No | Seller Builder Fee |
+| fee_token | String | No | Fee Token |
+| total_builder_fee | Decimal | No | Total Builder Fee |
+| liquidated_user | FixedString | No | Liquidated User |
+| liquidation_mark_price | Decimal | No | Liquidation Mark Price |
+| liquidation_method | String | No | Liquidation Method |
+| unique_id | String | No | Unique Id |
+| indexed_at | DateTime | No | Indexed At |
 
 #### hyperliquid_fills
-**Rows:** 47.4B | **Sort Keys:** ⚡ block_number, time, user | **Partition:** toYYYYMM(block_time)
+**Sort Keys:** ⚡ block_number, tid, user | **Partition:** toYYYYMM(block_time)
 
 Order fills with execution details.
 
 | Column | Type | Sort Key | Description |
 |--------|------|----------|-------------|
-| block_number | UInt64 | Yes | Block number |
-| block_time | DateTime | No | Block timestamp |
-| time | DateTime | Yes | Fill timestamp |
-| coin | String | No | Trading pair |
-| px | String | No | Fill price |
-| sz | String | No | Fill size |
-| side | String | No | Side (buy/sell) |
-| user | FixedString(42) | Yes | User address |
-| hash | FixedString(66) | No | Transaction hash |
-| oid | UInt64 | No | Order ID |
-| crossed | Bool | No | Crossed spread |
-| fee | String | No | Trading fee |
-| tid | UInt64 | No | Trade ID |
-| start_position | String | No | Starting position |
-| dir | String | No | Direction |
-| closed_pnl | String | No | Closed PnL |
-| fee_token | String | No | Fee token |
-| builder_address | Nullable(FixedString(42)) | No | Builder address |
-| builder_fee | String | No | Builder fee |
-| liquidation_markup | String | No | Liquidation markup |
-| indexed_at | DateTime | No | Indexing timestamp |
+| block_number | UInt64 | Yes | Block Number |
+| block_time | DateTime | No | Block Time |
+| user | FixedString | Yes | User |
+| tid | UInt64 | Yes | Tid |
+| oid | UInt64 | No | Oid |
+| coin | String | No | Coin |
+| side | Enum | No | Side |
+| price | Decimal | No | Price |
+| size | Decimal | No | Size |
+| time | DateTime | No | Time |
+| dir | String | No | Dir |
+| crossed | UInt64 | No | Crossed |
+| fee | Decimal | No | Fee |
+| fee_token | String | No | Fee Token |
+| closed_pnl | Decimal | No | Closed Pnl |
+| start_position | Decimal | No | Start Position |
+| hash | FixedString | No | Hash |
+| twap_id | UInt64 | No | Twap Id |
+| builder | FixedString | No | Builder |
+| builder_fee | Decimal | No | Builder Fee |
+| cloid | String | No | Cloid |
+| is_liquidation | UInt64 | No | Is Liquidation |
+| liquidated_user | FixedString | No | Liquidated User |
+| liquidation_mark_price | Decimal | No | Liquidation Mark Price |
+| liquidation_method | String | No | Liquidation Method |
+| indexed_at | DateTime | No | Indexed At |
 
 #### hyperliquid_orders
-**Rows:** 52.2B | **Sort Keys:** ⚡ block_number, user, oid | **Partition:** toYYYYMM(block_time)
+**Sort Keys:** ⚡ block_number, oid, status_time | **Partition:** toYYYYMM(block_time)
 
-Order book orders and their status.
+Order placements, cancellations, and modifications.
 
 | Column | Type | Sort Key | Description |
 |--------|------|----------|-------------|
-| block_number | UInt64 | Yes | Block number |
-| block_time | DateTime | No | Block timestamp |
-| user | FixedString(42) | Yes | User address |
-| coin | String | No | Trading pair |
-| side | String | No | Order side |
-| limit_px | String | No | Limit price |
-| sz | String | No | Order size |
-| oid | UInt64 | Yes | Order ID |
-| timestamp | DateTime | No | Order timestamp |
-| orig_sz | String | No | Original size |
-| cloid | Nullable(String) | No | Client order ID |
-| indexed_at | DateTime | No | Indexing timestamp |
+| block_number | UInt64 | Yes | Block Number |
+| block_time | DateTime | No | Block Time |
+| oid | UInt64 | Yes | Oid |
+| user | FixedString | No | User |
+| coin | String | No | Coin |
+| side | Enum | No | Side |
+| status | String | No | Status |
+| order_type | String | No | Order Type |
+| limit_price | Decimal | No | Limit Price |
+| size | Decimal | No | Size |
+| orig_size | Decimal | No | Orig Size |
+| tif | String | No | Tif |
+| is_trigger | UInt64 | No | Is Trigger |
+| trigger_price | Decimal | No | Trigger Price |
+| trigger_condition | String | No | Trigger Condition |
+| reduce_only | UInt64 | No | Reduce Only |
+| is_position_tpsl | UInt64 | No | Is Position Tpsl |
+| children | String | No | Children |
+| cloid | String | No | Cloid |
+| hash | FixedString | No | Hash |
+| builder | String | No | Builder |
+| order_timestamp | DateTime | No | Order Timestamp |
+| status_time | DateTime | Yes | Status Time |
+| unique_id | String | No | Unique Id |
+| indexed_at | DateTime | No | Indexed At |
+
+#### hyperliquid_order_book_diffs
+**Sort Keys:** ⚡ coin, side, block_number, oid | **Partition:** toYYYYMM(block_time)
+
+Order book changes for reconstruction.
+
+| Column | Type | Sort Key | Description |
+|--------|------|----------|-------------|
+| block_number | UInt64 | Yes | Block Number |
+| block_time | DateTime | No | Block Time |
+| user | FixedString | No | User |
+| oid | UInt64 | Yes | Oid |
+| coin | String | Yes | Coin |
+| side | Enum | Yes | Side |
+| price | Decimal | No | Price |
+| diff_type | String | No | Diff Type |
+| size | Decimal | No | Size |
+| orig_size | Decimal | No | Orig Size |
+| new_size | Decimal | No | New Size |
+| indexed_at | DateTime | No | Indexed At |
+
+#### hyperliquid_dex_trades
+**Sort Keys:** ⚡ PARTITION BY: (not specified)
+
+DEX trades with full buyer/seller details.
+
+| Column | Type | Sort Key | Description |
+|--------|------|----------|-------------|
+| market_type | String | No | Market Type |
+| price | Decimal | No | Price |
+| size | Decimal | No | Size |
+| usd_amount | Decimal | No | Usd Amount |
+| side | Enum | No | Side |
+| buyer_address | FixedString | No | Buyer Address |
+| seller_address | FixedString | No | Seller Address |
+| trade_id | UInt64 | No | Trade Id |
+| timestamp | DateTime | No | Timestamp |
+| transaction_hash | FixedString | No | Transaction Hash |
+| block_number | UInt64 | No | Block Number |
+| block_time | DateTime | No | Block Time |
+| buyer_order_id | UInt64 | No | Buyer Order Id |
+| seller_order_id | UInt64 | No | Seller Order Id |
+| buyer_fee | Decimal | No | Buyer Fee |
+| seller_fee | Decimal | No | Seller Fee |
+| fee_token | String | No | Fee Token |
+| buyer_closed_pnl | Decimal | No | Buyer Closed Pnl |
+| seller_closed_pnl | Decimal | No | Seller Closed Pnl |
+| buyer_start_position | Decimal | No | Buyer Start Position |
+| seller_start_position | Decimal | No | Seller Start Position |
+| buyer_crossed | UInt64 | No | Buyer Crossed |
+| seller_crossed | UInt64 | No | Seller Crossed |
+| buyer_dir | String | No | Buyer Dir |
+| seller_dir | String | No | Seller Dir |
+| buyer_twap_id | UInt64 | No | Buyer Twap Id |
+| seller_twap_id | UInt64 | No | Seller Twap Id |
+| buyer_builder_address | FixedString | No | Buyer Builder Address |
+| seller_builder_address | FixedString | No | Seller Builder Address |
+| buyer_builder_fee | Decimal | No | Buyer Builder Fee |
+| seller_builder_fee | Decimal | No | Seller Builder Fee |
+| total_builder_fee | Decimal | No | Total Builder Fee |
+| liquidated_user | FixedString | No | Liquidated User |
+| liquidation_mark_price | Decimal | No | Liquidation Mark Price |
+| liquidation_method | String | No | Liquidation Method |
+| unique_id | String | No | Unique Id |
+| indexed_at | DateTime | No | Indexed At |
 
 ### Market Tables
 
-#### hyperliquid_perp_markets
-**Rows:** 2.9M | **Sort Keys:** ⚡ block_number, name | **Partition:** toYYYYMM(snapshot_time)
+#### hyperliquid_perpetual_markets
+**Sort Keys:** ⚡ coin
 
-Perpetual futures market data.
+Perpetual market configurations.
 
 | Column | Type | Sort Key | Description |
 |--------|------|----------|-------------|
-| block_number | UInt64 | Yes | Block number |
-| snapshot_time | DateTime | No | Snapshot timestamp |
-| name | String | Yes | Market name |
-| szDecimals | UInt8 | No | Size decimals |
-| indexed_at | DateTime | No | Indexing timestamp |
+| coin | String | Yes | Coin |
+| max_leverage | UInt64 | No | Max Leverage |
+| sz_decimals | UInt64 | No | Sz Decimals |
+| margin_table_id | UInt64 | No | Margin Table Id |
+| only_isolated | UInt64 | No | Only Isolated |
+| updated_at | DateTime | No | Updated At |
 
 #### hyperliquid_spot_markets
-**Rows:** 11.6M | **Sort Keys:** ⚡ block_number, name | **Partition:** toYYYYMM(snapshot_time)
+**Sort Keys:** ⚡ token_index
 
-Spot market data.
-
-| Column | Type | Sort Key | Description |
-|--------|------|----------|-------------|
-| block_number | UInt64 | Yes | Block number |
-| snapshot_time | DateTime | No | Snapshot timestamp |
-| name | String | Yes | Market name |
-| tokens | Array(UInt32) | No | Token IDs |
-| index | UInt32 | No | Market index |
-| is_canonical | Bool | No | Canonical status |
-| indexed_at | DateTime | No | Indexing timestamp |
-
-#### hyperliquid_spot_token_supply
-**Rows:** 5.9M | **Sort Keys:** ⚡ block_number, name | **Partition:** toYYYYMM(snapshot_time)
-
-Spot token supply snapshots.
+Spot market configurations.
 
 | Column | Type | Sort Key | Description |
 |--------|------|----------|-------------|
-| block_number | UInt64 | Yes | Block number |
-| snapshot_time | DateTime | No | Snapshot timestamp |
-| name | String | Yes | Token name |
-| token | UInt32 | No | Token ID |
-| total | String | No | Total supply |
-| holds | String | No | Held amount |
-| circulatingSupply | String | No | Circulating supply |
-| indexed_at | DateTime | No | Indexing timestamp |
+| token | String | No | Token |
+| token_id | String | No | Token Id |
+| sz_decimals | UInt64 | No | Sz Decimals |
+| wei_decimals | UInt64 | No | Wei Decimals |
+| is_canonical | UInt64 | No | Is Canonical |
+| evm_contract | String | No | Evm Contract |
+| full_name | String | No | Full Name |
+| deployer_trading_fee_share | String | No | Deployer Trading Fee Share |
+| pair_index | UInt64 | No | Pair Index |
+| pair_name | String | No | Pair Name |
+| updated_at | DateTime | No | Updated At |
 
-#### hyperliquid_order_book_diffs
-**Rows:** 216.1B | **Sort Keys:** ⚡ block_number, coin | **Partition:** toYYYYMM(block_time)
+#### hyperliquid_perpetual_market_contexts
+**Sort Keys:** ⚡ coin, polled_at | **Partition:** toYYYYMM(polled_at)
 
-Order book depth changes.
-
-| Column | Type | Sort Key | Description |
-|--------|------|----------|-------------|
-| block_number | UInt64 | Yes | Block number |
-| block_time | DateTime | No | Block timestamp |
-| coin | String | Yes | Trading pair |
-| time | DateTime | No | Update timestamp |
-| side | String | No | Bid/ask side |
-| px | String | No | Price level |
-| sz | String | No | Size at level |
-| indexed_at | DateTime | No | Indexing timestamp |
-
-### Position & Funding Tables
-
-#### hyperliquid_user_states
-**Rows:** 30.9M | **Sort Keys:** ⚡ block_number, user | **Partition:** toYYYYMM(snapshot_time)
-
-User account state snapshots.
+Perpetual market snapshots with funding, OI, prices.
 
 | Column | Type | Sort Key | Description |
 |--------|------|----------|-------------|
-| block_number | UInt64 | Yes | Block number |
-| snapshot_time | DateTime | No | Snapshot timestamp |
-| user | FixedString(42) | Yes | User address |
-| asset_positions | String | No | Asset positions JSON |
-| cross_margin_summary | String | No | Cross margin summary JSON |
-| margin_summary | String | No | Margin summary JSON |
-| withdrawable | String | No | Withdrawable amount |
-| indexed_at | DateTime | No | Indexing timestamp |
+| polled_at | DateTime | Yes | Polled At |
+| coin | String | Yes | Coin |
+| funding | Decimal | No | Funding |
+| open_interest | Decimal | No | Open Interest |
+| day_ntl_vlm | Decimal | No | Day Ntl Vlm |
+| day_base_vlm | Decimal | No | Day Base Vlm |
+| premium | Decimal | No | Premium |
+| oracle_px | Decimal | No | Oracle Px |
+| mark_px | Decimal | No | Mark Px |
+| mid_px | Decimal | No | Mid Px |
+| prev_day_px | Decimal | No | Prev Day Px |
+| impact_bid | Decimal | No | Impact Bid |
+| impact_ask | Decimal | No | Impact Ask |
+| indexed_at | DateTime | No | Indexed At |
 
-#### hyperliquid_user_funding
-**Rows:** 1.5B | **Sort Keys:** ⚡ block_number, time, user | **Partition:** toYYYYMM(block_time)
+#### hyperliquid_market_volume_hourly
+**Sort Keys:** ⚡ coin, hour | **Partition:** toYYYYMM(hour)
 
-User funding rate payments.
-
-| Column | Type | Sort Key | Description |
-|--------|------|----------|-------------|
-| block_number | UInt64 | Yes | Block number |
-| block_time | DateTime | No | Block timestamp |
-| time | DateTime | Yes | Funding timestamp |
-| user | FixedString(42) | Yes | User address |
-| coin | String | No | Trading pair |
-| usdc | String | No | USDC amount |
-| szi | String | No | Size |
-| funding_rate | String | No | Funding rate |
-| hash | Nullable(FixedString(66)) | No | Transaction hash |
-| indexed_at | DateTime | No | Indexing timestamp |
-
-#### hyperliquid_liquidations
-**Rows:** 212.4K | **Sort Keys:** ⚡ block_number, liquidated_user | **Partition:** toYYYYMM(block_time)
-
-Liquidation events.
+Hourly trading volume and OHLC data.
 
 | Column | Type | Sort Key | Description |
 |--------|------|----------|-------------|
-| block_number | UInt64 | Yes | Block number |
-| block_time | DateTime | No | Block timestamp |
-| lid | UInt64 | No | Liquidation ID |
-| liquidated_user | FixedString(42) | Yes | Liquidated address |
-| liquidated_ntl_pos | String | No | Notional position |
-| liquidated_account_value | String | No | Account value |
-| indexed_at | DateTime | No | Indexing timestamp |
+| coin | String | Yes | Coin |
+| hour | DateTime | Yes | Hour |
+| volume | Decimal | No | Volume |
+| trade_count | UInt64 | No | Trade Count |
+| high | Decimal | No | High |
+| low | Decimal | No | Low |
+| open | Decimal | No | Open |
+| close | Decimal | No | Close |
+
+### Funding & Liquidation Tables
+
+#### hyperliquid_funding
+**Sort Keys:** ⚡ block_number, user, coin, time | **Partition:** toYYYYMM(block_time)
+
+Funding payments and rates by address and coin.
+
+| Column | Type | Sort Key | Description |
+|--------|------|----------|-------------|
+| block_number | UInt64 | Yes | Block Number |
+| block_time | DateTime | No | Block Time |
+| time | DateTime | Yes | Time |
+| hash | FixedString | No | Hash |
+| user | FixedString | Yes | User |
+| coin | String | Yes | Coin |
+| funding_amount | Decimal | No | Funding Amount |
+| funding_rate | Decimal | No | Funding Rate |
+| szi | Decimal | No | Szi |
+| indexed_at | DateTime | No | Indexed At |
+
+#### hyperliquid_funding_summary_hourly
+**Sort Keys:** ⚡ coin, hour | **Partition:** toYYYYMM(hour)
+
+Hourly aggregated funding rate summaries.
+
+| Column | Type | Sort Key | Description |
+|--------|------|----------|-------------|
+| coin | String | Yes | Coin |
+| hour | DateTime | Yes | Hour |
+| avg_funding_rate | Float64 | No | Avg Funding Rate |
+| total_funding | Decimal | No | Total Funding |
+| unique_users | UInt64 | No | Unique Users |
+
+#### hyperliquid_liquidations_daily
+**Sort Keys:** ⚡ day, coin | **Partition:** toYYYYMM(day)
+
+Daily aggregated liquidation statistics.
+
+| Column | Type | Sort Key | Description |
+|--------|------|----------|-------------|
+| day | DateTime | Yes | Day |
+| coin | String | Yes | Coin |
+| liquidation_count | UInt64 | No | Liquidation Count |
+| liquidated_volume | Decimal | No | Liquidated Volume |
+| unique_liquidated_users | UInt64 | No | Unique Liquidated Users |
 
 ### Infrastructure Tables
 
 #### hyperliquid_blocks
-**Rows:** 5.2M | **Sort Keys:** ⚡ block_number | **Partition:** toYYYYMM(block_time)
+**Sort Keys:** ⚡ block_number | **Partition:** toYYYYMM(block_time)
 
 Hyperliquid block data.
 
 | Column | Type | Sort Key | Description |
 |--------|------|----------|-------------|
-| block_number | UInt64 | Yes | Block number |
-| block_time | DateTime | No | Block timestamp |
-| block_hash | FixedString(64) | No | Block hash |
-| tx_count | UInt32 | No | Transaction count |
-| indexed_at | DateTime | No | Indexing timestamp |
+| block_number | UInt64 | Yes | Block Number |
+| block_time | DateTime | No | Block Time |
+| fills_count | UInt64 | No | Fills Count |
+| orders_count | UInt64 | No | Orders Count |
+| misc_events_count | UInt64 | No | Misc Events Count |
+| book_diffs_count | UInt64 | No | Book Diffs Count |
+| twap_statuses_count | UInt64 | No | Twap Statuses Count |
+| writer_actions_count | UInt64 | No | Writer Actions Count |
+| indexed_at | DateTime | No | Indexed At |
 
 #### hyperliquid_transactions
-**Rows:** 29.3M | **Sort Keys:** ⚡ block_number, hash | **Partition:** toYYYYMM(block_time)
+**Sort Keys:** ⚡ round, tx_hash, nonce | **Partition:** toYYYYMM(block_time)
 
-Transaction details.
+Transaction data with hashes and status.
 
 | Column | Type | Sort Key | Description |
 |--------|------|----------|-------------|
-| block_number | UInt64 | Yes | Block number |
-| block_time | DateTime | No | Block timestamp |
-| hash | FixedString(66) | Yes | Transaction hash |
-| user | FixedString(42) | No | User address |
-| time | DateTime | No | Transaction timestamp |
-| nonce | UInt64 | No | Transaction nonce |
-| indexed_at | DateTime | No | Indexing timestamp |
+| round | UInt64 | Yes | Round |
+| block_time | DateTime | No | Block Time |
+| proposer | String | No | Proposer |
+| tx_hash | String | Yes | Tx Hash |
+| user | String | No | User |
+| action_type | String | No | Action Type |
+| action | JSON | No | Action |
+| error | String | No | Error |
+| is_success | UInt64 | No | Is Success |
+| nonce | UInt64 | Yes | Nonce |
+| vault_address | String | No | Vault Address |
+| indexed_at | DateTime | No | Indexed At |
 
 #### hyperliquid_system_actions
-**Rows:** 77.7M | **Sort Keys:** ⚡ block_number, action_type | **Partition:** toYYYYMM(block_time)
+**Sort Keys:** ⚡ block_number, evm_tx_hash, nonce | **Partition:** toYYYYMM(block_time)
 
-System-level actions and events.
+System-level actions including HyperVM/HyperCore bridging.
 
 | Column | Type | Sort Key | Description |
 |--------|------|----------|-------------|
-| block_number | UInt64 | Yes | Block number |
-| block_time | DateTime | No | Block timestamp |
-| action_type | String | Yes | Action type |
-| user | Nullable(FixedString(42)) | No | User address |
-| action_data | String | No | Action data JSON |
-| evm_transaction_hash | Nullable(FixedString(66)) | No | EVM tx hash |
-| indexed_at | DateTime | No | Indexing timestamp |
+| block_number | UInt64 | Yes | Block Number |
+| block_time | DateTime | No | Block Time |
+| user | FixedString | No | User |
+| nonce | UInt64 | Yes | Nonce |
+| evm_tx_hash | FixedString | Yes | Evm Tx Hash |
+| action_type | String | No | Action Type |
+| action | String | No | Action |
+| destination | FixedString | No | Destination |
+| token | UInt64 | No | Token |
+| wei | UInt64 | No | Wei |
+| from_sub_account | UInt64 | No | From Sub Account |
+| source_dex_or_spot | UInt64 | No | Source Dex Or Spot |
+| destination_dex_or_spot | UInt64 | No | Destination Dex Or Spot |
+| validator | FixedString | No | Validator |
+| is_undelegate | UInt64 | No | Is Undelegate |
+| signature_chain_id | String | No | Signature Chain Id |
+| hyperliquid_chain | String | No | Hyperliquid Chain |
+| ntl | Decimal | No | Ntl |
+| to_perp | UInt64 | No | To Perp |
+| order_grouping | String | No | Order Grouping |
+| agent_address | FixedString | No | Agent Address |
+| agent_name | String | No | Agent Name |
+| is_mint | UInt64 | No | Is Mint |
+| indexed_at | DateTime | No | Indexed At |
 
 ### Builder Tables
 
 #### hyperliquid_builder_fills
-**Rows:** 2.3M | **Sort Keys:** ⚡ block_number, builder_address | **Partition:** toYYYYMM(block_time)
+**Sort Keys:** ⚡ builder_address, timestamp, tid | **Partition:** toYYYYMM(block_time)
 
-Builder order fills.
+Builder-specific fill events.
 
 | Column | Type | Sort Key | Description |
 |--------|------|----------|-------------|
-| block_number | UInt64 | Yes | Block number |
-| block_time | DateTime | No | Block timestamp |
-| time | DateTime | No | Fill timestamp |
-| coin | String | No | Trading pair |
-| px | String | No | Fill price |
-| sz | String | No | Fill size |
-| side | String | No | Side (buy/sell) |
-| user | FixedString(42) | No | User address |
-| hash | FixedString(66) | No | Transaction hash |
-| oid | UInt64 | No | Order ID |
-| crossed | Bool | No | Crossed spread |
-| fee | String | No | Trading fee |
-| tid | UInt64 | No | Trade ID |
-| builder_address | FixedString(42) | Yes | Builder address |
-| builder_fee | String | No | Builder fee |
-| indexed_at | DateTime | No | Indexing timestamp |
+| block_number | UInt64 | No | Block Number |
+| block_time | DateTime | No | Block Time |
+| timestamp | DateTime | Yes | Timestamp |
+| created_at | DateTime | No | Created At |
+| updated_at | DateTime | No | Updated At |
+| builder_address | FixedString | Yes | Builder Address |
+| builder_fee | Decimal | No | Builder Fee |
+| user | FixedString | No | User |
+| closed_pnl | Decimal | No | Closed Pnl |
+| coin | String | No | Coin |
+| crossed | UInt64 | No | Crossed |
+| price | Decimal | No | Price |
+| side | Enum | No | Side |
+| size | Decimal | No | Size |
+| twap_id | UInt64 | No | Twap Id |
+| dir | String | No | Dir |
+| fee | Decimal | No | Fee |
+| start_position | Decimal | No | Start Position |
+| cloid | String | No | Cloid |
+| is_liquidation | UInt64 | No | Is Liquidation |
+| liquidated_user | FixedString | No | Liquidated User |
+| liquidation_mark_price | Decimal | No | Liquidation Mark Price |
+| liquidation_method | String | No | Liquidation Method |
+| tid | UInt64 | Yes | Tid |
+| oid | UInt64 | No | Oid |
+| hash | FixedString | No | Hash |
+| indexed_at | DateTime | No | Indexed At |
 
 #### hyperliquid_builder_transactions
-**Rows:** 7.5M | **Sort Keys:** ⚡ block_number, builder | **Partition:** toYYYYMM(block_time)
+**Sort Keys:** ⚡ block_number, hash, user | **Partition:** toYYYYMM(block_time)
 
 Builder transaction activity.
 
 | Column | Type | Sort Key | Description |
 |--------|------|----------|-------------|
-| block_number | UInt64 | Yes | Block number |
-| block_time | DateTime | No | Block timestamp |
-| builder | FixedString(42) | Yes | Builder address |
-| user | FixedString(42) | No | User address |
-| hash | FixedString(66) | No | Transaction hash |
-| fee | String | No | Builder fee |
-| indexed_at | DateTime | No | Indexing timestamp |
+| block_number | UInt64 | Yes | Block Number |
+| block_time | DateTime | No | Block Time |
+| hash | String | Yes | Hash |
+| user | String | Yes | User |
+| builder | String | No | Builder |
+| builder_fee | Decimal | No | Builder Fee |
+| action_type | String | No | Action Type |
+| coin | String | No | Coin |
+| is_success | UInt64 | No | Is Success |
+| indexed_at | DateTime | No | Indexed At |
+
+#### hyperliquid_builder_labels
+**Sort Keys:** ⚡ builder_address
+
+Builder labels and metadata.
+
+| Column | Type | Sort Key | Description |
+|--------|------|----------|-------------|
+| builder_name | String | No | Builder Name |
+| builder_category | String | No | Builder Category |
+| indexed_at | DateTime | No | Indexed At |
 
 ### Ledger Tables
 
 #### hyperliquid_ledger_updates
-**Rows:** 102.1M | **Sort Keys:** ⚡ block_number, user | **Partition:** toYYYYMM(block_time)
+**Sort Keys:** ⚡ block_number, user, time, hash | **Partition:** toYYYYMM(block_time)
 
-Account balance updates.
-
-| Column | Type | Sort Key | Description |
-|--------|------|----------|-------------|
-| block_number | UInt64 | Yes | Block number |
-| block_time | DateTime | No | Block timestamp |
-| hash | FixedString(66) | No | Transaction hash |
-| time | DateTime | No | Update timestamp |
-| user | FixedString(42) | Yes | User address |
-| delta | String | No | Balance change |
-| indexed_at | DateTime | No | Indexing timestamp |
-
-#### hyperliquid_sub_account_updates
-**Rows:** 44.0K | **Sort Keys:** ⚡ block_number, user | **Partition:** toYYYYMM(block_time)
-
-Sub-account updates.
+Ledger state changes and account updates.
 
 | Column | Type | Sort Key | Description |
 |--------|------|----------|-------------|
-| block_number | UInt64 | Yes | Block number |
-| block_time | DateTime | No | Block timestamp |
-| time | DateTime | No | Update timestamp |
-| user | FixedString(42) | Yes | User address |
-| sub_account_user | FixedString(42) | No | Sub-account address |
-| indexed_at | DateTime | No | Indexing timestamp |
+| block_number | UInt64 | Yes | Block Number |
+| block_time | DateTime | No | Block Time |
+| time | DateTime | Yes | Time |
+| hash | FixedString | Yes | Hash |
+| delta_type | String | No | Delta Type |
+| user | FixedString | Yes | User |
+| usdc_amount | Decimal | No | Usdc Amount |
+| token | String | No | Token |
+| amount | Decimal | No | Amount |
+| destination | FixedString | No | Destination |
+| fee | Decimal | No | Fee |
+| fee_token | String | No | Fee Token |
+| native_token_fee | Decimal | No | Native Token Fee |
+| nonce | UInt64 | No | Nonce |
+| usdc_value | Decimal | No | Usdc Value |
+| source_dex | String | No | Source Dex |
+| destination_dex | String | No | Destination Dex |
+| account_value | Decimal | No | Account Value |
+| leverage_type | String | No | Leverage Type |
+| liquidated_ntl_pos | Decimal | No | Liquidated Ntl Pos |
+| liquidated_positions | String | No | Liquidated Positions |
+| vault | FixedString | No | Vault |
+| requested_usd | Decimal | No | Requested Usd |
+| net_withdrawn_usd | Decimal | No | Net Withdrawn Usd |
+| basis | Decimal | No | Basis |
+| closing_cost | Decimal | No | Closing Cost |
+| commission | Decimal | No | Commission |
+| to_perp | UInt64 | No | To Perp |
+| is_deposit | UInt64 | No | Is Deposit |
+| operation | String | No | Operation |
+| interest_amount | Decimal | No | Interest Amount |
+| dex | String | No | Dex |
+| secondary_user | FixedString | No | Secondary User |
+| indexed_at | DateTime | No | Indexed At |
+
+#### hyperliquid_asset_transfers
+**Sort Keys:** ⚡ block_number, tx_hash, user | **Partition:** toYYYYMM(block_time)
+
+Asset transfers between addresses.
+
+| Column | Type | Sort Key | Description |
+|--------|------|----------|-------------|
+| block_number | UInt64 | Yes | Block Number |
+| block_time | DateTime | No | Block Time |
+| time | DateTime | No | Time |
+| tx_hash | FixedString | Yes | Tx Hash |
+| transfer_type | String | No | Transfer Type |
+| user | FixedString | Yes | User |
+| destination | FixedString | No | Destination |
+| token | String | No | Token |
+| amount | Decimal | No | Amount |
+| usdc_amount | Decimal | No | Usdc Amount |
+| fee | Decimal | No | Fee |
+| nonce | UInt64 | No | Nonce |
+| indexed_at | DateTime | No | Indexed At |
 
 ### Staking Tables
 
-#### hyperliquid_staking_delegations
-**Rows:** 1.8M | **Sort Keys:** ⚡ block_number, validator_address, delegator_address | **Partition:** toYYYYMM(snapshot_time)
+#### hyperliquid_staking_events
+**Sort Keys:** ⚡ block_number, hash | **Partition:** toYYYYMM(block_time)
 
-Validator delegation snapshots.
-
-| Column | Type | Sort Key | Description |
-|--------|------|----------|-------------|
-| block_number | UInt64 | Yes | Block number |
-| snapshot_time | DateTime | No | Snapshot timestamp |
-| validator_address | String | Yes | Validator address |
-| delegator_address | String | Yes | Delegator address |
-| delegation_amount | String | No | Delegation amount |
-| indexed_at | DateTime | No | Indexing timestamp |
-
-#### hyperliquid_validators
-**Rows:** 2.1K | **Sort Keys:** ⚡ block_number, validator_address | **Partition:** toYYYYMM(snapshot_time)
-
-Validator information.
+Staking, unstaking, and reward events.
 
 | Column | Type | Sort Key | Description |
 |--------|------|----------|-------------|
-| block_number | UInt64 | Yes | Block number |
-| snapshot_time | DateTime | No | Snapshot timestamp |
-| validator_address | String | Yes | Validator address |
-| voting_power | String | No | Voting power |
-| commission_rate | String | No | Commission rate |
-| indexed_at | DateTime | No | Indexing timestamp |
+| block_number | UInt64 | Yes | Block Number |
+| block_time | DateTime | No | Block Time |
+| time | DateTime | No | Time |
+| hash | FixedString | Yes | Hash |
+| event_type | Enum | No | Event Type |
+| user | FixedString | No | User |
+| amount | Decimal | No | Amount |
+| is_finalized | UInt64 | No | Is Finalized |
+| validator | FixedString | No | Validator |
+| is_undelegate | UInt64 | No | Is Undelegate |
+| indexed_at | DateTime | No | Indexed At |
+
+#### hyperliquid_validator_rewards
+**Sort Keys:** ⚡ block_number, validator, time | **Partition:** toYYYYMM(block_time)
+
+Validator reward distributions.
+
+| Column | Type | Sort Key | Description |
+|--------|------|----------|-------------|
+| block_number | UInt64 | Yes | Block Number |
+| block_time | DateTime | No | Block Time |
+| time | DateTime | Yes | Time |
+| hash | FixedString | No | Hash |
+| validator | FixedString | Yes | Validator |
+| reward | Decimal | No | Reward |
+| indexed_at | DateTime | No | Indexed At |
+
+#### hyperliquid_delegator_rewards
+**Sort Keys:** ⚡ block_number, validator, delegator | **Partition:** toYYYYMM(snapshot_time)
+
+Delegator reward distributions.
+
+| Column | Type | Sort Key | Description |
+|--------|------|----------|-------------|
+| block_number | UInt64 | Yes | Block Number |
+| snapshot_time | DateTime | No | Snapshot Time |
+| validator | FixedString | Yes | Validator |
+| delegator | FixedString | Yes | Delegator |
+| c | UInt64 | No | C |
+| m | UInt64 | No | M |
+| reward_wei | UInt64 | No | Reward Wei |
+| reward | Decimal | No | Reward |
+| validator_total_delegated | UInt64 | No | Validator Total Delegated |
+| commission_bps | UInt64 | No | Commission Bps |
+| indexed_at | DateTime | No | Indexed At |
 
 ### Clearinghouse Tables
 
 #### hyperliquid_clearinghouse_states
-**Rows:** 5.0M | **Sort Keys:** ⚡ block_number | **Partition:** toYYYYMM(snapshot_time)
+**Sort Keys:** ⚡ block_number, clearinghouse, user, asset_idx | **Partition:** toYYYYMM(snapshot_time)
 
 Clearinghouse state snapshots.
 
 | Column | Type | Sort Key | Description |
 |--------|------|----------|-------------|
-| block_number | UInt64 | Yes | Block number |
-| snapshot_time | DateTime | No | Snapshot timestamp |
-| state_data | String | No | State data JSON |
-| indexed_at | DateTime | No | Indexing timestamp |
+| block_number | UInt64 | Yes | Block Number |
+| snapshot_time | DateTime | No | Snapshot Time |
+| clearinghouse | UInt64 | Yes | Clearinghouse |
+| user | FixedString | Yes | User |
+| asset_idx | UInt64 | Yes | Asset Idx |
+| coin | String | No | Coin |
+| size | Int64 | No | Size |
+| entry_notional | UInt64 | No | Entry Notional |
+| margin | UInt64 | No | Margin |
+| funding_alltime | Int64 | No | Funding Alltime |
+| funding_since_open | Int64 | No | Funding Since Open |
+| funding_since_change | Int64 | No | Funding Since Change |
+| usdc_balance | Int64 | No | Usdc Balance |
+| indexed_at | DateTime | No | Indexed At |
 
-### Oracle & Price Tables
+#### hyperliquid_spot_clearinghouse_states
+**Sort Keys:** ⚡ block_number, user, token_idx | **Partition:** toYYYYMM(snapshot_time)
 
-#### hyperliquid_oracle_prices
-**Rows:** 10.1M | **Sort Keys:** ⚡ block_number, coin | **Partition:** toYYYYMM(snapshot_time)
-
-Oracle price updates.
-
-| Column | Type | Sort Key | Description |
-|--------|------|----------|-------------|
-| block_number | UInt64 | Yes | Block number |
-| snapshot_time | DateTime | No | Snapshot timestamp |
-| coin | String | Yes | Trading pair |
-| price | String | No | Oracle price |
-| indexed_at | DateTime | No | Indexing timestamp |
-
-### Referral Tables
-
-#### hyperliquid_referrals
-**Rows:** 11.8M | **Sort Keys:** ⚡ block_number, user | **Partition:** toYYYYMM(snapshot_time)
-
-Referral relationships.
+Spot clearinghouse state snapshots.
 
 | Column | Type | Sort Key | Description |
 |--------|------|----------|-------------|
-| block_number | UInt64 | Yes | Block number |
-| snapshot_time | DateTime | No | Snapshot timestamp |
-| user | FixedString(42) | Yes | User address |
-| referrer | FixedString(42) | No | Referrer address |
-| indexed_at | DateTime | No | Indexing timestamp |
-
-### Vault Tables
-
-#### hyperliquid_vault_equities
-**Rows:** 114.8K | **Sort Keys:** ⚡ block_number, vault, user | **Partition:** toYYYYMM(snapshot_time)
-
-Vault equity snapshots.
-
-| Column | Type | Sort Key | Description |
-|--------|------|----------|-------------|
-| block_number | UInt64 | Yes | Block number |
-| snapshot_time | DateTime | No | Snapshot timestamp |
-| vault | FixedString(42) | Yes | Vault address |
-| user | FixedString(42) | Yes | User address |
-| user_vault_equity | String | No | User equity |
-| total_vault_equity | String | No | Total vault equity |
-| indexed_at | DateTime | No | Indexing timestamp |
+| block_number | UInt64 | Yes | Block Number |
+| snapshot_time | DateTime | No | Snapshot Time |
+| user | FixedString | Yes | User |
+| token_idx | UInt64 | Yes | Token Idx |
+| token | String | No | Token |
+| total | Int64 | No | Total |
+| escrowed | Int64 | No | Escrowed |
+| indexed_at | DateTime | No | Indexed At |
 
 ### Other Tables
 
+#### hyperliquid_oracle_prices
+**Sort Keys:** ⚡ block_number, clearinghouse, asset_idx | **Partition:** toYYYYMM(snapshot_time)
+
+Oracle price feeds.
+
+| Column | Type | Sort Key | Description |
+|--------|------|----------|-------------|
+| block_number | UInt64 | Yes | Block Number |
+| snapshot_time | DateTime | No | Snapshot Time |
+| clearinghouse | UInt64 | Yes | Clearinghouse |
+| asset_idx | UInt64 | Yes | Asset Idx |
+| coin | String | No | Coin |
+| mark_px | String | No | Mark Px |
+| daily_px | String | No | Daily Px |
+| indexed_at | DateTime | No | Indexed At |
+
 #### hyperliquid_agents
-**Rows:** 1.9M | **Sort Keys:** ⚡ block_number, agent | **Partition:** toYYYYMM(snapshot_time)
+**Sort Keys:** ⚡ block_number, agent | **Partition:** toYYYYMM(snapshot_time)
 
 Agent configurations.
 
 | Column | Type | Sort Key | Description |
 |--------|------|----------|-------------|
-| block_number | UInt64 | Yes | Block number |
-| snapshot_time | DateTime | No | Snapshot timestamp |
-| agent | FixedString(42) | Yes | Agent address |
-| user | FixedString(42) | No | Owner address |
-| name | String | No | Agent name |
-| valid_until | String | No | Validity period |
-| indexed_at | DateTime | No | Indexing timestamp |
+| block_number | UInt64 | Yes | Block Number |
+| snapshot_time | DateTime | No | Snapshot Time |
+| agent | FixedString | Yes | Agent |
+| user | FixedString | No | User |
+| name | String | No | Name |
+| valid_until | String | No | Valid Until |
+| indexed_at | DateTime | No | Indexed At |
 
 #### hyperliquid_bridge
-**Rows:** 1.1M | **Sort Keys:** ⚡ block_number, user | **Partition:** toYYYYMM(block_time)
+**Sort Keys:** ⚡ block_number, bridge_type, user, nonce, eth_block_number, tx_hash | **Partition:** toYYYYMM(snapshot_time)
 
 Bridge deposit and withdrawal events.
 
 | Column | Type | Sort Key | Description |
 |--------|------|----------|-------------|
-| block_number | UInt64 | Yes | Block number |
-| block_time | DateTime | No | Block timestamp |
-| time | DateTime | No | Bridge timestamp |
-| user | FixedString(42) | Yes | User address |
-| usdc | String | No | USDC amount |
-| hash | Nullable(FixedString(66)) | No | Transaction hash |
-| indexed_at | DateTime | No | Indexing timestamp |
+| block_number | UInt64 | Yes | Block Number |
+| snapshot_time | DateTime | No | Snapshot Time |
+| bridge_type | String | Yes | Bridge Type |
+| user | FixedString | Yes | User |
+| amount_wei | UInt64 | No | Amount Wei |
+| eth_block_number | UInt64 | Yes | Eth Block Number |
+| tx_hash | String | Yes | Tx Hash |
+| nonce | UInt64 | Yes | Nonce |
+| event_time | String | No | Event Time |
+| indexed_at | DateTime | No | Indexed At |
 
 #### hyperliquid_display_names
-**Rows:** 1.9M | **Sort Keys:** ⚡ block_number, user | **Partition:** toYYYYMM(snapshot_time)
+**Sort Keys:** ⚡ block_number, user | **Partition:** toYYYYMM(snapshot_time)
 
-User display names.
-
-| Column | Type | Sort Key | Description |
-|--------|------|----------|-------------|
-| block_number | UInt64 | Yes | Block number |
-| snapshot_time | DateTime | No | Snapshot timestamp |
-| user | FixedString(42) | Yes | User address |
-| name | String | No | Display name |
-| indexed_at | DateTime | No | Indexing timestamp |
-
-#### hyperliquid_funding_summary_hourly
-**Rows:** 600.1K | **Sort Keys:** ⚡ hour, coin | **Partition:** toYYYYMM(hour)
-
-Hourly funding rate aggregates.
+User display names and identifiers.
 
 | Column | Type | Sort Key | Description |
 |--------|------|----------|-------------|
-| hour | DateTime | Yes | Hour timestamp |
-| coin | String | Yes | Trading pair |
-| avg_funding_rate | Float64 | No | Average funding rate |
-| total_volume | Float64 | No | Total volume |
-| indexed_at | DateTime | No | Indexing timestamp |
+| block_number | UInt64 | Yes | Block Number |
+| snapshot_time | DateTime | No | Snapshot Time |
+| user | FixedString | Yes | User |
+| display_name | String | No | Display Name |
+| indexed_at | DateTime | No | Indexed At |
 
-#### hyperliquid_liquidations_daily
-**Rows:** 20.1K | **Sort Keys:** ⚡ day | **Partition:** toYYYYMM(day)
+#### hyperliquid_register_referral
+**Sort Keys:** ⚡ referral_code, user
 
-Daily liquidation aggregates.
-
-| Column | Type | Sort Key | Description |
-|--------|------|----------|-------------|
-| day | Date | Yes | Day date |
-| total_liquidations | UInt64 | No | Liquidation count |
-| total_volume | Float64 | No | Total volume liquidated |
-| indexed_at | DateTime | No | Indexing timestamp |
-
-#### hyperliquid_market_volume_hourly
-**Rows:** 1.8M | **Sort Keys:** ⚡ hour, coin | **Partition:** toYYYYMM(hour)
-
-Hourly market volume.
+Referral registration events.
 
 | Column | Type | Sort Key | Description |
 |--------|------|----------|-------------|
-| hour | DateTime | Yes | Hour timestamp |
-| coin | String | Yes | Trading pair |
-| volume | Float64 | No | Trading volume |
-| trades | UInt64 | No | Trade count |
-| indexed_at | DateTime | No | Indexing timestamp |
+| block_time | DateTime | No | Block Time |
+| tx_hash | String | No | Tx Hash |
+| user | String | Yes | User |
+| referral_code | String | Yes | Referral Code |
+| is_success | UInt64 | No | Is Success |
+| error | String | No | Error |
+| indexed_at | DateTime | No | Indexed At |
+
+#### hyperliquid_set_referrer
+**Sort Keys:** ⚡ referral_code, user
+
+Referrer assignment events.
+
+| Column | Type | Sort Key | Description |
+|--------|------|----------|-------------|
+| block_time | DateTime | No | Block Time |
+| tx_hash | String | No | Tx Hash |
+| user | String | Yes | User |
+| referral_code | String | Yes | Referral Code |
+| is_success | UInt64 | No | Is Success |
+| error | String | No | Error |
+| indexed_at | DateTime | No | Indexed At |
+
+#### hyperliquid_sub_accounts
+**Sort Keys:** ⚡ block_number, sub_account | **Partition:** toYYYYMM(snapshot_time)
+
+Sub-account relationships and metadata.
+
+| Column | Type | Sort Key | Description |
+|--------|------|----------|-------------|
+| block_number | UInt64 | Yes | Block Number |
+| snapshot_time | DateTime | No | Snapshot Time |
+| sub_account | FixedString | Yes | Sub Account |
+| master_account | FixedString | No | Master Account |
+| name | String | No | Name |
+| indexed_at | DateTime | No | Indexed At |
+
+#### hyperliquid_summaries
+**Sort Keys:** ⚡ user, polled_at | **Partition:** toYYYYMM(polled_at)
+
+Aggregated account summaries.
+
+| Column | Type | Sort Key | Description |
+|--------|------|----------|-------------|
+| polled_at | DateTime | Yes | Polled At |
+| user | String | Yes | User |
+| cross_maintenance_margin_used | Decimal | No | Cross Maintenance Margin Used |
+| cross_margin_account_value | Decimal | No | Cross Margin Account Value |
+| cross_margin_total_margin_used | Decimal | No | Cross Margin Total Margin Used |
+| cross_margin_total_natl_pos | Decimal | No | Cross Margin Total Natl Pos |
+| cross_margin_total_raw_usd | Decimal | No | Cross Margin Total Raw Usd |
+| margin_account_value | Decimal | No | Margin Account Value |
+| margin_total_margin_used | Decimal | No | Margin Total Margin Used |
+| margin_total_natl_pos | Decimal | No | Margin Total Natl Pos |
+| margin_total_raw_usd | Decimal | No | Margin Total Raw Usd |
+| withdrawable | Decimal | No | Withdrawable |
+| indexed_at | DateTime | No | Indexed At |
+
+#### hyperliquid_twap_statuses
+**Sort Keys:** ⚡ block_number, twap_id, time | **Partition:** toYYYYMM(block_time)
+
+TWAP order status and execution tracking.
+
+| Column | Type | Sort Key | Description |
+|--------|------|----------|-------------|
+| block_number | UInt64 | Yes | Block Number |
+| block_time | DateTime | No | Block Time |
+| time | DateTime | Yes | Time |
+| twap_id | UInt64 | Yes | Twap Id |
+| status | String | No | Status |
+| user | FixedString | No | User |
+| coin | String | No | Coin |
+| side | Enum | No | Side |
+| size | Decimal | No | Size |
+| executed_size | Decimal | No | Executed Size |
+| executed_ntl | Decimal | No | Executed Ntl |
+| minutes | UInt64 | No | Minutes |
+| randomize | UInt64 | No | Randomize |
+| reduce_only | UInt64 | No | Reduce Only |
+| timestamp | DateTime | No | Timestamp |
+| indexed_at | DateTime | No | Indexed At |
+
+#### hyperliquid_vault_equities
+**Sort Keys:** ⚡ block_number, vault_address, depositor | **Partition:** toYYYYMM(snapshot_time)
+
+Vault equity values and performance.
+
+| Column | Type | Sort Key | Description |
+|--------|------|----------|-------------|
+| block_number | UInt64 | Yes | Block Number |
+| snapshot_time | DateTime | No | Snapshot Time |
+| vault_address | FixedString | Yes | Vault Address |
+| vault_name | String | No | Vault Name |
+| leader | FixedString | No | Leader |
+| depositor | FixedString | Yes | Depositor |
+| ownership_fraction | Float64 | No | Ownership Fraction |
+| net_deposits | Int64 | No | Net Deposits |
+| leader_commission | Float64 | No | Leader Commission |
+| indexed_at | DateTime | No | Indexed At |
 
 #### hyperliquid_metrics_dex_overview
-**Rows:** 5.0K | **Sort Keys:** ⚡ block_number | **Partition:** toYYYYMM(snapshot_time)
+**Sort Keys:** ⚡ day, coin | **Partition:** toYYYYMM(day)
 
-DEX overview metrics.
+Daily DEX metrics by coin.
 
 | Column | Type | Sort Key | Description |
 |--------|------|----------|-------------|
-| block_number | UInt64 | Yes | Block number |
-| snapshot_time | DateTime | No | Snapshot timestamp |
-| total_volume | String | No | Total volume |
-| daily_volume | String | No | Daily volume |
-| user_count | UInt64 | No | User count |
-| indexed_at | DateTime | No | Indexing timestamp |
+| day | DateTime | Yes | Day |
+| coin | String | Yes | Coin |
+| volume_usd | Decimal | No | Volume Usd |
+| fill_count | UInt64 | No | Fill Count |
+| unique_traders | UInt64 | No | Unique Traders |
+| fees | Decimal | No | Fees |
+| liquidations | UInt64 | No | Liquidations |
+| high_price | Decimal | No | High Price |
+| low_price | Decimal | No | Low Price |
 
 #### hyperliquid_metrics_overview
-**Rows:** 5.0K | **Sort Keys:** ⚡ block_number | **Partition:** toYYYYMM(snapshot_time)
+**Sort Keys:** ⚡ day | **Partition:** toYYYYMM(day)
 
-Platform overview metrics.
+Platform-wide aggregate metrics.
 
 | Column | Type | Sort Key | Description |
 |--------|------|----------|-------------|
-| block_number | UInt64 | Yes | Block number |
-| snapshot_time | DateTime | No | Snapshot timestamp |
-| metrics_data | String | No | Metrics JSON |
-| indexed_at | DateTime | No | Indexing timestamp |
+| day | DateTime | Yes | Day |
+| total_volume_usd | Decimal | No | Total Volume Usd |
+| total_fills | UInt64 | No | Total Fills |
+| active_traders | UInt64 | No | Active Traders |
+| total_fees | Decimal | No | Total Fees |
+| liquidation_count | UInt64 | No | Liquidation Count |
+| liquidation_volume_usd | Decimal | No | Liquidation Volume Usd |
+| coins_traded | UInt64 | No | Coins Traded |
+| total_builder_fees | Decimal | No | Total Builder Fees |
+| builder_fill_count | UInt64 | No | Builder Fill Count |
 
-## Pre-Built Queries (26)
+
+## Pre-Built Queries (40+)
 
 ### Common Use Case Mappings
 
@@ -759,11 +1129,11 @@ Quick lookup for common agent requests:
 ```sql
 SELECT
   toDateTime(block_time) AS block_time,
-  tid,
+  trade_id,
   coin,
   side,
-  px AS price,
-  sz AS size,
+  price AS price,
+  size AS size,
   user,
   fee
 FROM hyperliquid_trades
@@ -775,7 +1145,7 @@ LIMIT 100
 ```json
 {
   "data": [
-    {"block_time": "2025-03-26 10:30:45", "tid": 123456789, "coin": "BTC", "side": "buy", "price": "65000.5", "size": "1.5", "user": "0x1234...", "fee": "4.875"}
+    {"block_time": "2025-03-26 10:30:45", "trade_id": 123456789, "coin": "BTC", "side": "buy", "price": "65000.5", "size": "1.5", "user": "0x1234...", "fee": "4.875"}
   ],
   "rows": 100,
   "statistics": {"elapsed": 0.08, "rows_read": 47400000, "bytes_read": 2500000}
@@ -790,8 +1160,8 @@ SELECT
   toDateTime(time) AS time,
   coin,
   side,
-  px AS price,
-  sz AS size,
+  price AS price,
+  size AS size,
   fee,
   closed_pnl
 FROM hyperliquid_trades
@@ -807,8 +1177,8 @@ LIMIT 100
 SELECT
   toDateTime(time) AS time,
   side,
-  px AS price,
-  sz AS size,
+  price AS price,
+  size AS size,
   user,
   fee
 FROM hyperliquid_trades
@@ -825,12 +1195,12 @@ SELECT
   toDateTime(time) AS time,
   coin,
   side,
-  px AS price,
-  sz AS size,
+  price AS price,
+  size AS size,
   user,
-  toFloat64(px) * toFloat64(sz) AS notional_value
+  toFloat64(price) * toFloat64(size) AS notional_value
 FROM hyperliquid_trades
-WHERE toFloat64(px) * toFloat64(sz) > 100000
+WHERE toFloat64(price) * toFloat64(size) > 100000
 ORDER BY time DESC
 LIMIT 100
 ```
@@ -869,8 +1239,8 @@ LIMIT 50
 SELECT
   coin,
   COUNT(*) AS trade_count,
-  SUM(toFloat64(sz)) AS total_volume,
-  AVG(toFloat64(px)) AS avg_price
+  SUM(toFloat64(size)) AS total_volume,
+  AVG(toFloat64(price)) AS avg_price
 FROM hyperliquid_trades
 WHERE block_time >= now() - INTERVAL 24 HOUR
 GROUP BY coin
@@ -884,7 +1254,7 @@ ORDER BY total_volume DESC
 SELECT
   user,
   COUNT(*) AS trade_count,
-  SUM(toFloat64(sz)) AS total_volume,
+  SUM(toFloat64(size)) AS total_volume,
   SUM(toFloat64(fee)) AS total_fees,
   SUM(toFloat64(closed_pnl)) AS total_pnl
 FROM hyperliquid_trades
@@ -904,8 +1274,8 @@ SELECT
   toDateTime(time) AS time,
   coin,
   side,
-  px AS price,
-  sz AS size,
+  price AS price,
+  size AS size,
   user,
   oid AS order_id,
   fee
@@ -922,8 +1292,8 @@ SELECT
   toDateTime(time) AS time,
   coin,
   side,
-  px AS price,
-  sz AS size,
+  price AS price,
+  size AS size,
   oid AS order_id,
   fee,
   closed_pnl
@@ -941,8 +1311,8 @@ SELECT
   toDateTime(time) AS time,
   coin,
   side,
-  px AS price,
-  sz AS size,
+  price AS price,
+  size AS size,
   user,
   fee
 FROM hyperliquid_fills
@@ -963,7 +1333,7 @@ SELECT
   coin,
   side,
   limit_px AS limit_price,
-  sz AS size,
+  size AS size,
   oid AS order_id
 FROM hyperliquid_orders
 ORDER BY timestamp DESC
@@ -979,7 +1349,7 @@ SELECT
   coin,
   side,
   limit_px AS limit_price,
-  sz AS size,
+  size AS size,
   oid AS order_id,
   cloid AS client_order_id
 FROM hyperliquid_orders
@@ -1001,7 +1371,7 @@ SELECT
   usdc AS payment,
   funding_rate,
   szi AS position_size
-FROM hyperliquid_user_funding
+FROM hyperliquid_funding
 ORDER BY time DESC
 LIMIT 100
 ```
@@ -1016,7 +1386,7 @@ SELECT
   usdc AS payment,
   funding_rate,
   szi AS position_size
-FROM hyperliquid_user_funding
+FROM hyperliquid_funding
 WHERE user = '<user-address>'
 ORDER BY time DESC
 LIMIT 100
@@ -1078,7 +1448,7 @@ LIMIT 100
 SELECT DISTINCT
   name,
   szDecimals
-FROM hyperliquid_perp_markets
+FROM hyperliquid_perpetual_markets
 ORDER BY name
 ```
 
@@ -1102,12 +1472,12 @@ ORDER BY name
 SELECT
   coin,
   side,
-  px AS price,
-  sz AS size,
+  price AS price,
+  size AS size,
   toDateTime(time) AS time
 FROM hyperliquid_order_book_diffs
 WHERE coin = 'BTC'
-ORDER BY time DESC, px DESC
+ORDER BY time DESC, price DESC
 LIMIT 100
 ```
 
@@ -1139,7 +1509,7 @@ SELECT
   validator_address,
   voting_power,
   commission_rate
-FROM hyperliquid_validators
+FROM hyperliquid_staking_events
 ORDER BY toFloat64(voting_power) DESC
 LIMIT 50
 ```
@@ -1152,7 +1522,7 @@ SELECT
   delegator_address,
   delegation_amount,
   toDateTime(snapshot_time) AS snapshot_time
-FROM hyperliquid_staking_delegations
+FROM hyperliquid_delegator_rewards
 WHERE validator_address = '<validator-address>'
 ORDER BY toFloat64(delegation_amount) DESC
 LIMIT 100
@@ -1170,7 +1540,7 @@ SELECT
   liquidated_user,
   liquidated_ntl_pos AS notional_position,
   liquidated_account_value
-FROM hyperliquid_liquidations
+FROM hyperliquid_liquidations_daily
 ORDER BY block_time DESC
 LIMIT 100
 ```
@@ -1214,9 +1584,9 @@ LIMIT 30
 SELECT
   toStartOfHour(time) AS hour,
   coin,
-  SUM(toFloat64(sz)) AS volume,
+  SUM(toFloat64(size)) AS volume,
   COUNT(*) AS trade_count,
-  AVG(toFloat64(px)) AS avg_price
+  AVG(toFloat64(price)) AS avg_price
 FROM hyperliquid_trades
 WHERE time >= now() - INTERVAL 7 DAY
 GROUP BY hour, coin
@@ -1230,7 +1600,7 @@ ORDER BY hour DESC, volume DESC
 SELECT
   user,
   coin,
-  SUM(toFloat64(sz) * CASE WHEN side = 'buy' THEN 1 ELSE -1 END) AS net_position,
+  SUM(toFloat64(size) * CASE WHEN side = 'buy' THEN 1 ELSE -1 END) AS net_position,
   SUM(toFloat64(closed_pnl)) AS realized_pnl,
   SUM(toFloat64(fee)) AS total_fees
 FROM hyperliquid_trades
@@ -1246,14 +1616,14 @@ ORDER BY realized_pnl DESC
 -- Order book snapshot
 SELECT
   side,
-  px AS price,
-  SUM(toFloat64(sz)) AS total_size,
+  price AS price,
+  SUM(toFloat64(size)) AS total_size,
   COUNT(*) AS order_count
 FROM hyperliquid_order_book_diffs
 WHERE coin = 'BTC'
   AND time >= now() - INTERVAL 1 MINUTE
-GROUP BY side, px
-ORDER BY side DESC, px DESC
+GROUP BY side, price
+ORDER BY side DESC, price DESC
 ```
 
 ### Funding Rate Analysis
@@ -1265,7 +1635,7 @@ SELECT
   toStartOfDay(time) AS day,
   AVG(toFloat64(funding_rate)) AS avg_funding_rate,
   SUM(toFloat64(usdc)) AS total_funding_paid
-FROM hyperliquid_user_funding
+FROM hyperliquid_funding
 WHERE time >= now() - INTERVAL 30 DAY
 GROUP BY coin, day
 ORDER BY day DESC, coin
@@ -1279,7 +1649,7 @@ SELECT
   builder_address,
   toStartOfDay(time) AS day,
   COUNT(*) AS fill_count,
-  SUM(toFloat64(sz)) AS volume,
+  SUM(toFloat64(size)) AS volume,
   SUM(toFloat64(builder_fee)) AS fees_earned,
   COUNT(DISTINCT user) AS unique_traders
 FROM hyperliquid_builder_fills
@@ -1296,12 +1666,12 @@ SELECT
   toDateTime(time) AS time,
   coin,
   side,
-  px AS price,
-  sz AS size,
-  toFloat64(px) * toFloat64(sz) AS notional,
+  price AS price,
+  size AS size,
+  toFloat64(price) * toFloat64(size) AS notional,
   user
 FROM hyperliquid_trades
-WHERE toFloat64(px) * toFloat64(sz) >= 500000
+WHERE toFloat64(price) * toFloat64(size) >= 500000
   AND time >= now() - INTERVAL 24 HOUR
 ORDER BY notional DESC
 ```
@@ -1315,7 +1685,7 @@ SELECT
   COUNT(*) AS liquidation_count,
   SUM(toFloat64(liquidated_ntl_pos)) AS total_notional,
   AVG(toFloat64(liquidated_account_value)) AS avg_account_value
-FROM hyperliquid_liquidations
+FROM hyperliquid_liquidations_daily
 WHERE block_time >= now() - INTERVAL 7 DAY
 GROUP BY hour
 ORDER BY hour DESC
@@ -1378,11 +1748,11 @@ WHERE time >= now() - INTERVAL 7 DAY
 **String to Number Conversions:**
 ```sql
 -- Most numeric fields stored as String - convert for math
-SELECT toFloat64(px) AS price_numeric
-SELECT toFloat64(sz) AS size_numeric
+SELECT toFloat64(price) AS price_numeric
+SELECT toFloat64(size) AS size_numeric
 
 -- Calculations require conversion
-WHERE toFloat64(px) * toFloat64(sz) > 100000
+WHERE toFloat64(price) * toFloat64(size) > 100000
 SELECT SUM(toFloat64(fee)) AS total_fees
 ```
 
@@ -1399,10 +1769,10 @@ SELECT Nullable(FixedString(42)) AS nullable_field
 SELECT COUNT(DISTINCT user) AS unique_users
 
 -- Sum with conversion
-SELECT SUM(toFloat64(sz)) AS total_volume
+SELECT SUM(toFloat64(size)) AS total_volume
 
 -- Average with filtering
-SELECT AVG(toFloat64(px)) AS avg_price
+SELECT AVG(toFloat64(price)) AS avg_price
 ```
 
 ## Query Optimization
@@ -1433,7 +1803,7 @@ WHERE block_time >= now() - INTERVAL 1 DAY
 
 -- Avoid - scans all partitions
 SELECT * FROM hyperliquid_trades
-WHERE tid > 1000000
+WHERE trade_id > 1000000
 ```
 
 ### Limit Result Sets
@@ -1452,7 +1822,7 @@ Use CTEs to aggregate before joining:
 
 ```sql
 WITH user_volumes AS (
-  SELECT user, SUM(toFloat64(sz)) AS volume
+  SELECT user, SUM(toFloat64(size)) AS volume
   FROM hyperliquid_trades
   WHERE block_time >= now() - INTERVAL 1 DAY
   GROUP BY user
@@ -1468,17 +1838,17 @@ Convert strings to numbers only when needed:
 
 ```sql
 -- Efficient
-SELECT user, sz FROM hyperliquid_trades WHERE user = '0xADDRESS'
+SELECT user, size FROM hyperliquid_trades WHERE user = '0xADDRESS'
 
 -- Less efficient
-SELECT user, toFloat64(sz) FROM hyperliquid_trades WHERE toFloat64(sz) > 100
+SELECT user, toFloat64(size) FROM hyperliquid_trades WHERE toFloat64(size) > 100
 ```
 
 ## Best Practices
 
 1. **Start with time filters** - Reduce data scanned using `block_time` or `time` filters
 2. **Use sort keys** - Filter on sort key columns for best performance
-3. **Test queries in UI** - Validate SQL in dashboard before API integration
+3. **Test incrementally** - Start with simple queries, add complexity gradually while monitoring performance
 4. **Monitor query costs** - Check `statistics.rows_read` and `statistics.bytes_read`
 5. **Cache results** - Store frequently accessed results in your application
 6. **Use CTEs** - Break complex queries into readable, optimized steps
@@ -1511,7 +1881,7 @@ Query execution metrics:
 
 | Error | Cause | Solution |
 |-------|-------|----------|
-| Syntax error | Invalid SQL | Check SQL syntax, use UI to test |
+| Syntax error | Invalid SQL | Verify SQL syntax, check schema reference for correct column names and types |
 | Timeout | Query too complex | Add time filters, reduce data scanned |
 | Column not found | Typo in column name | Verify column names in schema |
 | Type mismatch | Invalid type conversion | Check column types, use correct functions |
@@ -1655,7 +2025,7 @@ Monitor trades, orders, and fills to trigger automated trading strategies.
 -- Detect large market moves
 SELECT
   coin,
-  AVG(toFloat64(px)) AS avg_price,
+  AVG(toFloat64(price)) AS avg_price,
   COUNT(*) AS trade_count
 FROM hyperliquid_trades
 WHERE time >= now() - INTERVAL 5 MINUTE
@@ -1671,7 +2041,7 @@ Build real-time dashboards tracking market metrics.
 -- 24h volume by market
 SELECT
   coin,
-  SUM(toFloat64(sz)) AS volume,
+  SUM(toFloat64(size)) AS volume,
   COUNT(*) AS trades
 FROM hyperliquid_trades
 WHERE time >= now() - INTERVAL 24 HOUR
@@ -1688,7 +2058,7 @@ Track positions, liquidations, and funding rates.
 SELECT
   user,
   SUM(toFloat64(liquidated_ntl_pos)) AS at_risk_notional
-FROM hyperliquid_liquidations
+FROM hyperliquid_liquidations_daily
 WHERE block_time >= now() - INTERVAL 1 HOUR
 GROUP BY user
 ```

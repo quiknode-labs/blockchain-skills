@@ -355,183 +355,33 @@ See [references/hypercore-hyperliquid-reference.md](references/hypercore-hyperli
 
 Direct SQL access to indexed blockchain data without requiring infrastructure. Query billions of rows of on-chain data using standard SQL syntax and receive results in seconds.
 
-**Current Coverage:** Hyperliquid (HyperCore) with 37 tables and 371.9 billion+ rows
-
 **Docs:** https://www.quicknode.com/docs/sql-explorer
-
-### What It Is
-
-SQL Explorer provides infrastructure-free SQL access to indexed blockchain data. Instead of running your own indexer or database, query pre-indexed data through a REST API using standard SQL.
-
-### Use Cases
-
-| Use Case | Description |
-|----------|-------------|
-| **Trading Analytics** | Analyze trades, orders, fills, liquidations across time periods |
-| **Market Research** | Query funding rates, open interest, volume patterns |
-| **Position Tracking** | Monitor positions, PnL, and exposure across accounts |
-| **Historical Analysis** | Time-series analysis with billions of rows of historical data |
-| **Infrastructure Monitoring** | Track blocks, transactions, system actions |
-| **Builder Analytics** | Analyze builder fills, fees, and transaction activity |
 
 ### Quick Setup
 
 ```bash
-# Authentication via API key in header
 curl -X POST 'https://api.quicknode.com/sql/rest/v1/query' \
   -H 'x-api-key: YOUR_API_KEY' \
   -H 'Content-Type: application/json' \
   -d '{
-    "query": "SELECT * FROM hyperliquid_trades ORDER BY block_time DESC LIMIT 10",
+    "query": "SELECT timestamp, coin, side, price, size FROM hyperliquid_trades WHERE block_time > now() - INTERVAL 1 HOUR ORDER BY block_number DESC LIMIT 10",
     "clusterId": "hyperliquid-core-mainnet"
   }'
 ```
 
-### Available Tables (Hyperliquid - 37 Tables)
+### Coverage
 
-**Trading:**
-- `hyperliquid_trades` — Individual trades with buyer/seller details (888.2M rows)
-- `hyperliquid_orders` — Order placements, cancellations, modifications (158.0B rows)
-- `hyperliquid_fills` — Trade fills with execution details (2.2B rows)
-- `hyperliquid_order_book_diffs` — Order book changes (71.8B rows)
+**Hyperliquid (HyperCore)** - 37 tables covering trades, orders, fills, funding, order book diffs, perpetual markets, spot markets, blocks, transactions, system actions, builder activity, staking, ledger updates, and more.
 
-**Markets:**
-- `hyperliquid_perpetual_markets` — Perpetual market configurations (457 rows)
-- `hyperliquid_spot_markets` — Spot market configurations (449 rows)
-- `hyperliquid_perpetual_market_contexts` — Market snapshots with funding, OI, prices (223.7M rows)
-- `hyperliquid_oracle_prices` — Oracle price feeds (31.2K rows)
+### Key Features
 
-**Positions & Funding:**
-- `hyperliquid_funding` — Funding payments and rates (905.9M rows)
-- `hyperliquid_liquidations_daily` — Daily liquidation statistics (23.6K rows)
-- `hyperliquid_funding_summary_hourly` — Hourly funding summaries (991.3K rows)
+- **Infrastructure-free** - No database or indexer setup required
+- **Standard SQL** - Full SQL syntax including joins, subqueries, CTEs, window functions
+- **40+ pre-built queries** - Common patterns for trading analytics, whale tracking, liquidations
+- **Optimized performance** - Monthly partitioning, sort keys, columnar storage
+- **REST API** - Execute queries programmatically via HTTPS
 
-**Infrastructure:**
-- `hyperliquid_blocks` — Block-level data (249.2M rows)
-- `hyperliquid_transactions` — Transaction data (137.1B rows)
-- `hyperliquid_system_actions` — HyperVM/HyperCore bridging (798.2K rows)
-
-**Metrics:**
-- `hyperliquid_market_volume_hourly` — Hourly trading volume and OHLC (1.8M rows)
-- `hyperliquid_metrics_dex_overview` — Daily DEX metrics by coin (106.1K rows)
-- `hyperliquid_metrics_overview` — Platform-wide aggregate metrics (367 rows)
-
-**Builder:**
-- `hyperliquid_builder_fills` — Builder-specific fill events (153.6M rows)
-- `hyperliquid_builder_transactions` — Builder transaction activity (109.9M rows)
-- `hyperliquid_builder_labels` — Builder labels and metadata (295 rows)
-
-**Accounts:**
-- `hyperliquid_sub_accounts` — Sub-account relationships (2.7M rows)
-- `hyperliquid_summaries` — Account summaries (1.1M rows)
-- `hyperliquid_ledger_updates` — Ledger state changes (11.6M rows)
-- `hyperliquid_asset_transfers` — Asset transfers (9.1M rows)
-
-**Staking:**
-- `hyperliquid_staking_events` — Staking, unstaking, rewards (209.4K rows)
-- `hyperliquid_validator_rewards` — Validator rewards (7.6M rows)
-- `hyperliquid_delegator_rewards` — Delegator rewards (42.5M rows)
-
-**Other:**
-- `hyperliquid_dex_trades` — DEX trades with execution details
-- `hyperliquid_clearinghouse_states` — Clearinghouse snapshots (19.4M rows)
-- `hyperliquid_spot_clearinghouse_states` — Spot clearinghouse snapshots (130.6M rows)
-- `hyperliquid_display_names` — User display names (15.1K rows)
-- `hyperliquid_agents` — Agent configurations (1.9M rows)
-- `hyperliquid_bridge` — Bridge events between HyperEVM and HyperCore (393.8K rows)
-- `hyperliquid_register_referral` — Referral registrations (32.9K rows)
-- `hyperliquid_set_referrer` — Referrer assignments (533.4K rows)
-- `hyperliquid_twap_statuses` — TWAP order tracking (758.9K rows)
-- `hyperliquid_vault_equities` — Vault equity values (11.8M rows)
-
-### Common Query Patterns
-
-**Recent Trades:**
-```sql
-SELECT timestamp, coin, side, price, size, buyer_address, seller_address
-FROM hyperliquid_trades
-WHERE block_time > now() - INTERVAL 1 HOUR
-ORDER BY block_number DESC
-LIMIT 100
-```
-
-**Trading Volume by Coin (Last 7 Days):**
-```sql
-SELECT coin, sum(price * size) as total_volume
-FROM hyperliquid_trades
-WHERE block_time >= today() - INTERVAL 7 DAY
-GROUP BY coin
-ORDER BY total_volume DESC
-```
-
-**Liquidation Analysis:**
-```sql
-SELECT day, coin, liquidation_count, liquidated_volume
-FROM hyperliquid_liquidations_daily
-WHERE day >= today() - INTERVAL 30 DAY
-ORDER BY liquidated_volume DESC
-```
-
-**Hourly Funding Rates:**
-```sql
-SELECT coin, hour, avg_funding_rate, total_funding
-FROM hyperliquid_funding_summary_hourly
-WHERE hour >= now() - INTERVAL 24 HOUR
-ORDER BY hour DESC
-```
-
-### Query Optimization
-
-- **Partitioning:** All tables partitioned monthly by `toYYYYMM(block_time)` — filter on time ranges for best performance
-- **Sort Keys:** Each table has optimized sort keys (see schema reference) — filter on these columns first
-- **LIMIT:** Use LIMIT for exploratory queries to reduce data scanned
-- **Time Filters:** Always include time-based filters (e.g., `WHERE block_time > now() - INTERVAL 1 DAY`)
-
-### SQL Syntax Support
-
-- Standard SQL functions: `toDateTime()`, `round()`, `countIf()`, `sum()`, `avg()`
-- Aggregations: `SUM`, `AVG`, `COUNT`, `MIN`, `MAX`, `GROUP BY`
-- Window functions for time-series analysis
-- Subqueries and CTEs (Common Table Expressions)
-- JOINs across multiple tables
-- ORDER BY and LIMIT for result control
-
-### Response Format
-
-```json
-{
-  "data": [
-    { "timestamp": "2025-03-25 10:30:45", "coin": "BTC", "price": 50000.5 }
-  ],
-  "meta": [
-    { "name": "timestamp", "type": "DateTime" },
-    { "name": "coin", "type": "String" },
-    { "name": "price", "type": "Float64" }
-  ],
-  "rows": 1,
-  "statistics": {
-    "elapsed": 0.156,
-    "rows_read": 1000000,
-    "bytes_read": 50000000
-  }
-}
-```
-
-### Pre-Built Queries
-
-SQL Explorer includes 26 pre-built queries across 10 categories:
-- Trading (4): Recent trades, volume by coin, trading pairs, largest trades
-- Activity (3): Active traders, new traders, trading activity
-- Fills (2): Recent fills, user fills
-- Orders (2): Recent orders, order activity
-- Funding (2): Funding rates, funding payments
-- Infrastructure (3): Recent blocks, transactions, system actions
-- Ledger (3): Ledger updates, deposits, withdrawals
-- Markets (4): Perpetual markets, spot markets, market contexts, open interest
-- Builders (1): Builder activity
-- Staking (2): Staking events, validator rewards
-
-See [references/sql-explorer.md](references/sql-explorer.md) for complete table schemas, all pre-built queries, and detailed examples.
+See [references/sql-explorer.md](references/sql-explorer.md) for complete table schemas, query examples, optimization tips, and API reference.
 
 ## Quicknode SDK
 
