@@ -371,7 +371,7 @@ curl -X POST 'https://api.quicknode.com/sql/rest/v1/query' \
 
 ### Coverage
 
-**Hyperliquid (HyperCore)** - 37 tables covering trades, orders, fills, funding, order book diffs, perpetual markets, spot markets, blocks, transactions, system actions, builder activity, staking, ledger updates, and more.
+**Hyperliquid (HyperCore)** - Tables covering trades, orders, fills, funding, order book diffs, perpetual markets, spot markets, blocks, transactions, system actions, builder activity, staking, ledger updates, and more.
 
 ### Key Features
 

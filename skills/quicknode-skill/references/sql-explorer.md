@@ -1121,7 +1121,7 @@ Quick lookup for common agent requests:
 | 25 | Hourly Market Volume | Metrics | volume, hourly, timeseries | Hourly volume time series for market |
 | 26 | Daily Liquidation Metrics | Metrics | liquidations, daily, aggregated | Daily liquidation aggregates |
 
-### Trading Queries (7)
+### Trading Queries
 
 **1. Recent Trades** - Get most recent trades across all markets
 **Keywords:** `trades`, `latest`, `recent`
@@ -1264,7 +1264,7 @@ ORDER BY total_volume DESC
 LIMIT 100
 ```
 
-### Fills Queries (3)
+### Fills Queries
 
 **8. Recent Fills** - Most recent order fills and executions
 **Keywords:** `fills`, `latest`, `executions`, `recent`, `matched`
@@ -1321,7 +1321,7 @@ ORDER BY time DESC
 LIMIT 100
 ```
 
-### Orders Queries (2)
+### Orders Queries
 
 **11. Recent Orders** - Most recent orders placed across all markets
 **Keywords:** `orders`, `latest`, `book`, `recent`, `placed`
@@ -1358,7 +1358,7 @@ ORDER BY timestamp DESC
 LIMIT 100
 ```
 
-### Funding Queries (2)
+### Funding Queries
 
 **13. Recent Funding Payments** - Latest funding rate payments across all users
 **Keywords:** `funding`, `payments`, `rates`, `perpetual`, `interest`
@@ -1392,7 +1392,7 @@ ORDER BY time DESC
 LIMIT 100
 ```
 
-### Infrastructure Queries (2)
+### Infrastructure Queries
 
 **15. Recent Blocks** - Latest Hyperliquid blocks with transaction counts
 **Keywords:** `blocks`, `chain`, `latest`, `recent`, `blockchain`
@@ -1422,7 +1422,7 @@ ORDER BY block_time DESC
 LIMIT 100
 ```
 
-### Ledger Queries (1)
+### Ledger Queries
 
 **17. Ledger Updates by User** - Balance updates for specific user address
 **Keywords:** `ledger`, `balance`, `user`, `address`, `updates`, `deposits`, `withdrawals`
@@ -1439,7 +1439,7 @@ ORDER BY time DESC
 LIMIT 100
 ```
 
-### Markets Queries (3)
+### Markets Queries
 
 **18. Perpetual Markets** - List all available perpetual futures markets
 **Keywords:** `perp`, `perpetual`, `markets`, `list`, `futures`, `available`
@@ -1481,7 +1481,7 @@ ORDER BY time DESC, price DESC
 LIMIT 100
 ```
 
-### Builders Queries (1)
+### Builders Queries
 
 **21. Builder Fills Summary** - 24-hour builder fill statistics and fees earned
 **Keywords:** `builder`, `fills`, `fees`, `stats`, `24h`, `summary`
@@ -1499,7 +1499,7 @@ GROUP BY builder_address
 ORDER BY total_fees DESC
 ```
 
-### Staking Queries (2)
+### Staking Queries
 
 **22. Top Validators** - Top validators by voting power and commission rates
 **Keywords:** `validators`, `staking`, `voting`, `power`, `top`, `leaderboard`
@@ -1528,7 +1528,7 @@ ORDER BY toFloat64(delegation_amount) DESC
 LIMIT 100
 ```
 
-### Liquidations Queries (1)
+### Liquidations Queries
 
 **24. Recent Liquidations** - Recent liquidation events and forced closures
 **Keywords:** `liquidations`, `risk`, `forced`, `closure`, `margin`, `recent`
@@ -1545,7 +1545,7 @@ ORDER BY block_time DESC
 LIMIT 100
 ```
 
-### Metrics Queries (2)
+### Metrics Queries
 
 **25. Hourly Market Volume** - Hourly volume time series for specific market
 **Keywords:** `volume`, `hourly`, `timeseries`, `chart`, `history`, `analytics`
