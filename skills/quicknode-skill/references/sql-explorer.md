@@ -1236,12 +1236,31 @@ Daily trading volume for the last 30 days.
 
 ```sql
 SELECT
-    toStartOfDay(timestamp) AS day,
-    count() AS trades,
-    sum(price * size) AS volume_usd,
-    uniqExact(buyer_address) + uniqExact(seller_address) AS unique_traders
-FROM hyperliquid_trades
-WHERE timestamp > now() - INTERVAL 30 DAY
+    day,
+    sum(trades) AS trades,
+    sum(volume_usd) AS volume_usd,
+    uniqExact(trader) AS unique_traders
+FROM (
+    SELECT
+        toStartOfDay(timestamp) AS day,
+        count() AS trades,
+        sum(price * size) AS volume_usd,
+        buyer_address AS trader
+    FROM hyperliquid_trades
+    WHERE timestamp > now() - INTERVAL 30 DAY
+    GROUP BY day, buyer_address
+
+    UNION ALL
+
+    SELECT
+        toStartOfDay(timestamp) AS day,
+        0,
+        0,
+        seller_address
+    FROM hyperliquid_trades
+    WHERE timestamp > now() - INTERVAL 30 DAY
+    GROUP BY day, seller_address
+)
 GROUP BY day
 ORDER BY day DESC
 ```
