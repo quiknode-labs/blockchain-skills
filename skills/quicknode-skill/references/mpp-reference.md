@@ -121,14 +121,22 @@ console.log(await response.json())
 ### Solana
 
 ```bash
-npm install solana-mpp mppx @solana/web3.js @solana/spl-token
+npm install solana-mpp mppx @solana/kit @solana/spl-token
 ```
 
 ```typescript
 import { Mppx, solana } from 'solana-mpp/client'
-import { Keypair } from '@solana/web3.js'
+import { createKeyPairFromBytes } from '@solana/kit'
+import { readFileSync } from 'fs'
+import { homedir } from 'os'
 
-const keypair = Keypair.generate()
+const keypairFile = readFileSync(
+  process.env.SOLANA_KEYPAIR_PATH ?? `${homedir()}/.config/solana/id.json`,
+  'utf-8'
+)
+const keypair = await createKeyPairFromBytes(
+  new Uint8Array(JSON.parse(keypairFile))
+)
 
 Mppx.create({ methods: [solana({ wallet: keypair })] })
 
