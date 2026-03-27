@@ -36,7 +36,8 @@ description: Quicknode blockchain infrastructure including RPC endpoints (80+ ch
 | **SQL Explorer** | Direct SQL access to indexed blockchain data | Trading analytics, historical queries, market analysis |
 | **Admin API** | REST API for account management | Endpoint CRUD, usage monitoring, billing |
 | **Key-Value Store** | Serverless key-value and list storage (beta) | Persistent state for Streams, dynamic address lists |
-| **x402** | Pay-per-request RPC via USDC micropayments | Keyless RPC access, AI agents, pay-as-you-go |
+| **x402** | Pay-per-request ($0.001/call) or credit drawdown ($10/1M) RPC via stablecoins | Keyless RPC access, AI agents, pay-as-you-go |
+| **MPP** | Pay-per-request RPC via IETF Payment Authentication headers | AI agents, multi-service payments, high-volume sessions |
 
 ## RPC Endpoints
 
@@ -472,7 +473,7 @@ Docs: https://www.quicknode.com/docs/key-value-store
 
 ## x402 (Pay-Per-Request RPC)
 
-Pay-per-request RPC access via USDC micropayments on Base. No API key required — authenticate with Sign-In with Ethereum (SIWE), purchase credits, and access 140+ chain endpoints.
+Pay-per-request RPC access via stablecoin payments. No API key required. Two access patterns: pay-per-request ($0.001/call, no auth needed) and credit drawdown (SIWX auth, $10/1M requests). Supports USDC on Base/Polygon/Solana and USDG on XLayer. Access 140+ chain endpoints.
 
 ### Quick Setup
 
@@ -506,6 +507,41 @@ const response = await x402Fetch("https://x402.quicknode.com/ethereum-mainnet", 
 ```
 
 See [references/x402-reference.md](references/x402-reference.md) for complete x402 documentation including SIWE authentication, credit management, and the `@x402/fetch` wrapper.
+
+## MPP (Machine Payments Protocol)
+
+Pay-per-request RPC access via IETF Payment Authentication headers. No API key required. Two intent types: charge ($0.001/request) and session ($0.00001/request via off-chain vouchers). Payment via PathUSD on Tempo or USDC on Solana. Access 140+ chain endpoints.
+
+### Quick Setup
+
+```typescript
+import { Mppx, tempo } from 'mppx/client'
+import { privateKeyToAccount } from 'viem/accounts'
+
+const account = privateKeyToAccount(process.env.PRIVATE_KEY as `0x${string}`)
+
+// Polyfills globalThis.fetch — handles 402 challenges automatically
+Mppx.create({
+  methods: [tempo({ account })],
+})
+
+// Charge intent ($0.001/req) — payment is transparent
+const response = await fetch('https://mpp.quicknode.com/tempo-mainnet', {
+  method: 'POST',
+  headers: { 'Content-Type': 'application/json' },
+  body: JSON.stringify({
+    jsonrpc: '2.0',
+    id: 1,
+    method: 'eth_blockNumber',
+    params: [],
+  }),
+})
+
+const { result } = await response.json()
+console.log('Block number:', BigInt(result))
+```
+
+See [references/mpp-reference.md](references/mpp-reference.md) for complete MPP documentation including charge vs session intents, Solana setup, CLI usage, and payment receipts.
 
 ## Common Patterns
 
@@ -617,6 +653,7 @@ const ethBalance = await chains.ethereum.client.getBalance({ address: '0x...' })
 - **Hyperliquid Queries**: https://www.quicknode.com/docs/sql-explorer/rest-api/hyperliquid-queries
 - **Key-Value Store**: https://www.quicknode.com/docs/key-value-store
 - **x402**: https://x402.quicknode.com
+- **MPP**: https://mpp.quicknode.com
 
 ### Chain-Specific Docs
 - **Ethereum**: https://www.quicknode.com/docs/ethereum
@@ -633,6 +670,7 @@ const ethBalance = await chains.ethereum.client.getBalance({ address: '0x...' })
 - **Platform Overview (llms.txt)**: https://www.quicknode.com/llms.txt — High-level index of all Quicknode products, chains, guides, and solutions
 - **Docs Index (llms.txt)**: https://www.quicknode.com/docs/llms.txt — Per-chain and per-product documentation index (links to `https://www.quicknode.com/docs/{chain-or-product}/llms.txt`)
 - **x402 (llms.txt)**: https://x402.quicknode.com/llms.txt
+- **MPP (llms.txt)**: https://mpp.quicknode.com/llms.txt
 
 ### Additional Resources
 - **Quicknode Guides**: https://www.quicknode.com/guides
