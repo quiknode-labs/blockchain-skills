@@ -1066,513 +1066,927 @@ Platform-wide aggregate metrics.
 | builder_fill_count | UInt64 | No | Builder Fill Count |
 
 
-## Pre-Built Queries (40+)
-
-### Common Use Case Mappings
-
-Quick lookup for common agent requests:
-
-| User Request | Use This Query |
-|--------------|----------------|
-| "Show me whale trades" / "large trades" | Query #4: High Volume Trades |
-| "What did user X trade?" / "user history" | Query #2: Trades by User |
-| "Show recent BTC trades" / "market activity" | Query #3: Trades by Trading Pair |
-| "What's the 24h volume?" / "market stats" | Query #6: Trading Volume by Pair |
-| "Show me liquidations" / "forced closures" | Query #24: Recent Liquidations |
-| "Builder performance" / "builder stats" | Query #5: Builder Activity, #21: Builder Fills Summary |
-| "Funding rate history" / "funding payments" | Query #13: Recent Funding Payments |
-| "Top traders" / "leaderboard" | Query #7: User Trading Stats |
-| "Show me order book" / "market depth" | Query #20: Order Book Depth |
-| "List all markets" / "available pairs" | Query #18: Perpetual Markets, #19: Spot Markets |
-| "User balance changes" / "deposits/withdrawals" | Query #17: Ledger Updates by User |
-| "Recent fills" / "executions" | Query #8: Recent Fills |
-| "Active orders" / "open orders" | Query #12: Active Orders by User |
-| "Validator info" / "staking" | Query #22: Top Validators, #23: Delegations |
-| "Volume over time" / "time series" | Query #25: Hourly Market Volume |
+## Pre-Built Queries
 
 ### Quick Reference
 
 | # | Query Name | Category | Keywords | Description |
 |---|------------|----------|----------|-------------|
 | 1 | Recent Trades | Trading | trades, latest, recent | Get most recent trades across all markets |
-| 2 | Trades by User | Trading | user, trades, address, history | Get trade history for specific user address |
-| 3 | Trades by Trading Pair | Trading | market, pair, coin, symbol | Get trades for specific trading pair |
-| 4 | High Volume Trades | Trading | whale, large, volume, big | Monitor large trades above notional threshold |
-| 5 | Builder Activity | Trading | builder, fees, stats | Aggregate builder trading statistics |
-| 6 | Trading Volume by Pair | Trading | volume, 24h, markets | 24-hour volume aggregated by trading pair |
-| 7 | User Trading Stats | Trading | user, statistics, pnl, summary | Weekly trading statistics per user |
+| 2 | Volume by Coin (24h) | Trading | volume, coin, 24h, statistics | Top coins by trading volume with price stats |
+| 3 | Whale Trades (24h) | Trading | whale, large, trades, notional | Large trades over $100K |
+| 4 | DEX Trades (Enriched View) | Trading | dex, trades, market, type | Trades with market type classification |
+| 5 | Hourly Volume | Activity | hourly, volume, timeseries | Trading volume aggregated by hour |
+| 6 | Daily Volume | Activity | daily, volume, traders | Daily trading volume with unique traders |
+| 7 | Top Traders by Volume (7d) | Activity | traders, volume, leaderboard | Most active traders by volume |
 | 8 | Recent Fills | Fills | fills, latest, executions | Most recent order fills |
-| 9 | Fills by User | Fills | user, fills, address | Order fills for specific user |
-| 10 | Crossed Fills | Fills | crossed, aggressive, taker | Fills that crossed the spread |
-| 11 | Recent Orders | Orders | orders, latest, book | Most recent orders placed |
-| 12 | Active Orders by User | Orders | user, orders, open | Active orders for specific user |
-| 13 | Recent Funding Payments | Funding | funding, payments, rates | Latest funding rate payments |
-| 14 | Funding by User | Funding | user, funding, address | Funding payments for specific user |
-| 15 | Recent Blocks | Infrastructure | blocks, chain, latest | Latest Hyperliquid blocks |
-| 16 | Recent System Actions | Infrastructure | system, events, actions | System-level actions and events |
-| 17 | Ledger Updates by User | Ledger | ledger, balance, user | Balance updates for specific user |
-| 18 | Perpetual Markets | Markets | perp, perpetual, markets, list | List all perpetual markets |
-| 19 | Spot Markets | Markets | spot, markets, tokens, list | List all spot markets |
-| 20 | Order Book Depth | Markets | orderbook, depth, liquidity | Order book depth for specific market |
-| 21 | Builder Fills Summary | Builders | builder, fills, fees, stats | 24-hour builder fill statistics |
-| 22 | Top Validators | Staking | validators, staking, voting | Top validators by voting power |
-| 23 | Delegations by Validator | Staking | delegations, staking, validator | Delegations for specific validator |
-| 24 | Recent Liquidations | Liquidations | liquidations, risk, forced | Recent liquidation events |
-| 25 | Hourly Market Volume | Metrics | volume, hourly, timeseries | Hourly volume time series for market |
-| 26 | Daily Liquidation Metrics | Metrics | liquidations, daily, aggregated | Daily liquidation aggregates |
+| 9 | Recent Liquidations | Fills | liquidations, risk, forced | Recent liquidation events |
+| 10 | Recent Orders | Orders | orders, latest, book | Most recent orders placed |
+| 11 | Order Type Distribution (1h) | Orders | orders, distribution, types | Distribution of order types and status |
+| 12 | Latest Funding Payments | Funding | funding, payments, grouped | Recent funding payments grouped by coin |
+| 13 | Funding Rate History by Coin | Funding | funding, rate, history, trend | Historical funding rates over time |
+| 14 | Block Activity | Infrastructure | blocks, activity, transactions | Block data with transaction counts |
+| 15 | Recent Transactions | Infrastructure | transactions, recent, actions | Latest transactions with action types |
+| 16 | Action Type Breakdown (24h) | Infrastructure | actions, breakdown, success | Transaction success rates by action type |
+| 17 | Recent Asset Transfers | Ledger | transfers, assets, movements | Latest asset transfers between addresses |
+| 18 | Transfer Volume by Type (7d) | Ledger | transfers, volume, type | Asset transfer volume by type |
+| 19 | Recent Ledger Updates | Ledger | ledger, updates, changes | Latest ledger state changes |
+| 20 | Bridge Deposits & Withdrawals | Ledger | bridge, deposits, withdrawals | Bridge activity between chains |
+| 21 | Perpetual Markets | Markets | perp, perpetual, markets, list | List all perpetual markets |
+| 22 | Spot Markets | Markets | spot, markets, tokens, list | List all spot markets |
+| 23 | Market Context (Latest) | Markets | market, context, funding, prices | Latest market context data |
+| 24 | Oracle Prices (All DEXes) | Markets | oracle, prices, dex | Latest oracle prices for all DEXes |
+| 25 | Largest Open Positions (All DEXes) | Portfolio | positions, open, largest | Biggest open positions across users |
+| 26 | Spot Balances for Address | Portfolio | spot, balances, tokens, user | Spot token balances for user |
+| 27 | Vault Depositor Equity | Portfolio | vault, equity, depositor | Vault holdings and performance |
+| 28 | Sub-Account Mappings | Portfolio | sub, account, mappings | Sub-account relationships |
+| 29 | Bot/Agent Lookups | Portfolio | bot, agent, automated | Active bots and agents |
+| 30 | Display Name Lookups | Portfolio | display, name, identifier | User display names |
+| 31 | Full Portfolio View | Portfolio | portfolio, full, snapshot | Complete portfolio across all assets |
+| 32 | Delegator Rewards by Address | Staking | delegator, rewards, staking | Staking rewards for a delegator |
+| 33 | Validator Commission History | Staking | validator, commission, earnings | Validator commission and rewards history |
+| 34 | Builder Activity (24h) | Builders | builder, activity, transactions | Builder transaction activity |
+| 35 | Builder Fill Volume (24h) | Builders | builder, fill, volume | Builder fill volume and fees |
+| 36 | Funding Rate Summary (Hourly) | Analytics | funding, rate, summary, hourly | Hourly funding rate statistics |
+| 37 | Daily Liquidation Stats | Analytics | liquidations, daily, stats | Daily liquidation statistics by coin |
+| 38 | Hourly OHLCV | Analytics | ohlcv, hourly, candles | Hourly OHLCV data |
+| 39 | Daily Per-Coin Metrics | Analytics | daily, metrics, coin | Daily metrics by coin |
+| 40 | Platform Daily Overview | Analytics | platform, overview, daily | Daily platform-wide statistics |
 
-### Trading Queries
 
-**1. Recent Trades** - Get most recent trades across all markets
-**Keywords:** `trades`, `latest`, `recent`
-**Parameters:** None
+### Trading
+
+#### **1. Recent Trades**
+
+Last 100 trades with buyer/seller details.
+
+**Keywords:** `trades`, `latest`, `recent`, `buyer`, `seller`, `fees`
+
 ```sql
 SELECT
-  toDateTime(block_time) AS block_time,
-  trade_id,
-  coin,
-  side,
-  price AS price,
-  size AS size,
-  user,
-  fee
+    timestamp,
+    coin,
+    side,
+    price,
+    size,
+    price * size AS notional_usd,
+    buyer_address,
+    seller_address,
+    buyer_fee,
+    seller_fee,
+    fee_token
 FROM hyperliquid_trades
-ORDER BY block_time DESC
+WHERE block_time > now() - INTERVAL 1 HOUR
+ORDER BY block_number DESC, trade_id DESC
 LIMIT 100
 ```
 
-**Sample Response:**
-```json
-{
-  "data": [
-    {"block_time": "2025-03-26 10:30:45", "trade_id": 123456789, "coin": "BTC", "side": "buy", "price": "65000.5", "size": "1.5", "user": "0x1234...", "fee": "4.875"}
-  ],
-  "rows": 100,
-  "statistics": {"elapsed": 0.08, "rows_read": 47400000, "bytes_read": 2500000}
-}
-```
+#### **2. Volume by Coin (24h)**
 
-**2. Trades by User** - Get trade history for specific user address
-**Keywords:** `user`, `trades`, `address`, `history`, `pnl`
-**Parameters:** `user` address (replace `<user-address>`)
+Top coins by trading volume in the last 24 hours.
+
+**Keywords:** `volume`, `coin`, `24h`, `statistics`, `high`, `low`, `avg`
+
 ```sql
 SELECT
-  toDateTime(time) AS time,
-  coin,
-  side,
-  price AS price,
-  size AS size,
-  fee,
-  closed_pnl
+    coin,
+    count() AS trade_count,
+    sum(price * size) AS volume_usd,
+    min(price) AS low,
+    max(price) AS high,
+    avg(price) AS avg_price
 FROM hyperliquid_trades
-WHERE user = '<user-address>'
-ORDER BY time DESC
-LIMIT 100
-```
-
-**3. Trades by Trading Pair** - Get trades for specific trading pair/market
-**Keywords:** `market`, `pair`, `coin`, `symbol`, `asset`
-**Parameters:** `coin` name (replace `<coin-name>` with desired pair)
-```sql
-SELECT
-  toDateTime(time) AS time,
-  side,
-  price AS price,
-  size AS size,
-  user,
-  fee
-FROM hyperliquid_trades
-WHERE coin = 'BTC'
-ORDER BY time DESC
-LIMIT 100
-```
-
-**4. High Volume Trades** - Monitor large trades above notional threshold (whale tracking)
-**Keywords:** `whale`, `large`, `volume`, `big`, `notional`, `threshold`
-**Parameters:** Notional threshold (default: `100000`)
-```sql
-SELECT
-  toDateTime(time) AS time,
-  coin,
-  side,
-  price AS price,
-  size AS size,
-  user,
-  toFloat64(price) * toFloat64(size) AS notional_value
-FROM hyperliquid_trades
-WHERE toFloat64(price) * toFloat64(size) > 100000
-ORDER BY time DESC
-LIMIT 100
-```
-
-**Sample Response:**
-```json
-{
-  "data": [
-    {"time": "2025-03-26 10:25:12", "coin": "ETH", "side": "buy", "price": "3250.75", "size": "45.8", "user": "0xabcd...", "notional_value": 148884.35}
-  ],
-  "rows": 23,
-  "statistics": {"elapsed": 0.12, "rows_read": 47400000, "bytes_read": 3200000}
-}
-```
-
-**5. Builder Activity** - Aggregate builder trading statistics and fees earned
-**Keywords:** `builder`, `fees`, `stats`, `aggregated`, `summary`
-**Parameters:** None
-```sql
-SELECT
-  builder_address,
-  COUNT(*) AS trade_count,
-  SUM(toFloat64(builder_fee)) AS total_fees,
-  COUNT(DISTINCT user) AS unique_users
-FROM hyperliquid_trades
-WHERE builder_address IS NOT NULL
-GROUP BY builder_address
-ORDER BY total_fees DESC
-LIMIT 50
-```
-
-**6. Trading Volume by Pair** - 24-hour trading volume aggregated by market
-**Keywords:** `volume`, `24h`, `markets`, `aggregate`, `daily`
-**Parameters:** Time interval (default: 24 hours)
-```sql
-SELECT
-  coin,
-  COUNT(*) AS trade_count,
-  SUM(toFloat64(size)) AS total_volume,
-  AVG(toFloat64(price)) AS avg_price
-FROM hyperliquid_trades
-WHERE block_time >= now() - INTERVAL 24 HOUR
+WHERE timestamp > now() - INTERVAL 24 HOUR
 GROUP BY coin
-ORDER BY total_volume DESC
+ORDER BY volume_usd DESC
 ```
 
-**7. User Trading Stats** - Weekly trading statistics per user including volume, fees, PnL
-**Keywords:** `user`, `statistics`, `pnl`, `summary`, `leaderboard`, `top`
-**Parameters:** Time interval (default: 7 days)
+#### **3. Whale Trades (24h)**
+
+Trades over $100K in the last 24 hours.
+
+**Keywords:** `whale`, `large`, `trades`, `notional`, `high-value`
+
 ```sql
 SELECT
-  user,
-  COUNT(*) AS trade_count,
-  SUM(toFloat64(size)) AS total_volume,
-  SUM(toFloat64(fee)) AS total_fees,
-  SUM(toFloat64(closed_pnl)) AS total_pnl
+    timestamp,
+    coin,
+    side,
+    price,
+    size,
+    price * size AS notional_usd,
+    buyer_address,
+    seller_address
 FROM hyperliquid_trades
-WHERE block_time >= now() - INTERVAL 7 DAY
-GROUP BY user
+WHERE timestamp > now() - INTERVAL 24 HOUR
+    AND price * size > 100000
+ORDER BY notional_usd DESC
+```
+
+#### **4. DEX Trades (Enriched View)**
+
+Trades with market type (perpetual vs spot) from the enriched view.
+
+**Keywords:** `dex`, `trades`, `market`, `type`, `perpetual`, `spot`
+
+```sql
+SELECT
+    timestamp,
+    coin,
+    market_type,
+    side,
+    price,
+    size,
+    usd_amount,
+    buyer_address,
+    seller_address
+FROM hyperliquid_dex_trades
+WHERE block_time > now() - INTERVAL 1 HOUR
+ORDER BY block_number DESC, trade_id DESC
+LIMIT 100
+```
+
+---
+
+### Activity
+
+#### **5. Hourly Volume**
+
+Trading volume aggregated by hour for the last 7 days.
+
+**Keywords:** `hourly`, `volume`, `timeseries`, `trends`
+
+```sql
+SELECT
+    toStartOfHour(timestamp) AS hour,
+    count() AS trades,
+    sum(price * size) AS volume_usd
+FROM hyperliquid_trades
+WHERE timestamp > now() - INTERVAL 7 DAY
+GROUP BY hour
+ORDER BY hour DESC
+```
+
+#### **6. Daily Volume**
+
+Daily trading volume for the last 30 days.
+
+**Keywords:** `daily`, `volume`, `traders`, `unique`, `users`
+
+```sql
+SELECT
+    toStartOfDay(timestamp) AS day,
+    count() AS trades,
+    sum(price * size) AS volume_usd,
+    uniqExact(buyer_address) + uniqExact(seller_address) AS unique_traders
+FROM hyperliquid_trades
+WHERE timestamp > now() - INTERVAL 30 DAY
+GROUP BY day
+ORDER BY day DESC
+```
+
+#### **7. Top Traders by Volume (7d)**
+
+Most active traders by volume in the last 7 days.
+
+**Keywords:** `traders`, `volume`, `leaderboard`, `top`, `active`
+
+```sql
+SELECT
+    buyer_address AS trader,
+    count() AS trade_count,
+    sum(price * size) AS total_volume,
+    uniqExact(coin) AS coins_traded
+FROM hyperliquid_trades
+WHERE timestamp > now() - INTERVAL 7 DAY
+GROUP BY trader
 ORDER BY total_volume DESC
-LIMIT 100
 ```
 
-### Fills Queries
+---
 
-**8. Recent Fills** - Most recent order fills and executions
-**Keywords:** `fills`, `latest`, `executions`, `recent`, `matched`
-**Parameters:** None
+### Fills
+
+#### **8. Recent Fills**
+
+Most recent order fills with fee and PnL information.
+
+**Keywords:** `fills`, `latest`, `executions`, `pnl`, `fees`
+
 ```sql
 SELECT
-  toDateTime(time) AS time,
-  coin,
-  side,
-  price AS price,
-  size AS size,
-  user,
-  oid AS order_id,
-  fee
+    time,
+    coin,
+    side,
+    price,
+    size,
+    fee,
+    fee_token,
+    closed_pnl,
+    dir,
+    user,
+    hash
 FROM hyperliquid_fills
-ORDER BY time DESC
+WHERE block_time > now() - INTERVAL 1 HOUR
+ORDER BY block_number DESC, tid DESC
 LIMIT 100
 ```
 
-**9. Fills by User** - Order fills for specific user address
-**Keywords:** `user`, `fills`, `address`, `history`, `executions`
-**Parameters:** `user` address (replace `<user-address>`)
+#### **9. Recent Liquidations**
+
+Recent liquidation events with liquidated user details.
+
+**Keywords:** `liquidations`, `risk`, `forced`, `closures`, `mark-price`
+
 ```sql
 SELECT
-  toDateTime(time) AS time,
-  coin,
-  side,
-  price AS price,
-  size AS size,
-  oid AS order_id,
-  fee,
-  closed_pnl
+    time,
+    coin,
+    side,
+    price,
+    size,
+    price * size AS notional,
+    liquidated_user,
+    liquidation_mark_price,
+    liquidation_method,
+    user
 FROM hyperliquid_fills
-WHERE user = '<user-address>'
-ORDER BY time DESC
+WHERE block_time > now() - INTERVAL 24 HOUR
+    AND is_liquidation = 1
+ORDER BY block_number DESC, tid DESC
 LIMIT 100
 ```
 
-**10. Crossed Fills** - Fills that crossed the spread (aggressive/taker orders)
-**Keywords:** `crossed`, `aggressive`, `taker`, `market`, `immediate`
-**Parameters:** None
+---
+
+### Orders
+
+#### **10. Recent Orders**
+
+Most recent orders placed on the platform.
+
+**Keywords:** `orders`, `latest`, `book`, `limit`, `market`
+
 ```sql
 SELECT
-  toDateTime(time) AS time,
-  coin,
-  side,
-  price AS price,
-  size AS size,
-  user,
-  fee
-FROM hyperliquid_fills
-WHERE crossed = true
-ORDER BY time DESC
-LIMIT 100
-```
-
-### Orders Queries
-
-**11. Recent Orders** - Most recent orders placed across all markets
-**Keywords:** `orders`, `latest`, `book`, `recent`, `placed`
-**Parameters:** None
-```sql
-SELECT
-  toDateTime(timestamp) AS timestamp,
-  user,
-  coin,
-  side,
-  limit_px AS limit_price,
-  size AS size,
-  oid AS order_id
+    status_time,
+    coin,
+    side,
+    order_type,
+    limit_price,
+    size,
+    orig_size,
+    status,
+    tif,
+    user
 FROM hyperliquid_orders
-ORDER BY timestamp DESC
+WHERE block_time > now() - INTERVAL 1 HOUR
+ORDER BY block_number DESC, oid DESC
 LIMIT 100
 ```
 
-**12. Active Orders by User** - Active orders for specific user address
-**Keywords:** `user`, `orders`, `open`, `active`, `address`
-**Parameters:** `user` address (replace `<user-address>`)
+#### **11. Order Type Distribution (1h)**
+
+Distribution of order types and status in the last hour.
+
+**Keywords:** `orders`, `distribution`, `types`, `status`, `statistics`
+
 ```sql
 SELECT
-  toDateTime(timestamp) AS timestamp,
-  coin,
-  side,
-  limit_px AS limit_price,
-  size AS size,
-  oid AS order_id,
-  cloid AS client_order_id
+    order_type,
+    side,
+    status,
+    count() AS order_count,
+    uniqExact(user) AS unique_users
 FROM hyperliquid_orders
-WHERE user = '<user-address>'
-ORDER BY timestamp DESC
-LIMIT 100
+WHERE block_time > now() - INTERVAL 1 HOUR
+GROUP BY order_type, side, status
+ORDER BY order_count DESC
 ```
 
-### Funding Queries
+---
 
-**13. Recent Funding Payments** - Latest funding rate payments across all users
-**Keywords:** `funding`, `payments`, `rates`, `perpetual`, `interest`
-**Parameters:** None
+### Funding
+
+#### **12. Latest Funding Payments**
+
+Recent funding rate payments grouped by coin and rate.
+
+**Keywords:** `funding`, `payments`, `rates`, `position`, `fees`
+
 ```sql
 SELECT
-  toDateTime(time) AS time,
-  user,
-  coin,
-  usdc AS payment,
-  funding_rate,
-  szi AS position_size
+    coin,
+    funding_rate,
+    count() AS payments,
+    sum(funding_amount) AS total_funding,
+    avg(szi) AS avg_position_size
 FROM hyperliquid_funding
-ORDER BY time DESC
-LIMIT 100
+WHERE time > now() - INTERVAL 8 HOUR
+GROUP BY coin, funding_rate
+ORDER BY abs(total_funding) DESC
 ```
 
-**14. Funding by User** - Funding payments for specific user address
-**Keywords:** `user`, `funding`, `address`, `payments`, `history`
-**Parameters:** `user` address (replace `<user-address>`)
+#### **13. Funding Rate History by Coin**
+
+Historical funding rates over time for specific coins.
+
+**Keywords:** `funding`, `rate`, `history`, `trend`, `timeseries`
+
 ```sql
 SELECT
-  toDateTime(time) AS time,
-  coin,
-  usdc AS payment,
-  funding_rate,
-  szi AS position_size
+    toStartOfHour(time) AS hour,
+    coin,
+    avg(funding_rate) AS avg_funding_rate,
+    count() AS payment_count,
+    sum(funding_amount) AS total_funding
 FROM hyperliquid_funding
-WHERE user = '<user-address>'
-ORDER BY time DESC
-LIMIT 100
+WHERE time > now() - INTERVAL 7 DAY
+    AND coin IN ('BTC', 'ETH', 'SOL')
+GROUP BY hour, coin
+ORDER BY hour DESC, coin
 ```
 
-### Infrastructure Queries
+---
 
-**15. Recent Blocks** - Latest Hyperliquid blocks with transaction counts
-**Keywords:** `blocks`, `chain`, `latest`, `recent`, `blockchain`
-**Parameters:** None
+### Infrastructure
+
+#### **14. Block Activity**
+
+Block data with transaction and event counts.
+
+**Keywords:** `blocks`, `activity`, `transactions`, `events`, `fills`
+
 ```sql
 SELECT
-  block_number,
-  toDateTime(block_time) AS block_time,
-  base58Encode(substring(block_hash, 1, 32)) AS block_hash,
-  tx_count
+    block_number,
+    block_time,
+    fills_count,
+    orders_count,
+    misc_events_count,
+    book_diffs_count,
+    twap_statuses_count,
+    writer_actions_count
 FROM hyperliquid_blocks
 ORDER BY block_number DESC
 LIMIT 100
 ```
 
-**16. Recent System Actions** - System-level actions and events
-**Keywords:** `system`, `events`, `actions`, `activity`, `operations`
-**Parameters:** None
+#### **15. Recent Transactions**
+
+Latest transactions with action types and success status.
+
+**Keywords:** `transactions`, `recent`, `actions`, `success`, `errors`
+
 ```sql
 SELECT
-  toDateTime(block_time) AS block_time,
-  action_type,
-  user,
-  evm_transaction_hash
-FROM hyperliquid_system_actions
-ORDER BY block_time DESC
+    block_time,
+    round,
+    tx_hash,
+    user,
+    action_type,
+    is_success,
+    error
+FROM hyperliquid_transactions
+ORDER BY round DESC
 LIMIT 100
 ```
 
-### Ledger Queries
+#### **16. Action Type Breakdown (24h)**
 
-**17. Ledger Updates by User** - Balance updates for specific user address
-**Keywords:** `ledger`, `balance`, `user`, `address`, `updates`, `deposits`, `withdrawals`
-**Parameters:** `user` address (replace `<user-address>`)
+Transaction success rates by action type in the last 24 hours.
+
+**Keywords:** `actions`, `breakdown`, `success`, `rates`, `statistics`
+
 ```sql
 SELECT
-  toDateTime(time) AS time,
-  user,
-  delta,
-  hash
+    action_type,
+    count() AS tx_count,
+    countIf(is_success = 1) AS success_count,
+    countIf(is_success = 0) AS failed_count,
+    round(countIf(is_success = 1) / count() * 100, 2) AS success_rate
+FROM hyperliquid_transactions
+WHERE block_time > now() - INTERVAL 24 HOUR
+GROUP BY action_type
+ORDER BY tx_count DESC
+```
+
+---
+
+### Ledger
+
+#### **17. Recent Asset Transfers**
+
+Latest asset transfers between addresses.
+
+**Keywords:** `transfers`, `assets`, `movements`, `deposits`, `withdrawals`
+
+```sql
+SELECT
+    time,
+    transfer_type,
+    user,
+    destination,
+    token,
+    amount,
+    usdc_amount,
+    fee,
+    tx_hash
+FROM hyperliquid_asset_transfers
+ORDER BY block_number DESC
+LIMIT 100
+```
+
+#### **18. Transfer Volume by Type (7d)**
+
+Asset transfer volume by type in the last 7 days.
+
+**Keywords:** `transfers`, `volume`, `type`, `aggregated`, `statistics`
+
+```sql
+SELECT
+    transfer_type,
+    count() AS transfer_count,
+    sum(usdc_amount) AS total_usdc,
+    uniqExact(user) AS unique_users
+FROM hyperliquid_asset_transfers
+WHERE time > now() - INTERVAL 7 DAY
+GROUP BY transfer_type
+ORDER BY total_usdc DESC
+```
+
+#### **19. Recent Ledger Updates**
+
+Latest ledger state changes including balance updates.
+
+**Keywords:** `ledger`, `updates`, `changes`, `balances`, `deltas`
+
+```sql
+SELECT
+    time,
+    delta_type,
+    user,
+    usdc_amount,
+    token,
+    amount,
+    destination,
+    fee,
+    hash
 FROM hyperliquid_ledger_updates
-WHERE user = '<user-address>'
-ORDER BY time DESC
+ORDER BY block_number DESC
 LIMIT 100
 ```
 
-### Markets Queries
+#### **20. Bridge Deposits & Withdrawals**
 
-**18. Perpetual Markets** - List all available perpetual futures markets
-**Keywords:** `perp`, `perpetual`, `markets`, `list`, `futures`, `available`
-**Parameters:** None
+Bridge activity between chains at latest snapshot.
+
+**Keywords:** `bridge`, `deposits`, `withdrawals`, `cross-chain`, `eth`
+
 ```sql
-SELECT DISTINCT
-  name,
-  szDecimals
+SELECT
+    bridge_type,
+    user,
+    amount_wei,
+    tx_hash,
+    eth_block_number,
+    event_time,
+    snapshot_time
+FROM hyperliquid_bridge
+WHERE block_number = (SELECT max(block_number) FROM hyperliquid_bridge)
+ORDER BY amount_wei DESC
+```
+
+---
+
+### Markets
+
+#### **21. Perpetual Markets**
+
+List all perpetual markets with leverage and decimals.
+
+**Keywords:** `perp`, `perpetual`, `markets`, `list`, `leverage`
+
+```sql
+SELECT
+    coin,
+    market_index,
+    sz_decimals,
+    max_leverage,
+    only_isolated
 FROM hyperliquid_perpetual_markets
-ORDER BY name
+ORDER BY coin
 ```
 
-**19. Spot Markets** - List all available spot markets and tokens
-**Keywords:** `spot`, `markets`, `tokens`, `list`, `available`, `trading`
-**Parameters:** None
-```sql
-SELECT DISTINCT
-  name,
-  tokens,
-  index,
-  is_canonical
-FROM hyperliquid_spot_markets
-ORDER BY name
-```
+#### **22. Spot Markets**
 
-**20. Order Book Depth** - Order book depth and liquidity for specific market
-**Keywords:** `orderbook`, `depth`, `liquidity`, `bids`, `asks`, `levels`
-**Parameters:** `coin` name (replace `<coin-name>`)
+List all spot markets with token details.
+
+**Keywords:** `spot`, `markets`, `tokens`, `list`, `canonical`
+
 ```sql
 SELECT
-  coin,
-  side,
-  price AS price,
-  size AS size,
-  toDateTime(time) AS time
-FROM hyperliquid_order_book_diffs
-WHERE coin = 'BTC'
-ORDER BY time DESC, price DESC
+    token_index,
+    token,
+    token_id,
+    full_name,
+    sz_decimals,
+    wei_decimals,
+    is_canonical,
+    evm_contract
+FROM hyperliquid_spot_markets
+ORDER BY token_index
+```
+
+#### **23. Market Context (Latest)**
+
+Latest market context data including funding, OI, and prices.
+
+**Keywords:** `market`, `context`, `funding`, `prices`, `open-interest`
+
+```sql
+SELECT
+    coin,
+    funding,
+    open_interest,
+    mark_px,
+    oracle_px,
+    mid_px,
+    premium,
+    day_ntl_vlm,
+    prev_day_px
+FROM hyperliquid_perpetual_market_contexts
+WHERE polled_at > now() - INTERVAL 5 MINUTE
+ORDER BY day_ntl_vlm DESC
+```
+
+#### **24. Oracle Prices (All DEXes)**
+
+Mark and daily prices for all assets at the latest snapshot.
+
+**Keywords:** `oracle`, `prices`, `dex`, `mark`, `daily`
+
+```sql
+SELECT
+    clearinghouse,
+    coin,
+    mark_px,
+    daily_px,
+    snapshot_time
+FROM hyperliquid_oracle_prices
+WHERE block_number = (SELECT max(block_number) FROM hyperliquid_oracle_prices)
+ORDER BY clearinghouse, asset_idx
+```
+
+### Portfolio & Positions
+
+#### **25. Largest Open Positions (All DEXes)**
+
+Top positions by notional value across all users.
+
+**Keywords:** `positions`, `open`, `largest`, `notional`, `leverage`
+
+```sql
+SELECT
+    user,
+    coin,
+    size,
+    entry_px,
+    position_value,
+    unrealized_pnl,
+    return_on_equity,
+    leverage_type,
+    leverage_value,
+    liquidation_price
+FROM hyperliquid_perpetual_positions
+WHERE polled_at > now() - INTERVAL 10 MINUTE
+ORDER BY abs(position_value) DESC
 LIMIT 100
 ```
 
-### Builders Queries
+#### **26. Spot Balances for Address**
 
-**21. Builder Fills Summary** - 24-hour builder fill statistics and fees earned
-**Keywords:** `builder`, `fills`, `fees`, `stats`, `24h`, `summary`
-**Parameters:** Time interval (default: 24 hours)
+Spot token balances for a specific user address.
+
+**Keywords:** `spot`, `balances`, `tokens`, `user`, `holdings`
+
+```sql
+-- Replace address below
+SELECT
+    token,
+    token_idx,
+    total,
+    escrowed,
+    snapshot_time
+FROM hyperliquid_spot_clearinghouse_states
+WHERE user = lower('0x742d35Cc6634C0532925a3b844Bc9e7595f0bEb')
+    AND block_number = (SELECT max(block_number) FROM hyperliquid_spot_clearinghouse_states)
+    AND total != 0
+ORDER BY abs(total) DESC
+```
+
+#### **27. Vault Depositor Equity**
+
+Vault holdings and performance for depositors.
+
+**Keywords:** `vault`, `equity`, `depositor`, `ownership`, `commission`
+
 ```sql
 SELECT
-  builder_address,
-  COUNT(*) AS fill_count,
-  SUM(toFloat64(builder_fee)) AS total_fees,
-  COUNT(DISTINCT user) AS unique_users,
-  COUNT(DISTINCT coin) AS unique_pairs
-FROM hyperliquid_builder_fills
-WHERE block_time >= now() - INTERVAL 24 HOUR
-GROUP BY builder_address
+    vault_name,
+    depositor,
+    ownership_fraction,
+    net_deposits,
+    leader,
+    leader_commission,
+    snapshot_time
+FROM hyperliquid_vault_equities
+WHERE block_number = (SELECT max(block_number) FROM hyperliquid_vault_equities)
+ORDER BY ownership_fraction DESC
+```
+
+#### **28. Sub-Account Mappings**
+
+Sub-account relationships for a specific master account.
+
+**Keywords:** `sub`, `account`, `mappings`, `master`, `relationships`
+
+```sql
+-- Replace address to find sub-accounts for a specific master
+SELECT
+    sub_account,
+    master_account,
+    name,
+    snapshot_time
+FROM hyperliquid_sub_accounts
+WHERE master_account = lower('0x742d35Cc6634C0532925a3b844Bc9e7595f0bEb')
+    AND block_number = (SELECT max(block_number) FROM hyperliquid_sub_accounts)
+ORDER BY name
+```
+
+#### **29. Bot/Agent Lookups**
+
+Active bots and agents for a specific user.
+
+**Keywords:** `bot`, `agent`, `automated`, `trading`, `permissions`
+
+```sql
+-- Replace address to find agents for a specific user
+SELECT
+    agent,
+    user,
+    name,
+    valid_until,
+    snapshot_time
+FROM hyperliquid_agents
+WHERE user = lower('0x742d35Cc6634C0532925a3b844Bc9e7595f0bEb')
+    AND block_number = (SELECT max(block_number) FROM hyperliquid_agents)
+ORDER BY name
+```
+
+#### **30. Display Name Lookups**
+
+User display names for address resolution.
+
+**Keywords:** `display`, `name`, `identifier`, `username`, `alias`
+
+```sql
+SELECT
+    user,
+    display_name,
+    snapshot_time
+FROM hyperliquid_display_names
+WHERE block_number = (SELECT max(block_number) FROM hyperliquid_display_names)
+ORDER BY display_name
+```
+
+#### **31. Full Portfolio View**
+
+Complete portfolio across all assets for a specific address.
+
+**Keywords:** `portfolio`, `full`, `snapshot`, `complete`, `holdings`
+
+```sql
+-- Replace address below for full portfolio snapshot
+SELECT
+    'perps' AS type,
+    coin AS asset,
+    size AS amount,
+    entry_notional AS extra
+FROM hyperliquid_clearinghouse_states
+WHERE user = lower('0x742d35Cc6634C0532925a3b844Bc9e7595f0bEb')
+    AND block_number = (SELECT max(block_number) FROM hyperliquid_clearinghouse_states)
+    AND size != 0
+UNION ALL
+SELECT
+    'spot',
+    token,
+    total,
+    escrowed
+FROM hyperliquid_spot_clearinghouse_states
+WHERE user = lower('0x742d35Cc6634C0532925a3b844Bc9e7595f0bEb')
+    AND block_number = (SELECT max(block_number) FROM hyperliquid_spot_clearinghouse_states)
+    AND total != 0
+UNION ALL
+SELECT
+    'vault',
+    vault_name,
+    toInt64(ownership_fraction * 1000000),
+    net_deposits
+FROM hyperliquid_vault_equities
+WHERE depositor = lower('0x742d35Cc6634C0532925a3b844Bc9e7595f0bEb')
+    AND block_number = (SELECT max(block_number) FROM hyperliquid_vault_equities)
+UNION ALL
+SELECT
+    'delegation',
+    validator,
+    toInt64(reward),
+    toInt64(commission_bps)
+FROM hyperliquid_delegator_rewards
+WHERE delegator = lower('0x742d35Cc6634C0532925a3b844Bc9e7595f0bEb')
+    AND block_number = (SELECT max(block_number) FROM hyperliquid_delegator_rewards)
+```
+
+### Staking & Rewards
+
+#### **32. Delegator Rewards by Address**
+
+Staking rewards for a specific delegator address.
+
+**Keywords:** `delegator`, `rewards`, `staking`, `delegation`, `validator`
+
+```sql
+-- Replace address below
+SELECT
+    delegator,
+    validator,
+    reward,
+    commission_bps,
+    snapshot_time
+FROM hyperliquid_delegator_rewards
+WHERE delegator = lower('0x742d35Cc6634C0532925a3b844Bc9e7595f0bEb')
+    AND block_number = (SELECT max(block_number) FROM hyperliquid_delegator_rewards)
+ORDER BY reward DESC
+```
+
+#### **33. Validator Commission History**
+
+Validator commission and rewards history over time.
+
+**Keywords:** `validator`, `commission`, `earnings`, `rewards`, `history`
+
+```sql
+SELECT
+    time,
+    validator,
+    reward,
+    block_number
+FROM hyperliquid_validator_rewards
+ORDER BY block_number DESC
+LIMIT 100
+```
+
+### Builders
+
+#### **34. Builder Activity (24h)**
+
+Builder transaction activity in the last 24 hours.
+
+**Keywords:** `builder`, `activity`, `transactions`, `fees`, `users`
+
+```sql
+SELECT
+    b.builder,
+    l.builder_name,
+    count() AS tx_count,
+    sum(b.builder_fee) AS total_fees,
+    uniqExact(b.user) AS unique_users
+FROM hyperliquid_builder_transactions b
+LEFT JOIN hyperliquid_builder_labels l ON b.builder = l.builder_address
+WHERE b.block_time > now() - INTERVAL 24 HOUR
+GROUP BY b.builder, l.builder_name
 ORDER BY total_fees DESC
 ```
 
-### Staking Queries
+#### **35. Builder Fill Volume (24h)**
 
-**22. Top Validators** - Top validators by voting power and commission rates
-**Keywords:** `validators`, `staking`, `voting`, `power`, `top`, `leaderboard`
-**Parameters:** None
+Builder fill volume and fees in the last 24 hours.
+
+**Keywords:** `builder`, `fill`, `volume`, `fees`, `statistics`
+
 ```sql
 SELECT
-  validator_address,
-  voting_power,
-  commission_rate
-FROM hyperliquid_staking_events
-ORDER BY toFloat64(voting_power) DESC
-LIMIT 50
+    builder_address,
+    count() AS fills,
+    sum(price * size) AS volume_usd,
+    sum(builder_fee) AS total_builder_fees,
+    uniqExact(user) AS unique_users
+FROM hyperliquid_builder_fills
+WHERE block_time > now() - INTERVAL 24 HOUR
+GROUP BY builder_address
+ORDER BY volume_usd DESC
 ```
 
-**23. Delegations by Validator** - Delegations for specific validator address
-**Keywords:** `delegations`, `staking`, `validator`, `delegators`, `stakes`
-**Parameters:** `validator_address` (replace `<validator-address>`)
+### Analytics
+
+#### **36. Funding Rate Summary (Hourly)**
+
+Hourly funding rate statistics from aggregated view.
+
+**Keywords:** `funding`, `rate`, `summary`, `hourly`, `aggregated`
+
 ```sql
 SELECT
-  delegator_address,
-  delegation_amount,
-  toDateTime(snapshot_time) AS snapshot_time
-FROM hyperliquid_delegator_rewards
-WHERE validator_address = '<validator-address>'
-ORDER BY toFloat64(delegation_amount) DESC
-LIMIT 100
+    coin,
+    hour,
+    avg_funding_rate,
+    total_funding,
+    unique_users
+FROM hyperliquid_funding_summary_hourly
+WHERE hour > now() - INTERVAL 24 HOUR
+ORDER BY hour DESC, abs(avg_funding_rate) DESC
 ```
 
-### Liquidations Queries
+#### **37. Daily Liquidation Stats**
 
-**24. Recent Liquidations** - Recent liquidation events and forced closures
-**Keywords:** `liquidations`, `risk`, `forced`, `closure`, `margin`, `recent`
-**Parameters:** None
+Daily liquidation statistics by coin.
+
+**Keywords:** `liquidations`, `daily`, `stats`, `volume`, `users`
+
 ```sql
 SELECT
-  toDateTime(block_time) AS block_time,
-  lid AS liquidation_id,
-  liquidated_user,
-  liquidated_ntl_pos AS notional_position,
-  liquidated_account_value
+    day,
+    coin,
+    liquidation_count,
+    liquidated_volume,
+    unique_liquidated_users
 FROM hyperliquid_liquidations_daily
-ORDER BY block_time DESC
-LIMIT 100
+ORDER BY day DESC, liquidated_volume DESC
 ```
 
-### Metrics Queries
+#### **38. Hourly OHLCV**
 
-**25. Hourly Market Volume** - Hourly volume time series for specific market
-**Keywords:** `volume`, `hourly`, `timeseries`, `chart`, `history`, `analytics`
-**Parameters:** `coin` name (replace `<coin-name>`)
+Hourly OHLCV data for a specific coin.
+
+**Keywords:** `ohlcv`, `hourly`, `candles`, `price`, `volume`
+
 ```sql
 SELECT
-  toDateTime(hour) AS hour,
-  coin,
-  volume,
-  trades
+    coin,
+    hour,
+    volume,
+    trade_count,
+    high,
+    low,
+    open,
+    close
 FROM hyperliquid_market_volume_hourly
-WHERE coin = 'BTC'
+WHERE hour > now() - INTERVAL 24 HOUR
+    AND coin = 'BTC'
 ORDER BY hour DESC
-LIMIT 168
 ```
 
-**26. Daily Liquidation Metrics** - Daily liquidation aggregates and statistics
-**Keywords:** `liquidations`, `daily`, `aggregated`, `metrics`, `timeseries`, `stats`
-**Parameters:** None
+#### **39. Daily Per-Coin Metrics**
+
+Daily metrics by coin from aggregated view.
+
+**Keywords:** `daily`, `metrics`, `coin`, `volume`, `fees`, `liquidations`
+
 ```sql
 SELECT
-  day,
-  total_liquidations,
-  total_volume
-FROM hyperliquid_liquidations_daily
+    day,
+    coin,
+    volume_usd,
+    fill_count,
+    unique_traders,
+    fees,
+    liquidations,
+    high_price,
+    low_price
+FROM hyperliquid_metrics_dex_overview
+ORDER BY day DESC, volume_usd DESC
+```
+
+#### **40. Platform Daily Overview**
+
+Daily platform-wide statistics and metrics.
+
+**Keywords:** `platform`, `overview`, `daily`, `total`, `aggregate`
+
+```sql
+SELECT
+    day,
+    total_volume_usd,
+    total_fills,
+    active_traders,
+    total_fees,
+    liquidation_count,
+    liquidation_volume_usd,
+    coins_traded,
+    total_builder_fees,
+    builder_fill_count
+FROM hyperliquid_metrics_overview
 ORDER BY day DESC
-LIMIT 30
 ```
 
 ## Common Query Patterns
