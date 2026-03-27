@@ -128,6 +128,7 @@ curl -X POST 'https://api.quicknode.com/sql/rest/v1/query' \
     {"name": "fee_token", "type": "LowCardinality(String)"}
   ],
   "rows": 3,
+  "rows_before_limit_at_least": 237,
   "statistics": {
     "elapsed": 0.042,
     "rows_read": 15847,
