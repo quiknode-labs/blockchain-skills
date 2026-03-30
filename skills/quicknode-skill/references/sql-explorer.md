@@ -2514,6 +2514,7 @@ ORDER BY market_share DESC
 ## Documentation
 
 - **SQL Explorer Overview**: https://www.quicknode.com/docs/sql-explorer
-- **REST API Overview**: https://www.quicknode.com/docs/sql-explorer/rest-api/overview
-- **Pre-Built Queries**: https://www.quicknode.com/docs/sql-explorer/rest-api/hyperliquid-queries
+- **REST API Overview**: https://www.quicknode.com/docs/sql-explorer/using-rest-api
+- **Schema Reference**: https://www.quicknode.com/docs/sql-explorer/schema-reference
+- **Pre-Built Queries**: https://www.quicknode.com/docs/sql-explorer/hyperliquid-queries
 - **llms.txt**: https://www.quicknode.com/docs/sql-explorer/llms.txt
