@@ -67,7 +67,7 @@ const rpc = createSolanaRpc(process.env.QUICKNODE_RPC_URL!);
 
 Quicknode endpoints include authentication in the URL:
 ```
-https://{ENDPOINT_NAME}.{NETWORK}.quiknode.pro/{API_KEY}/
+https://<your-endpoint-name>.<network>.quiknode.pro/<your-api-key>/
 ```
 
 For additional security, enable JWT authentication or IP allowlisting in the Quicknode dashboard.
@@ -182,7 +182,7 @@ const response = await fetch(process.env.QUICKNODE_RPC_URL!, {
 // Get recommended priority fees
 const response = await rpc.request('qn_estimatePriorityFees', {
   last_n_blocks: 100,
-  account: 'YOUR_ACCOUNT'
+  account: '<your-account>'
 }).send();
 ```
 
@@ -552,13 +552,13 @@ import { Core } from '@quicknode/sdk';
 
 const chains = {
   ethereum: new Core({
-    endpointUrl: 'https://YOUR_ETH_ENDPOINT.quiknode.pro/KEY/'
+    endpointUrl: 'https://<your-eth-endpoint>.quiknode.pro/<key>/'
   }),
   polygon: new Core({
-    endpointUrl: 'https://YOUR_POLYGON_ENDPOINT.quiknode.pro/KEY/'
+    endpointUrl: 'https://<your-polygon-endpoint>.quiknode.pro/<key>/'
   }),
   arbitrum: new Core({
-    endpointUrl: 'https://YOUR_ARB_ENDPOINT.quiknode.pro/KEY/'
+    endpointUrl: 'https://<your-arb-endpoint>.quiknode.pro/<key>/'
   }),
 };
 
