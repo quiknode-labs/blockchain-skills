@@ -50,7 +50,7 @@ curl -X POST 'https://api.quicknode.com/sql/rest/v1/query' \
   -H 'Content-Type: application/json' \
   -H 'x-api-key: <your-api-key>' \
   -d '{
-  "query": "SELECT timestamp, coin, side, price, size, price * size AS notional_usd, buyer_address, seller_address, buyer_fee, seller_fee, fee_token FROM hyperliquid_trades WHERE block_time > now() - INTERVAL 1 HOUR ORDER BY block_number DESC, trade_id DESC LIMIT 3",
+  "query": "SELECT timestamp, coin, side, price, size, toFloat64(price) * toFloat64(size) AS notional_usd, buyer_address, seller_address, buyer_fee, seller_fee, fee_token FROM hyperliquid_trades WHERE block_time > now() - INTERVAL 1 HOUR ORDER BY block_number DESC, trade_id DESC LIMIT 3",
   "clusterId": "hyperliquid-core-mainnet"
 }'
 ```
@@ -1109,7 +1109,7 @@ Platform-wide aggregate metrics.
 | 34 | Builder Activity (24h) | Builders | builder, activity, transactions | Builder transaction activity |
 | 35 | Builder Fill Volume (24h) | Builders | builder, fill, volume | Builder fill volume and fees |
 | 36 | Funding Rate Summary (Hourly) | Analytics | funding, rate, summary, hourly | Hourly funding rate statistics |
-| 37 | Daily Liquidation Stats | Analytics | liquidations, daily, stats | Daily liquidation statistics by coin |
+| 37 | Hourly Liquidation Stats | Analytics | liquidations, hourly, stats | Hourly liquidation statistics by coin |
 | 38 | Hourly OHLCV | Analytics | ohlcv, hourly, candles | Hourly OHLCV data |
 | 39 | Daily Per-Coin Metrics | Analytics | daily, metrics, coin | Daily metrics by coin |
 | 40 | Platform Daily Overview | Analytics | platform, overview, daily | Daily platform-wide statistics |
@@ -1130,7 +1130,7 @@ SELECT
     side,
     price,
     size,
-    price * size AS notional_usd,
+    toFloat64(price) * toFloat64(size) AS notional_usd,
     buyer_address,
     seller_address,
     buyer_fee,
@@ -1152,14 +1152,15 @@ Top coins by trading volume in the last 24 hours.
 SELECT
     coin,
     count() AS trade_count,
-    sum(price * size) AS volume_usd,
-    min(price) AS low,
-    max(price) AS high,
-    avg(price) AS avg_price
+    sum(toFloat64(price) * toFloat64(size)) AS volume_usd,
+    min(toFloat64(price)) AS low,
+    max(toFloat64(price)) AS high,
+    avg(toFloat64(price)) AS avg_price
 FROM hyperliquid_trades
 WHERE timestamp > now() - INTERVAL 24 HOUR
 GROUP BY coin
 ORDER BY volume_usd DESC
+LIMIT 50
 ```
 
 #### **3. Whale Trades (24h)**
@@ -1175,13 +1176,14 @@ SELECT
     side,
     price,
     size,
-    price * size AS notional_usd,
+    toFloat64(price) * toFloat64(size) AS notional_usd,
     buyer_address,
     seller_address
 FROM hyperliquid_trades
-WHERE timestamp > now() - INTERVAL 24 HOUR
-    AND price * size > 100000
+WHERE block_time > now() - INTERVAL 24 HOUR
+    AND toFloat64(price) * toFloat64(size) > 100000
 ORDER BY notional_usd DESC
+LIMIT 100
 ```
 
 #### **4. DEX Trades (Enriched View)**
@@ -1221,7 +1223,7 @@ Trading volume aggregated by hour for the last 7 days.
 SELECT
     toStartOfHour(timestamp) AS hour,
     count() AS trades,
-    sum(price * size) AS volume_usd
+    sum(toFloat64(price) * toFloat64(size)) AS volume_usd
 FROM hyperliquid_trades
 WHERE timestamp > now() - INTERVAL 7 DAY
 GROUP BY hour
@@ -1236,31 +1238,12 @@ Daily trading volume for the last 30 days.
 
 ```sql
 SELECT
-    day,
-    sum(trades) AS trades,
-    sum(volume_usd) AS volume_usd,
-    uniqExact(trader) AS unique_traders
-FROM (
-    SELECT
-        toStartOfDay(timestamp) AS day,
-        count() AS trades,
-        sum(price * size) AS volume_usd,
-        buyer_address AS trader
-    FROM hyperliquid_trades
-    WHERE timestamp > now() - INTERVAL 30 DAY
-    GROUP BY day, buyer_address
-
-    UNION ALL
-
-    SELECT
-        toStartOfDay(timestamp) AS day,
-        0,
-        0,
-        seller_address
-    FROM hyperliquid_trades
-    WHERE timestamp > now() - INTERVAL 30 DAY
-    GROUP BY day, seller_address
-)
+    toStartOfDay(timestamp) AS day,
+    count() AS trades,
+    sum(toFloat64(price) * toFloat64(size)) AS volume_usd,
+    uniqExact(arrayJoin([buyer_address, seller_address])) AS unique_traders
+FROM hyperliquid_trades
+WHERE timestamp > now() - INTERVAL 30 DAY
 GROUP BY day
 ORDER BY day DESC
 ```
@@ -1273,14 +1256,28 @@ Most active traders by volume in the last 7 days.
 
 ```sql
 SELECT
-    buyer_address AS trader,
+    trader,
     count() AS trade_count,
-    sum(price * size) AS total_volume,
+    sum(volume) AS total_volume,
     uniqExact(coin) AS coins_traded
-FROM hyperliquid_trades
-WHERE timestamp > now() - INTERVAL 7 DAY
+FROM (
+    SELECT
+        buyer_address AS trader,
+        toFloat64(price) * toFloat64(size) AS volume,
+        coin
+    FROM hyperliquid_trades
+    WHERE timestamp > now() - INTERVAL 7 DAY
+    UNION ALL
+    SELECT
+        seller_address AS trader,
+        toFloat64(price) * toFloat64(size) AS volume,
+        coin
+    FROM hyperliquid_trades
+    WHERE timestamp > now() - INTERVAL 7 DAY
+)
 GROUP BY trader
 ORDER BY total_volume DESC
+LIMIT 50
 ```
 
 ---
@@ -1325,7 +1322,7 @@ SELECT
     side,
     price,
     size,
-    price * size AS notional,
+    toFloat64(price) * toFloat64(size) AS notional,
     liquidated_user,
     liquidation_mark_price,
     liquidation_method,
@@ -1399,12 +1396,13 @@ SELECT
     coin,
     funding_rate,
     count() AS payments,
-    sum(funding_amount) AS total_funding,
-    avg(szi) AS avg_position_size
+    sum(toFloat64(funding_amount)) AS total_funding,
+    avg(toFloat64(szi)) AS avg_position_size
 FROM hyperliquid_funding
 WHERE time > now() - INTERVAL 8 HOUR
 GROUP BY coin, funding_rate
 ORDER BY abs(total_funding) DESC
+LIMIT 50
 ```
 
 #### **13. Funding Rate History by Coin**
@@ -1417,14 +1415,15 @@ Historical funding rates over time for specific coins.
 SELECT
     toStartOfHour(time) AS hour,
     coin,
-    avg(funding_rate) AS avg_funding_rate,
+    avg(toFloat64(funding_rate)) AS avg_funding_rate,
     count() AS payment_count,
-    sum(funding_amount) AS total_funding
+    sum(toFloat64(funding_amount)) AS total_funding
 FROM hyperliquid_funding
 WHERE time > now() - INTERVAL 7 DAY
     AND coin IN ('BTC', 'ETH', 'SOL')
 GROUP BY hour, coin
 ORDER BY hour DESC, coin
+LIMIT 500
 ```
 
 ---
@@ -1527,7 +1526,7 @@ Asset transfer volume by type in the last 7 days.
 SELECT
     transfer_type,
     count() AS transfer_count,
-    sum(usdc_amount) AS total_usdc,
+    sum(toFloat64(usdc_amount)) AS total_usdc,
     uniqExact(user) AS unique_users
 FROM hyperliquid_asset_transfers
 WHERE time > now() - INTERVAL 7 DAY
@@ -1574,7 +1573,8 @@ SELECT
     snapshot_time
 FROM hyperliquid_bridge
 WHERE block_number = (SELECT max(block_number) FROM hyperliquid_bridge)
-ORDER BY amount_wei DESC
+ORDER BY toFloat64(amount_wei) DESC
+LIMIT 100
 ```
 
 ---
@@ -1596,6 +1596,7 @@ SELECT
     only_isolated
 FROM hyperliquid_perpetual_markets
 ORDER BY coin
+LIMIT 500
 ```
 
 #### **22. Spot Markets**
@@ -1616,6 +1617,7 @@ SELECT
     evm_contract
 FROM hyperliquid_spot_markets
 ORDER BY token_index
+LIMIT 500
 ```
 
 #### **23. Market Context (Latest)**
@@ -1637,7 +1639,8 @@ SELECT
     prev_day_px
 FROM hyperliquid_perpetual_market_contexts
 WHERE polled_at > now() - INTERVAL 5 MINUTE
-ORDER BY day_ntl_vlm DESC
+ORDER BY toFloat64(day_ntl_vlm) DESC
+LIMIT 100
 ```
 
 #### **24. Oracle Prices (All DEXes)**
@@ -1662,25 +1665,24 @@ ORDER BY clearinghouse, asset_idx
 
 #### **25. Largest Open Positions (All DEXes)**
 
-Top positions by notional value across all users.
+Top positions by entry notional across all clearinghouses.
 
-**Keywords:** `positions`, `open`, `largest`, `notional`, `leverage`
+**Keywords:** `positions`, `open`, `largest`, `notional`, `clearinghouse`
 
 ```sql
 SELECT
     user,
+    clearinghouse,
     coin,
     size,
-    entry_px,
-    position_value,
-    unrealized_pnl,
-    return_on_equity,
-    leverage_type,
-    leverage_value,
-    liquidation_price
-FROM hyperliquid_perpetual_positions
-WHERE polled_at > now() - INTERVAL 10 MINUTE
-ORDER BY abs(position_value) DESC
+    entry_notional,
+    margin,
+    funding_alltime,
+    snapshot_time
+FROM hyperliquid_clearinghouse_states
+WHERE block_number = (SELECT max(block_number) FROM hyperliquid_clearinghouse_states)
+    AND toFloat64(size) != 0
+ORDER BY abs(toFloat64(entry_notional)) DESC
 LIMIT 100
 ```
 
@@ -1699,10 +1701,10 @@ SELECT
     escrowed,
     snapshot_time
 FROM hyperliquid_spot_clearinghouse_states
-WHERE user = lower('0x742d35Cc6634C0532925a3b844Bc9e7595f0bEb')
+WHERE user = lower('0xYOUR_ADDRESS_HERE')
     AND block_number = (SELECT max(block_number) FROM hyperliquid_spot_clearinghouse_states)
-    AND total != 0
-ORDER BY abs(total) DESC
+    AND toFloat64(total) != 0
+ORDER BY abs(toFloat64(total)) DESC
 ```
 
 #### **27. Vault Depositor Equity**
@@ -1722,7 +1724,8 @@ SELECT
     snapshot_time
 FROM hyperliquid_vault_equities
 WHERE block_number = (SELECT max(block_number) FROM hyperliquid_vault_equities)
-ORDER BY ownership_fraction DESC
+ORDER BY toFloat64(ownership_fraction) DESC
+LIMIT 100
 ```
 
 #### **28. Sub-Account Mappings**
@@ -1739,7 +1742,7 @@ SELECT
     name,
     snapshot_time
 FROM hyperliquid_sub_accounts
-WHERE master_account = lower('0x742d35Cc6634C0532925a3b844Bc9e7595f0bEb')
+WHERE master_account = lower('0xYOUR_ADDRESS_HERE')
     AND block_number = (SELECT max(block_number) FROM hyperliquid_sub_accounts)
 ORDER BY name
 ```
@@ -1759,7 +1762,7 @@ SELECT
     valid_until,
     snapshot_time
 FROM hyperliquid_agents
-WHERE user = lower('0x742d35Cc6634C0532925a3b844Bc9e7595f0bEb')
+WHERE user = lower('0xYOUR_ADDRESS_HERE')
     AND block_number = (SELECT max(block_number) FROM hyperliquid_agents)
 ORDER BY name
 ```
@@ -1778,6 +1781,7 @@ SELECT
 FROM hyperliquid_display_names
 WHERE block_number = (SELECT max(block_number) FROM hyperliquid_display_names)
 ORDER BY display_name
+LIMIT 100
 ```
 
 #### **31. Full Portfolio View**
@@ -1791,39 +1795,39 @@ Complete portfolio across all assets for a specific address.
 SELECT
     'perps' AS type,
     coin AS asset,
-    size AS amount,
-    entry_notional AS extra
+    toFloat64(size) AS amount,
+    toFloat64(entry_notional) AS extra
 FROM hyperliquid_clearinghouse_states
-WHERE user = lower('0x742d35Cc6634C0532925a3b844Bc9e7595f0bEb')
+WHERE user = lower('0xYOUR_ADDRESS_HERE')
     AND block_number = (SELECT max(block_number) FROM hyperliquid_clearinghouse_states)
-    AND size != 0
+    AND toFloat64(size) != 0
 UNION ALL
 SELECT
     'spot',
     token,
-    total,
-    escrowed
+    toFloat64(total),
+    toFloat64(escrowed)
 FROM hyperliquid_spot_clearinghouse_states
-WHERE user = lower('0x742d35Cc6634C0532925a3b844Bc9e7595f0bEb')
+WHERE user = lower('0xYOUR_ADDRESS_HERE')
     AND block_number = (SELECT max(block_number) FROM hyperliquid_spot_clearinghouse_states)
-    AND total != 0
+    AND toFloat64(total) != 0
 UNION ALL
 SELECT
     'vault',
     vault_name,
-    toInt64(ownership_fraction * 1000000),
-    net_deposits
+    toFloat64(ownership_fraction) * 1000000,
+    toFloat64(net_deposits)
 FROM hyperliquid_vault_equities
-WHERE depositor = lower('0x742d35Cc6634C0532925a3b844Bc9e7595f0bEb')
+WHERE depositor = lower('0xYOUR_ADDRESS_HERE')
     AND block_number = (SELECT max(block_number) FROM hyperliquid_vault_equities)
 UNION ALL
 SELECT
     'delegation',
     validator,
-    toInt64(reward),
-    toInt64(commission_bps)
+    toFloat64(reward),
+    toFloat64(commission_bps)
 FROM hyperliquid_delegator_rewards
-WHERE delegator = lower('0x742d35Cc6634C0532925a3b844Bc9e7595f0bEb')
+WHERE delegator = lower('0xYOUR_ADDRESS_HERE')
     AND block_number = (SELECT max(block_number) FROM hyperliquid_delegator_rewards)
 ```
 
@@ -1842,11 +1846,12 @@ SELECT
     validator,
     reward,
     commission_bps,
-    snapshot_time
+    snapshot_time,
+    block_number
 FROM hyperliquid_delegator_rewards
-WHERE delegator = lower('0x742d35Cc6634C0532925a3b844Bc9e7595f0bEb')
+WHERE delegator = lower('0xYOUR_ADDRESS_HERE')
     AND block_number = (SELECT max(block_number) FROM hyperliquid_delegator_rewards)
-ORDER BY reward DESC
+ORDER BY toFloat64(reward) DESC
 ```
 
 #### **33. Validator Commission History**
@@ -1857,13 +1862,16 @@ Validator commission and rewards history over time.
 
 ```sql
 SELECT
-    time,
-    validator,
-    reward,
-    block_number
-FROM hyperliquid_validator_rewards
+    block_number,
+    snapshot_time,
+    commission_bps,
+    count() AS delegator_count,
+    sum(reward) AS total_pending_rewards
+FROM hyperliquid_delegator_rewards
+WHERE validator = lower('0xYOUR_VALIDATOR_HERE')
+GROUP BY block_number, snapshot_time, commission_bps
 ORDER BY block_number DESC
-LIMIT 100
+LIMIT 50
 ```
 
 ### Builders
@@ -1879,13 +1887,14 @@ SELECT
     b.builder,
     l.builder_name,
     count() AS tx_count,
-    sum(b.builder_fee) AS total_fees,
+    sum(toFloat64(b.builder_fee)) AS total_fees,
     uniqExact(b.user) AS unique_users
 FROM hyperliquid_builder_transactions b
 LEFT JOIN hyperliquid_builder_labels l ON b.builder = l.builder_address
 WHERE b.block_time > now() - INTERVAL 24 HOUR
 GROUP BY b.builder, l.builder_name
 ORDER BY total_fees DESC
+LIMIT 50
 ```
 
 #### **35. Builder Fill Volume (24h)**
@@ -1898,13 +1907,14 @@ Builder fill volume and fees in the last 24 hours.
 SELECT
     builder_address,
     count() AS fills,
-    sum(price * size) AS volume_usd,
-    sum(builder_fee) AS total_builder_fees,
+    sum(toFloat64(price) * toFloat64(size)) AS volume_usd,
+    sum(toFloat64(builder_fee)) AS total_builder_fees,
     uniqExact(user) AS unique_users
 FROM hyperliquid_builder_fills
 WHERE block_time > now() - INTERVAL 24 HOUR
 GROUP BY builder_address
 ORDER BY volume_usd DESC
+LIMIT 50
 ```
 
 ### Analytics
@@ -1924,24 +1934,26 @@ SELECT
     unique_users
 FROM hyperliquid_funding_summary_hourly
 WHERE hour > now() - INTERVAL 24 HOUR
-ORDER BY hour DESC, abs(avg_funding_rate) DESC
+ORDER BY hour DESC, abs(toFloat64(avg_funding_rate)) DESC
+LIMIT 100
 ```
 
-#### **37. Daily Liquidation Stats**
+#### **37. Hourly Liquidation Stats**
 
-Daily liquidation statistics by coin.
+Hourly liquidation statistics by coin.
 
-**Keywords:** `liquidations`, `daily`, `stats`, `volume`, `users`
+**Keywords:** `liquidations`, `hourly`, `stats`, `volume`, `users`
 
 ```sql
 SELECT
-    day,
+    hour,
     coin,
     liquidation_count,
     liquidated_volume,
     unique_liquidated_users
-FROM hyperliquid_liquidations_daily
-ORDER BY day DESC, liquidated_volume DESC
+FROM hyperliquid_liquidations_hourly
+ORDER BY hour DESC, toFloat64(liquidated_volume) DESC
+LIMIT 100
 ```
 
 #### **38. Hourly OHLCV**
@@ -1985,6 +1997,7 @@ SELECT
     low_price
 FROM hyperliquid_metrics_dex_overview
 ORDER BY day DESC, volume_usd DESC
+LIMIT 100
 ```
 
 #### **40. Platform Daily Overview**
@@ -2007,6 +2020,7 @@ SELECT
     builder_fill_count
 FROM hyperliquid_metrics_overview
 ORDER BY day DESC
+LIMIT 30
 ```
 
 ## Common Query Patterns
