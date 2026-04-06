@@ -7,7 +7,7 @@ MPP (Machine Payments Protocol) enables pay-per-request RPC access via stablecoi
 | Property | Value |
 |----------|-------|
 | **Protocol** | IETF Payment Authentication (WWW-Authenticate / Authorization / Payment-Receipt) |
-| **Payment Methods** | PathUSD on Tempo (chain ID 4217), USDC on Solana |
+| **Payment Methods** | Varies by network. See [Payment Networks](#payment-networks) |
 | **Authentication** | None required (payment headers handle auth) |
 | **Chains** | 140+ (same as Quicknode RPC network) |
 | **Base URL** | `https://mpp.quicknode.com` |
@@ -49,6 +49,20 @@ Payment channels for high-frequency access:
 | `/llms.txt` | GET | Machine-readable documentation |
 
 Replace `:network` with slugs like `tempo-mainnet`, `ethereum-mainnet`, `solana-mainnet`, etc.
+
+## Payment Networks
+
+| Network | Chain ID | Token | Charge | Session |
+|---------|----------|-------|:---:|:---:|
+| Tempo Testnet | 42431 | PathUSD | Yes | Yes |
+| Tempo Mainnet | 4217 | PathUSD, USDC.e | Yes | Yes |
+| Solana Mainnet | — | USDC | Yes | No |
+
+The payment network is independent of the chain you query. For example, you can pay with PathUSD on Tempo and query Ethereum, Solana, or any other supported chain.
+
+## Testnet Caps
+
+Testnet caps are limited to 10,000 requests per intent per wallet (charge and session counted separately). After reaching a cap, switch to mainnet for production usage.
 
 ## Rate Limits
 
@@ -216,6 +230,7 @@ console.log(receipt.reference) // tx hash (charge) or channelId (session)
 | Status | Code | Meaning |
 |--------|------|---------|
 | 402 | (challenge) | Payment required; see `WWW-Authenticate: Payment` header |
+| 403 | `lifetime_limit_reached` | Testnet lifetime request cap exceeded; switch to mainnet |
 | 404 | `unsupported_network` | Network slug not found |
 | 429 | `rate_limit_exceeded` | 1,000 req/10s limit exceeded per IP:network |
 | 503 | `mpp_not_configured` | MPP unavailable in this environment |
