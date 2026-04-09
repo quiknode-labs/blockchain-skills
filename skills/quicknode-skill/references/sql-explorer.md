@@ -2119,16 +2119,17 @@ ORDER BY notional DESC
 ### Liquidation Monitoring
 
 ```sql
--- Liquidation risk analysis
+-- Liquidation risk analysis by coin
 SELECT
   hour,
-  SUM(liquidation_count) AS total_liquidations,
-  SUM(liquidated_volume) AS total_volume,
-  SUM(unique_liquidated_users) AS total_users
+  coin,
+  liquidation_count,
+  liquidated_volume,
+  unique_liquidated_users
 FROM hyperliquid_liquidations_hourly
 WHERE hour >= now() - INTERVAL 7 DAY
-GROUP BY hour
-ORDER BY hour DESC
+ORDER BY hour DESC, liquidated_volume DESC
+LIMIT 100
 ```
 
 ## SQL Syntax Support
