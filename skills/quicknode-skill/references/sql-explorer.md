@@ -400,52 +400,50 @@ Order book changes for reconstruction.
 | indexed_at | DateTime | No | Indexed At |
 
 #### hyperliquid_dex_trades
-**Sort Keys:** ⚡ PARTITION BY: (not specified)
+**Sort Keys:** ⚡ (not specified)
 
 DEX trades with full buyer/seller details.
 
 | Column | Type | Sort Key | Description |
 |--------|------|----------|-------------|
-| market_type | String | No | Market Type |
-| price | Decimal | No | Price |
-| size | Decimal | No | Size |
-| usd_amount | Decimal | No | Usd Amount |
-| side | Enum | No | Side |
-| buyer_address | FixedString | No | Buyer Address |
-| seller_address | FixedString | No | Seller Address |
-| trade_id | UInt64 | No | Trade Id |
-| timestamp | DateTime | No | Timestamp |
-| transaction_hash | FixedString | No | Transaction Hash |
 | block_number | UInt64 | No | Block Number |
 | block_time | DateTime | No | Block Time |
-| buyer_order_id | UInt64 | No | Buyer Order Id |
-| seller_order_id | UInt64 | No | Seller Order Id |
-| buyer_fee | Decimal | No | Buyer Fee |
-| seller_fee | Decimal | No | Seller Fee |
-| fee_token | String | No | Fee Token |
-| buyer_closed_pnl | Decimal | No | Buyer Closed Pnl |
-| seller_closed_pnl | Decimal | No | Seller Closed Pnl |
-| buyer_start_position | Decimal | No | Buyer Start Position |
-| seller_start_position | Decimal | No | Seller Start Position |
-| buyer_crossed | UInt64 | No | Buyer Crossed |
-| seller_crossed | UInt64 | No | Seller Crossed |
-| buyer_dir | String | No | Buyer Dir |
-| seller_dir | String | No | Seller Dir |
-| buyer_twap_id | UInt64 | No | Buyer Twap Id |
-| seller_twap_id | UInt64 | No | Seller Twap Id |
+| buyer_address | FixedString | No | Buyer Address |
 | buyer_builder_address | FixedString | No | Buyer Builder Address |
-| seller_builder_address | FixedString | No | Seller Builder Address |
 | buyer_builder_fee | Decimal | No | Buyer Builder Fee |
-| seller_builder_fee | Decimal | No | Seller Builder Fee |
-| total_builder_fee | Decimal | No | Total Builder Fee |
+| buyer_closed_pnl | Decimal | No | Buyer Closed Pnl |
+| buyer_crossed | UInt8 | No | Buyer Crossed |
+| buyer_dir | String | No | Buyer Dir |
+| buyer_fee | Decimal | No | Buyer Fee |
+| buyer_order_id | UInt64 | No | Buyer Order Id |
+| buyer_start_position | Decimal | No | Buyer Start Position |
+| buyer_twap_id | UInt64 | No | Buyer Twap Id |
+| coin | String | No | Coin |
+| fee_token | String | No | Fee Token |
+| indexed_at | DateTime | No | Indexed At |
 | liquidated_user | FixedString | No | Liquidated User |
 | liquidation_mark_price | Decimal | No | Liquidation Mark Price |
 | liquidation_method | String | No | Liquidation Method |
+| market_type | String | No | Market Type |
+| price | Decimal | No | Price |
+| seller_address | FixedString | No | Seller Address |
+| seller_builder_address | FixedString | No | Seller Builder Address |
+| seller_builder_fee | Decimal | No | Seller Builder Fee |
+| seller_closed_pnl | Decimal | No | Seller Closed Pnl |
+| seller_crossed | UInt8 | No | Seller Crossed |
+| seller_dir | String | No | Seller Dir |
+| seller_fee | Decimal | No | Seller Fee |
+| seller_order_id | UInt64 | No | Seller Order Id |
+| seller_start_position | Decimal | No | Seller Start Position |
+| seller_twap_id | UInt64 | No | Seller Twap Id |
+| side | Enum | No | Side |
+| size | Decimal | No | Size |
+| timestamp | DateTime | No | Timestamp |
+| total_builder_fee | Decimal | No | Total Builder Fee |
+| trade_id | UInt64 | No | Trade Id |
+| transaction_hash | FixedString | No | Transaction Hash |
 | unique_id | String | No | Unique Id |
-| indexed_at | DateTime | No | Indexed At |
-
-### Market Tables
-
+| usd_amount | Decimal | No | Usd Amount |
 #### hyperliquid_perpetual_markets
 **Sort Keys:** ⚡ coin
 
@@ -508,17 +506,14 @@ Hourly trading volume and OHLC data.
 
 | Column | Type | Sort Key | Description |
 |--------|------|----------|-------------|
+| close | Decimal | No | Close |
 | coin | String | Yes | Coin |
-| hour | DateTime | Yes | Hour |
-| volume | Decimal | No | Volume |
-| trade_count | UInt64 | No | Trade Count |
 | high | Decimal | No | High |
+| hour | DateTime | Yes | Hour |
 | low | Decimal | No | Low |
 | open | Decimal | No | Open |
-| close | Decimal | No | Close |
-
-### Funding & Liquidation Tables
-
+| trade_count | UInt64 | No | Trade Count |
+| volume | Decimal | No | Volume |
 #### hyperliquid_funding
 **Sort Keys:** ⚡ block_number, user, coin, time | **Partition:** toYYYYMM(block_time)
 
@@ -544,27 +539,23 @@ Hourly aggregated funding rate summaries.
 
 | Column | Type | Sort Key | Description |
 |--------|------|----------|-------------|
+| avg_funding_rate | Float64 | No | Avg Funding Rate |
 | coin | String | Yes | Coin |
 | hour | DateTime | Yes | Hour |
-| avg_funding_rate | Float64 | No | Avg Funding Rate |
 | total_funding | Decimal | No | Total Funding |
 | unique_users | UInt64 | No | Unique Users |
+#### hyperliquid_liquidations_hourly
+**Sort Keys:** ⚡ hour, coin | **Partition:** toYYYYMM(hour)
 
-#### hyperliquid_liquidations_daily
-**Sort Keys:** ⚡ day, coin | **Partition:** toYYYYMM(day)
-
-Daily aggregated liquidation statistics.
+Hourly aggregated liquidation statistics.
 
 | Column | Type | Sort Key | Description |
 |--------|------|----------|-------------|
-| day | DateTime | Yes | Day |
 | coin | String | Yes | Coin |
-| liquidation_count | UInt64 | No | Liquidation Count |
+| hour | DateTime | Yes | Hour |
 | liquidated_volume | Decimal | No | Liquidated Volume |
+| liquidation_count | UInt64 | No | Liquidation Count |
 | unique_liquidated_users | UInt64 | No | Unique Liquidated Users |
-
-### Infrastructure Tables
-
 #### hyperliquid_blocks
 **Sort Keys:** ⚡ block_number | **Partition:** toYYYYMM(block_time)
 
@@ -1038,16 +1029,15 @@ Daily DEX metrics by coin.
 
 | Column | Type | Sort Key | Description |
 |--------|------|----------|-------------|
-| day | DateTime | Yes | Day |
 | coin | String | Yes | Coin |
-| volume_usd | Decimal | No | Volume Usd |
-| fill_count | UInt64 | No | Fill Count |
-| unique_traders | UInt64 | No | Unique Traders |
+| day | Date | Yes | Day |
 | fees | Decimal | No | Fees |
-| liquidations | UInt64 | No | Liquidations |
+| fill_count | UInt64 | No | Fill Count |
 | high_price | Decimal | No | High Price |
+| liquidations | UInt64 | No | Liquidations |
 | low_price | Decimal | No | Low Price |
-
+| unique_traders | UInt64 | No | Unique Traders |
+| volume_usd | Decimal | No | Volume Usd |
 #### hyperliquid_metrics_overview
 **Sort Keys:** ⚡ day | **Partition:** toYYYYMM(day)
 
@@ -1055,68 +1045,16 @@ Platform-wide aggregate metrics.
 
 | Column | Type | Sort Key | Description |
 |--------|------|----------|-------------|
-| day | DateTime | Yes | Day |
-| total_volume_usd | Decimal | No | Total Volume Usd |
-| total_fills | UInt64 | No | Total Fills |
 | active_traders | UInt64 | No | Active Traders |
-| total_fees | Decimal | No | Total Fees |
+| builder_fill_count | UInt64 | No | Builder Fill Count |
+| coins_traded | UInt64 | No | Coins Traded |
+| day | Date | Yes | Day |
 | liquidation_count | UInt64 | No | Liquidation Count |
 | liquidation_volume_usd | Decimal | No | Liquidation Volume Usd |
-| coins_traded | UInt64 | No | Coins Traded |
 | total_builder_fees | Decimal | No | Total Builder Fees |
-| builder_fill_count | UInt64 | No | Builder Fill Count |
-
-
-## Pre-Built Queries
-
-### Quick Reference
-
-| # | Query Name | Category | Keywords | Description |
-|---|------------|----------|----------|-------------|
-| 1 | Recent Trades | Trading | trades, latest, recent | Get most recent trades across all markets |
-| 2 | Volume by Coin (24h) | Trading | volume, coin, 24h, statistics | Top coins by trading volume with price stats |
-| 3 | Whale Trades (24h) | Trading | whale, large, trades, notional | Large trades over $100K |
-| 4 | DEX Trades (Enriched View) | Trading | dex, trades, market, type | Trades with market type classification |
-| 5 | Hourly Volume | Activity | hourly, volume, timeseries | Trading volume aggregated by hour |
-| 6 | Daily Volume | Activity | daily, volume, traders | Daily trading volume with unique traders |
-| 7 | Top Traders by Volume (7d) | Activity | traders, volume, leaderboard | Most active traders by volume |
-| 8 | Recent Fills | Fills | fills, latest, executions | Most recent order fills |
-| 9 | Recent Liquidations | Fills | liquidations, risk, forced | Recent liquidation events |
-| 10 | Recent Orders | Orders | orders, latest, book | Most recent orders placed |
-| 11 | Order Type Distribution (1h) | Orders | orders, distribution, types | Distribution of order types and status |
-| 12 | Latest Funding Payments | Funding | funding, payments, grouped | Recent funding payments grouped by coin |
-| 13 | Funding Rate History by Coin | Funding | funding, rate, history, trend | Historical funding rates over time |
-| 14 | Block Activity | Infrastructure | blocks, activity, transactions | Block data with transaction counts |
-| 15 | Recent Transactions | Infrastructure | transactions, recent, actions | Latest transactions with action types |
-| 16 | Action Type Breakdown (24h) | Infrastructure | actions, breakdown, success | Transaction success rates by action type |
-| 17 | Recent Asset Transfers | Ledger | transfers, assets, movements | Latest asset transfers between addresses |
-| 18 | Transfer Volume by Type (7d) | Ledger | transfers, volume, type | Asset transfer volume by type |
-| 19 | Recent Ledger Updates | Ledger | ledger, updates, changes | Latest ledger state changes |
-| 20 | Bridge Deposits & Withdrawals | Ledger | bridge, deposits, withdrawals | Bridge activity between chains |
-| 21 | Perpetual Markets | Markets | perp, perpetual, markets, list | List all perpetual markets |
-| 22 | Spot Markets | Markets | spot, markets, tokens, list | List all spot markets |
-| 23 | Market Context (Latest) | Markets | market, context, funding, prices | Latest market context data |
-| 24 | Oracle Prices (All DEXes) | Markets | oracle, prices, dex | Latest oracle prices for all DEXes |
-| 25 | Largest Open Positions (All DEXes) | Portfolio | positions, open, largest | Biggest open positions across users |
-| 26 | Spot Balances for Address | Portfolio | spot, balances, tokens, user | Spot token balances for user |
-| 27 | Vault Depositor Equity | Portfolio | vault, equity, depositor | Vault holdings and performance |
-| 28 | Sub-Account Mappings | Portfolio | sub, account, mappings | Sub-account relationships |
-| 29 | Bot/Agent Lookups | Portfolio | bot, agent, automated | Active bots and agents |
-| 30 | Display Name Lookups | Portfolio | display, name, identifier | User display names |
-| 31 | Full Portfolio View | Portfolio | portfolio, full, snapshot | Complete portfolio across all assets |
-| 32 | Delegator Rewards by Address | Staking | delegator, rewards, staking | Staking rewards for a delegator |
-| 33 | Validator Commission History | Staking | validator, commission, earnings | Validator commission and rewards history |
-| 34 | Builder Activity (24h) | Builders | builder, activity, transactions | Builder transaction activity |
-| 35 | Builder Fill Volume (24h) | Builders | builder, fill, volume | Builder fill volume and fees |
-| 36 | Funding Rate Summary (Hourly) | Analytics | funding, rate, summary, hourly | Hourly funding rate statistics |
-| 37 | Hourly Liquidation Stats | Analytics | liquidations, hourly, stats | Hourly liquidation statistics by coin |
-| 38 | Hourly OHLCV | Analytics | ohlcv, hourly, candles | Hourly OHLCV data |
-| 39 | Daily Per-Coin Metrics | Analytics | daily, metrics, coin | Daily metrics by coin |
-| 40 | Platform Daily Overview | Analytics | platform, overview, daily | Daily platform-wide statistics |
-
-
-### Trading
-
+| total_fees | Decimal | No | Total Fees |
+| total_fills | UInt64 | No | Total Fills |
+| total_volume_usd | Decimal | No | Total Volume Usd |
 #### **1. Recent Trades**
 
 Last 100 trades with buyer/seller details.
