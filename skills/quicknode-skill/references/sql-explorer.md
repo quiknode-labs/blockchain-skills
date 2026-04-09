@@ -2121,12 +2121,12 @@ ORDER BY notional DESC
 ```sql
 -- Liquidation risk analysis
 SELECT
-  toStartOfHour(block_time) AS hour,
-  COUNT(*) AS liquidation_count,
-  SUM(toFloat64(liquidated_ntl_pos)) AS total_notional,
-  AVG(toFloat64(liquidated_account_value)) AS avg_account_value
-FROM hyperliquid_liquidations_daily
-WHERE block_time >= now() - INTERVAL 7 DAY
+  hour,
+  SUM(liquidation_count) AS total_liquidations,
+  SUM(liquidated_volume) AS total_volume,
+  SUM(unique_liquidated_users) AS total_users
+FROM hyperliquid_liquidations_hourly
+WHERE hour >= now() - INTERVAL 7 DAY
 GROUP BY hour
 ORDER BY hour DESC
 ```
@@ -2494,13 +2494,23 @@ ORDER BY volume DESC
 Track positions, liquidations, and funding rates.
 
 ```sql
--- Users approaching liquidation
+-- Recent liquidations
 SELECT
-  user,
-  SUM(toFloat64(liquidated_ntl_pos)) AS at_risk_notional
-FROM hyperliquid_liquidations_daily
-WHERE block_time >= now() - INTERVAL 1 HOUR
-GROUP BY user
+  time,
+  coin,
+  side,
+  price,
+  size,
+  toFloat64(price) * toFloat64(size) AS notional,
+  liquidated_user,
+  liquidation_mark_price,
+  liquidation_method,
+  user
+FROM hyperliquid_fills
+WHERE block_time > now() - INTERVAL 24 HOUR
+  AND is_liquidation = 1
+ORDER BY block_number DESC, tid DESC
+LIMIT 100
 ```
 
 ### Market Research
