@@ -33,7 +33,7 @@ async function uploadFile(filePath) {
 
   const result = await response.json();
   console.log(`CID: ${result.pin.cid}`);
-  console.log(`Gateway URL: https://YOUR_GATEWAY.quicknode-ipfs.com/ipfs/${result.pin.cid}`);
+  console.log(`Gateway URL: https://<your-gateway-name>.quicknode-ipfs.com/ipfs/${result.pin.cid}`);
 
   return result;
 }
@@ -151,7 +151,7 @@ await pinByCID('QmExistingCID...', 'My Pinned Content');
 ### Via Gateway
 
 ```javascript
-const GATEWAY_URL = 'https://YOUR_GATEWAY.quicknode-ipfs.com';
+const GATEWAY_URL = 'https://<your-gateway-name>.quicknode-ipfs.com';
 
 // Fetch JSON metadata
 async function fetchMetadata(cid) {
@@ -170,13 +170,13 @@ async function fetchImage(cid) {
 
 ```
 # Direct CID access
-https://YOUR_GATEWAY.quicknode-ipfs.com/ipfs/{cid}
+https://<your-gateway-name>.quicknode-ipfs.com/ipfs/{cid}
 
 # Path within directory
-https://YOUR_GATEWAY.quicknode-ipfs.com/ipfs/{directoryCid}/image.png
+https://<your-gateway-name>.quicknode-ipfs.com/ipfs/{directoryCid}/image.png
 
 # IPNS resolution
-https://YOUR_GATEWAY.quicknode-ipfs.com/ipns/{name}
+https://<your-gateway-name>.quicknode-ipfs.com/ipns/{name}
 ```
 
 ## List Pinned Content
@@ -358,7 +358,7 @@ async function safeUpload(filePath) {
 
     // Verify upload
     const verifyResponse = await fetch(
-      `https://YOUR_GATEWAY.quicknode-ipfs.com/ipfs/${result.pin.cid}`,
+      `https://<your-gateway-name>.quicknode-ipfs.com/ipfs/${result.pin.cid}`,
       { method: 'HEAD' }
     );
 
