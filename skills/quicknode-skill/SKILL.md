@@ -1,6 +1,6 @@
 ---
 name: quicknode-skill
-description: Quicknode blockchain infrastructure including RPC endpoints (80+ chains), Streams (real-time data), Webhooks, IPFS storage, Marketplace Add-ons (Token API, NFT API, DeFi tools), Solana DAS API (Digital Asset Standard), KV Store, gRPC streaming (Yellowstone for Solana, Hypercore for Hyperliquid), SQL Explorer (direct SQL access to indexed chain data), and x402 pay-per-request RPC. Use when setting up blockchain infra, configuring real-time data pipelines, processing blockchain events, storing data on IPFS, using Quicknode-specific APIs, querying Solana NFTs/tokens/compressed assets, persisting state with KV Store, querying chain data with SQL, analyzing trading data, or building low-latency gRPC streams. Triggers on mentions of Quicknode, Streams, qn_ methods, IPFS, Quicknode add-ons, DAS API, Digital Asset Standard, compressed NFT, cNFT, KV Store, getAssetsByOwner, searchAssets, qnLib, Yellowstone, gRPC, Geyser, Hypercore, Hyperliquid, SQL Explorer, trading data, indexed data, evm, ethereum, solana, or x402.
+description: Quicknode blockchain infrastructure: endpoint access for 80+ chains over RPC/WebSocket/gRPC/REST, Streams, Webhooks, SQL Explorer, IPFS, Solana DAS API, Yellowstone and Hypercore gRPC, Key-Value Store, Admin API, x402 and MPP pay-per-request RPC, and Agent Subscriptions. Use for any Quicknode product, qn_ methods, blockchain data access on Ethereum, Solana, Hyperliquid and other supported chains, or wallet-paid agent access (x402, MPP, agent subscription).
 ---
 
 # Quicknode Blockchain Infrastructure
@@ -10,6 +10,7 @@ description: Quicknode blockchain infrastructure including RPC endpoints (80+ ch
 - Is this read-only or should I create infrastructure (streams, webhooks, IPFS writes)?
 - Does this require real-time streaming (gRPC/Yellowstone/Hypercore) or standard RPC?
 - What endpoint or API key should I use (default: `QUICKNODE_RPC_URL`, optional `QUICKNODE_WSS_URL` / `QUICKNODE_API_KEY`)?
+- If no API key exists, does the agent want pay-per-request access (x402, MPP) or a wallet-paid Quicknode account via [Agent Subscriptions](#agent-subscriptions)?
 - Any constraints (latency, regions, throughput, destinations)?
 
 ## Safety Defaults
@@ -19,6 +20,7 @@ description: Quicknode blockchain infrastructure including RPC endpoints (80+ ch
 
 ## Confirm Before Write
 - Require explicit confirmation before creating or modifying Streams, Webhooks, or IPFS uploads.
+- Require explicit confirmation before creating an Agent Subscription, topping up credits, or any action that spends real funds via x402 or MPP.
 - If confirmation is missing, return the exact API payload for review.
 
 ## Quick Reference
@@ -38,6 +40,7 @@ description: Quicknode blockchain infrastructure including RPC endpoints (80+ ch
 | **Key-Value Store** | Serverless key-value and list storage (beta) | Persistent state for Streams, dynamic address lists |
 | **x402** | Pay-per-request ($0.001/call) or credit drawdown ($10/1M) RPC via stablecoins | Keyless RPC access, AI agents, pay-as-you-go |
 | **MPP** | Pay-per-request RPC via IETF Payment Authentication headers | AI agents, multi-service payments, high-volume sessions |
+| **Agent Subscriptions** | Wallet-paid Quicknode account creation via x402 or MPP, returns a `QN_*` Admin API key | Autonomous agents that need full platform access without dashboard signup |
 
 ## RPC Endpoints
 
@@ -543,6 +546,92 @@ console.log('Block number:', BigInt(result))
 
 See [references/mpp-reference.md](references/mpp-reference.md) for complete MPP documentation including charge vs session intents, Solana setup, CLI usage, and payment receipts.
 
+## Agent Subscriptions
+
+Programmatic Quicknode account creation for autonomous agents. A single POST to `/api/v1/agent/subscriptions` with an x402 or MPP payment creates a paid account synchronously and returns a `QN_*` Admin API key, no dashboard signup or email confirmation required. The same payment SDKs used for x402 and MPP per-request RPC sign the subscription payment.
+
+**Docs:** https://www.quicknode.com/docs/build-with-ai/agent-subscriptions
+
+### When to Use
+
+- Pay-per-request (x402, MPP) when the agent only needs short-lived RPC access with no persistent state.
+- Agent Subscriptions when the agent needs the full platform: Streams, Webhooks, Key-Value Store, multiple endpoints, security rules, billing, or any other Admin API surface.
+
+### Discover Plans
+
+To fetch the live plan list, prices, accepted payment networks, asset contract addresses, and recipient (`payTo`) addresses, send the request without a payment header. The server returns HTTP 402 with the details in the body and a `PAYMENT-REQUIRED` header (base64-encoded x402 requirement).
+
+```bash
+curl -X POST https://www.quicknode.com/api/v1/agent/subscriptions \
+  -H "Content-Type: application/json" \
+  -d '{}'
+```
+
+Parse the 402 body, pick a plan, then retry the request through the SDK.
+
+### Quick Setup (x402)
+
+```typescript
+import { createQuicknodeX402Client } from '@quicknode/x402'
+
+const client = await createQuicknodeX402Client({
+  baseUrl: 'https://www.quicknode.com',
+  network: 'eip155:8453', // Base Mainnet
+  evmPrivateKey: process.env.PRIVATE_KEY as `0x${string}`,
+})
+
+const res = await client.fetch(
+  'https://www.quicknode.com/api/v1/agent/subscriptions',
+  {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      plan_name: 'b6_build', // b6_build | b6_accelerate | b6_scale | b6_business
+      interval: 'monthly',
+      email: 'agent@example.com',
+      password: process.env.ACCOUNT_PASSWORD,
+      password_confirmation: process.env.ACCOUNT_PASSWORD,
+      full_name: 'Autonomous Agent',
+      name: 'Agent Account',
+      billing_address: {
+        line1: '123 Main St',
+        city: 'New York',
+        postal_code: '10001',
+        country: 'US',
+      },
+    }),
+  },
+)
+
+const { api_key } = await res.json() // "QN_..." Admin API key
+```
+
+The returned `api_key` is the same `QUICKNODE_API_KEY` used everywhere else in this skill. Use it against `https://api.quicknode.com/v0/...` to provision endpoints, configure security, top up credits, read balances, and so on.
+
+> **Paying with Solana?** Use [`@quicknode/x402-solana`](https://github.com/quiknode-labs/x402-solana) to sign x402 payments with a Solana keypair instead of an EVM private key. Once configured, the subscription request body and Admin API steps are identical to the x402 example above. See the [How to Access Solana RPC with x402](https://www.quicknode.com/guides/solana-development/ai-agents/how-to-access-solana-rpc-with-x402-solana) guide for setup details.
+
+### Endpoints
+
+| Method | Path | Auth | Purpose |
+|--------|------|------|---------|
+| POST | `/api/v1/agent/subscriptions` | Payment header (x402 or MPP) | Create account and subscription |
+| POST | `/api/v1/agent/top_up` | API key + payment header | Add credits to an existing subscription |
+| GET | `/api/v1/agent/balance` | API key | Read current credit balance |
+
+All requests target `https://www.quicknode.com`.
+
+### Plan IDs
+
+`b6_build`, `b6_accelerate`, `b6_scale`, `b6_business`. Map directly to the public Build / Accelerate / Scale / Business plans on [pricing](https://www.quicknode.com/pricing). Use the discovery 402 above when the agent needs to choose a plan dynamically.
+
+### Guard Rails
+
+- **Real funds**: Subscriptions settle in real stablecoins on a mainnet payment network. Confirm plan, interval, and payment network with the user before sending the request.
+- **Duplicate email protection**: Re-using an existing email returns an error. Resume failed requests with the same `email` and `password` instead of creating a duplicate account.
+- **No free trials**: All subscriptions are production-grade from the first request.
+- **Synchronous creation**: Account creation and subscription activation happen in the same request. There is no async job or webhook to wait for.
+- **No invented details**: Never fabricate billing details, passwords, or email addresses. Require explicit user input.
+
 ## Common Patterns
 
 ### Multi-Chain dApp Setup
@@ -656,6 +745,9 @@ const ethBalance = await chains.ethereum.client.getBalance({ address: '0x...' })
 - **Key-Value Store**: https://www.quicknode.com/docs/key-value-store
 - **x402**: https://x402.quicknode.com
 - **MPP**: https://mpp.quicknode.com
+- **Agent Subscriptions**: https://www.quicknode.com/docs/build-with-ai/agent-subscriptions
+- **Build with AI Overview**: https://www.quicknode.com/docs/build-with-ai
+- **Agents reference (agents.md)**: https://www.quicknode.com/agents.md
 
 ### Chain-Specific Docs
 - **Ethereum**: https://www.quicknode.com/docs/ethereum
