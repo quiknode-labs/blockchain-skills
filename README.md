@@ -82,7 +82,7 @@ Extend functionality with marketplace add-ons:
 
 Stablecoin-paid access for autonomous agents, no API key required to start:
 - **x402** and **MPP** for pay-per-request RPC ($0.001/call) on 140+ chains
-- **Agent Subscriptions** to create a Quicknode account and receive an Admin API key in a single payment, unlocking the full product suite
+- **Agent Subscriptions** to create a Quicknode account and receive a full platform API key in a single payment, unlocking the full product suite
 
 Get your Quicknode endpoint at [Quicknode.com](https://www.quicknode.com/)
 

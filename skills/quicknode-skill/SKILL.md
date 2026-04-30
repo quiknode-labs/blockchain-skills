@@ -40,7 +40,7 @@ description: Quicknode blockchain infrastructure: endpoint access for 80+ chains
 | **Key-Value Store** | Serverless key-value and list storage (beta) | Persistent state for Streams, dynamic address lists |
 | **x402** | Pay-per-request ($0.001/call) or credit drawdown ($10/1M) RPC via stablecoins | Keyless RPC access, AI agents, pay-as-you-go |
 | **MPP** | Pay-per-request RPC via IETF Payment Authentication headers | AI agents, multi-service payments, high-volume sessions |
-| **Agent Subscriptions** | Wallet-paid Quicknode account creation via x402 or MPP, returns a `QN_*` Admin API key | Autonomous agents that need full platform access without dashboard signup |
+| **Agent Subscriptions** | Wallet-paid Quicknode account creation via x402 or MPP, returns a `QN_*` full platform API key | Autonomous agents that need full platform access without dashboard signup |
 
 ## RPC Endpoints
 
@@ -548,7 +548,7 @@ See [references/mpp-reference.md](references/mpp-reference.md) for complete MPP 
 
 ## Agent Subscriptions
 
-Programmatic Quicknode account creation for autonomous agents. A single POST to `/api/v1/agent/subscriptions` with an x402 or MPP payment creates a paid account synchronously and returns a `QN_*` Admin API key, no dashboard signup or email confirmation required. The same payment SDKs used for x402 and MPP per-request RPC sign the subscription payment.
+Programmatic Quicknode account creation for autonomous agents. A single POST to `/api/v1/agent/subscriptions` with an x402 or MPP payment creates a paid account synchronously and returns a `QN_*` full platform API key, no dashboard signup or email confirmation required. The same payment SDKs used for x402 and MPP per-request RPC sign the subscription payment.
 
 **Docs:** https://www.quicknode.com/docs/build-with-ai/agent-subscriptions
 
@@ -603,7 +603,7 @@ const res = await client.fetch(
   },
 )
 
-const { api_key } = await res.json() // "QN_..." Admin API key
+const { api_key } = await res.json() // "QN_..." full platform API key
 ```
 
 The returned `api_key` is the same `QUICKNODE_API_KEY` used everywhere else in this skill. Use it against `https://api.quicknode.com/v0/...` to provision endpoints, configure security, top up credits, read balances, and so on.
