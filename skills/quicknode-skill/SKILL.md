@@ -630,7 +630,7 @@ All requests target `https://www.quicknode.com`.
 - **Duplicate email protection**: Re-using an existing email returns an error. Resume failed requests with the same `email` and `password` instead of creating a duplicate account.
 - **No free trials**: All subscriptions are production-grade from the first request.
 - **Synchronous creation**: Account creation and subscription activation happen in the same request. There is no async job or webhook to wait for.
-- **No invented details**: Never fabricate billing details, passwords, or email addresses. Require explicit user input.
+- **No invented details**: Never fabricate billing details, passwords, or email addresses. Require explicit user input. Password must be 8–64 characters with at least one lowercase letter, one uppercase letter, one number, and one special character.
 
 ## Common Patterns
 
