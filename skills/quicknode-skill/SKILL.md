@@ -587,7 +587,7 @@ const res = await client.fetch(
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({
       plan_name: 'b6_build', // b6_build | b6_accelerate | b6_scale | b6_business
-      interval: 'monthly',
+      interval: 'monthly', // monthly | yearly
       email: 'agent@example.com',
       password: process.env.ACCOUNT_PASSWORD,
       password_confirmation: process.env.ACCOUNT_PASSWORD,
@@ -610,13 +610,51 @@ The returned `api_key` is the same `QUICKNODE_API_KEY` used everywhere else in t
 
 > **Paying with Solana?** Use [`@quicknode/x402-solana`](https://github.com/quiknode-labs/x402-solana) to sign x402 payments with a Solana keypair instead of an EVM private key. Once configured, the subscription request body and Admin API steps are identical to the x402 example above. See the [How to Access Solana RPC with x402](https://www.quicknode.com/guides/solana-development/ai-agents/how-to-access-solana-rpc-with-x402-solana) guide for setup details.
 
+### Quick Setup (MPP)
+
+```typescript
+import { Mppx, tempo } from 'mppx/client'
+import { privateKeyToAccount } from 'viem/accounts'
+
+const account = privateKeyToAccount(process.env.PRIVATE_KEY as `0x${string}`)
+
+// Activate MPP. Polyfills globalThis.fetch so 402 challenges are
+// intercepted, signed, and retried automatically inside fetch.
+Mppx.create({ methods: [tempo({ account })] })
+
+const subscriptionRes = await fetch(
+  'https://www.quicknode.com/api/v1/agent/subscriptions',
+  {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      plan_name: 'b6_build', // b6_build | b6_accelerate | b6_scale | b6_business
+      interval: 'monthly', // monthly | yearly
+      email: 'agent@example.com',
+      password: process.env.ACCOUNT_PASSWORD,
+      password_confirmation: process.env.ACCOUNT_PASSWORD,
+      full_name: 'Autonomous Agent',
+      name: 'Agent Account',
+      billing_address: {
+        line1: '123 Main St',
+        city: 'New York',
+        postal_code: '10001',
+        country: 'US',
+      },
+    }),
+  },
+)
+
+const { api_key } = await subscriptionRes.json() // "QN_..." full platform API key
+```
+
 ### Endpoints
 
-| Method | Path | Auth | Purpose |
-|--------|------|------|---------|
-| POST | `/api/v1/agent/subscriptions` | Payment header (x402 or MPP) | Create account and subscription |
-| POST | `/api/v1/agent/top_up` | API key + payment header | Add credits to an existing subscription |
-| GET | `/api/v1/agent/balance` | API key | Read current credit balance |
+| Method | Path | Auth | Rate limit | Purpose |
+|--------|------|------|------------|---------|
+| POST | `/api/v1/agent/subscriptions` | Payment header (x402 or MPP) | 30/min | Create account and subscription |
+| POST | `/api/v1/agent/top_up` | API key + payment header | 30/min | Add credits to an existing subscription |
+| GET | `/api/v1/agent/balance` | API key | 60/min | Read current credit balance |
 
 All requests target `https://www.quicknode.com`.
 
