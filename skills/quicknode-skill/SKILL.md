@@ -1,6 +1,6 @@
 ---
 name: quicknode-skill
-description: Quicknode blockchain infrastructure: endpoint access for 80+ chains over RPC/WebSocket/gRPC/REST, Streams, Webhooks, SQL Explorer, IPFS, Solana DAS API, Yellowstone and Hypercore gRPC, Key-Value Store, Admin API, x402 and MPP pay-per-request RPC, and Agent Subscriptions. Use for any Quicknode product, qn_ methods, blockchain data access on Ethereum, Solana, Hyperliquid and other supported chains, or wallet-paid agent access (x402, MPP, agent subscription).
+description: "Quicknode blockchain infrastructure: endpoint access for 80+ chains over RPC/WebSocket/gRPC/REST, Streams, Webhooks, SQL Explorer, IPFS, Solana DAS API, Yellowstone and Hypercore gRPC, Key-Value Store, Admin API, x402 and MPP pay-per-request RPC, and Agent Subscriptions. Use for any Quicknode product, qn_ methods, blockchain data access on Ethereum, Solana, Hyperliquid and other supported chains, or wallet-paid agent access (x402, MPP, agent subscription)."
 ---
 
 # Quicknode Blockchain Infrastructure
