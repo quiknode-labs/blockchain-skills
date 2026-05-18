@@ -178,7 +178,7 @@ Check the `statistics` field in the response to monitor query performance (elaps
 
 | Chain | Network | Cluster ID | Tables | Coverage |
 |-------|---------|------------|--------|----------|
-| Hyperliquid (HyperCore) | Mainnet | `hyperliquid-core-mainnet` | 37 | Trades, orders, fills, funding, order book diffs, perpetual markets, spot markets, blocks, transactions, system actions, builder activity, staking, ledger, clearinghouse states, oracle prices, referrals, sub-accounts, vault equities, agents, bridge events, display names, hourly metrics, daily metrics |
+| Hyperliquid (HyperCore) | Mainnet | `hyperliquid-core-mainnet` | 47 | Trades, orders, fills, funding, order book diffs, perpetual markets, spot markets, blocks, transactions, system actions, builder activity, staking, ledger, clearinghouse states, oracle prices, referrals, sub-accounts, vault equities, agents, bridge events, display names, hourly metrics, daily metrics, outcome markets, perpetual positions, spot balances, quote token metadata, token prices |
 
 ## REST API
 
@@ -282,9 +282,11 @@ Individual trade executions on Hyperliquid.
 | buyer_builder_fee | Decimal | No | Buyer Builder Fee |
 | buyer_closed_pnl | Decimal | No | Buyer Closed Pnl |
 | buyer_crossed | UInt8 | No | Buyer Crossed |
+| buyer_deployer_fee | Decimal | No | Buyer Deployer Fee |
 | buyer_dir | String | No | Buyer Dir |
 | buyer_fee | Decimal | No | Buyer Fee |
 | buyer_order_id | UInt64 | No | Buyer Order Id |
+| buyer_priority_gas | Decimal | No | Buyer Priority Gas |
 | buyer_start_position | Decimal | No | Buyer Start Position |
 | buyer_twap_id | UInt64 | No | Buyer Twap Id |
 | coin | String | No | Coin |
@@ -299,9 +301,11 @@ Individual trade executions on Hyperliquid.
 | seller_builder_fee | Decimal | No | Seller Builder Fee |
 | seller_closed_pnl | Decimal | No | Seller Closed Pnl |
 | seller_crossed | UInt8 | No | Seller Crossed |
+| seller_deployer_fee | Decimal | No | Seller Deployer Fee |
 | seller_dir | String | No | Seller Dir |
 | seller_fee | Decimal | No | Seller Fee |
 | seller_order_id | UInt64 | No | Seller Order Id |
+| seller_priority_gas | Decimal | No | Seller Priority Gas |
 | seller_start_position | Decimal | No | Seller Start Position |
 | seller_twap_id | UInt64 | No | Seller Twap Id |
 | side | Enum | No | Side |
@@ -327,6 +331,7 @@ Order fills with execution details.
 | closed_pnl | Decimal | No | Closed Pnl |
 | coin | String | No | Coin |
 | crossed | UInt8 | No | Crossed |
+| deployer_fee | Decimal | No | Deployer Fee |
 | dir | String | No | Dir |
 | fee | Decimal | No | Fee |
 | fee_token | String | No | Fee Token |
@@ -338,6 +343,7 @@ Order fills with execution details.
 | liquidation_method | String | No | Liquidation Method |
 | oid | UInt64 | No | Oid |
 | price | Decimal | No | Price |
+| priority_gas | Decimal | No | Priority Gas |
 | side | Enum | No | Side |
 | size | Decimal | No | Size |
 | start_position | Decimal | No | Start Position |
@@ -479,6 +485,60 @@ Spot market configurations.
 | token_id | String | No | Token Id |
 | token_index | UInt16 | Yes | Token Index |
 | wei_decimals | UInt8 | No | Wei Decimals |
+
+#### hyperliquid_quote_token_meta
+**Sort Keys:** ⚡ block_number, token_idx | **Partition:** toYYYYMM(snapshot_time)
+
+Quote token metadata and status.
+
+| Column | Type | Sort Key | Description |
+|--------|------|----------|-------------|
+| aligned_quote_info_json | String | No | Aligned Quote Info Json |
+| block_number | UInt64 | Yes | Block Number |
+| first_enabled_as_quote | String | No | First Enabled As Quote |
+| indexed_at | DateTime | No | Indexed At |
+| is_liquid_base | UInt8 | No | Is Liquid Base |
+| is_liquid_quote | UInt8 | No | Is Liquid Quote |
+| snapshot_time | DateTime | No | Snapshot Time |
+| status | String | No | Status |
+| token_idx | UInt64 | Yes | Token Idx |
+| token_name | String | No | Token Name |
+
+#### hyperliquid_spot_pairs
+**Sort Keys:** ⚡ block_number, spot_index | **Partition:** toYYYYMM(snapshot_time)
+
+Spot trading pair configurations.
+
+| Column | Type | Sort Key | Description |
+|--------|------|----------|-------------|
+| base_token_idx | UInt64 | No | Base Token Idx |
+| base_token_name | String | No | Base Token Name |
+| block_number | UInt64 | Yes | Block Number |
+| deploy_time | String | No | Deploy Time |
+| indexed_at | DateTime | No | Indexed At |
+| pair_name | String | No | Pair Name |
+| quote_token_idx | UInt64 | No | Quote Token Idx |
+| quote_token_name | String | No | Quote Token Name |
+| raw_spot_info_json | String | No | Raw Spot Info Json |
+| snapshot_time | DateTime | No | Snapshot Time |
+| spot_index | UInt64 | Yes | Spot Index |
+
+#### hyperliquid_token_usdc_prices
+**Sort Keys:** ⚡ block_number, token_idx | **Partition:** toYYYYMM(snapshot_time)
+
+Token to USDC price snapshots.
+
+| Column | Type | Sort Key | Description |
+|--------|------|----------|-------------|
+| approx_usdc_px | Decimal | No | Approx Usdc Px |
+| approx_usdc_px_float_1e6 | Float64 | No | Approx Usdc Px Float 1e6 |
+| approx_usdc_px_raw | UInt64 | No | Approx Usdc Px Raw |
+| block_number | UInt64 | Yes | Block Number |
+| indexed_at | DateTime | No | Indexed At |
+| raw_pair_json | String | No | Raw Pair Json |
+| snapshot_time | DateTime | No | Snapshot Time |
+| token_idx | UInt64 | Yes | Token Idx |
+| token_name | String | No | Token Name |
 
 #### hyperliquid_perpetual_market_contexts
 **Sort Keys:** ⚡ coin, polled_at | **Partition:** toYYYYMM(polled_at)
@@ -685,12 +745,13 @@ Builder transaction activity.
 | user | String | Yes | User |
 
 #### hyperliquid_builder_labels
-**Sort Keys:** ⚡ builder_address
+**Sort Keys:** ⚡ (not specified)
 
 Builder labels and metadata.
 
 | Column | Type | Sort Key | Description |
 |--------|------|----------|-------------|
+| builder_address | FixedString | No | Builder Address |
 | builder_name | String | No | Builder Name |
 | builder_category | String | No | Builder Category |
 | indexed_at | DateTime | No | Indexed At |
@@ -805,6 +866,7 @@ Delegator reward distributions.
 | c | UInt64 | No | C |
 | commission_bps | UInt16 | No | Commission Bps |
 | delegator | FixedString | Yes | Delegator |
+| e | UInt64 | No | E |
 | indexed_at | DateTime | No | Indexed At |
 | m | UInt64 | No | M |
 | reward | Decimal | No | Reward |
@@ -836,6 +898,28 @@ Clearinghouse state snapshots.
 | usdc_balance | Int64 | No | Usdc Balance |
 | user | FixedString | Yes | User |
 
+#### hyperliquid_perpetual_positions
+**Sort Keys:** ⚡ block_number, clearinghouse, user, asset_idx | **Partition:** toYYYYMM(snapshot_time)
+
+Perpetual position snapshots with funding and margin data.
+
+| Column | Type | Sort Key | Description |
+|--------|------|----------|-------------|
+| asset_idx | UInt16 | Yes | Asset Idx |
+| block_number | UInt64 | Yes | Block Number |
+| clearinghouse | UInt8 | Yes | Clearinghouse |
+| coin | String | No | Coin |
+| entry_notional | UInt64 | No | Entry Notional |
+| funding_alltime | Int64 | No | Funding Alltime |
+| funding_since_change | Int64 | No | Funding Since Change |
+| funding_since_open | Int64 | No | Funding Since Open |
+| indexed_at | DateTime | No | Indexed At |
+| margin | UInt64 | No | Margin |
+| size | Int64 | No | Size |
+| snapshot_time | DateTime | No | Snapshot Time |
+| usdc_balance | Int64 | No | Usdc Balance |
+| user | String | Yes | User |
+
 #### hyperliquid_spot_clearinghouse_states
 **Sort Keys:** ⚡ block_number, user, token_idx | **Partition:** toYYYYMM(snapshot_time)
 
@@ -851,6 +935,22 @@ Spot clearinghouse state snapshots.
 | token_idx | UInt16 | Yes | Token Idx |
 | total | Int64 | No | Total |
 | user | FixedString | Yes | User |
+
+#### hyperliquid_spot_balances
+**Sort Keys:** ⚡ block_number, user, token_idx | **Partition:** toYYYYMM(snapshot_time)
+
+Spot token balance snapshots.
+
+| Column | Type | Sort Key | Description |
+|--------|------|----------|-------------|
+| block_number | UInt64 | Yes | Block Number |
+| escrowed | Int64 | No | Escrowed |
+| indexed_at | DateTime | No | Indexed At |
+| snapshot_time | DateTime | No | Snapshot Time |
+| token | String | No | Token |
+| token_idx | UInt16 | Yes | Token Idx |
+| total | Int64 | No | Total |
+| user | String | Yes | User |
 
 #### hyperliquid_oracle_prices
 **Sort Keys:** ⚡ block_number, clearinghouse, asset_idx | **Partition:** toYYYYMM(snapshot_time)
@@ -1652,6 +1752,142 @@ FROM hyperliquid_oracle_prices
 WHERE block_number = (SELECT max(block_number) FROM hyperliquid_oracle_prices)
 ORDER BY clearinghouse, asset_idx
 ```
+
+### Outcome Markets
+
+#### hyperliquid_outcome_markets
+**Sort Keys:** ⚡ (not specified)
+
+View combining outcome market data with sides and metadata.
+
+| Column | Type | Sort Key | Description |
+|--------|------|----------|-------------|
+| base_token_idx | UInt64 | No | Base Token Idx |
+| block_number | UInt64 | No | Block Number |
+| coin | String | No | Coin |
+| description | String | No | Description |
+| expiry | String | No | Expiry |
+| fee_share | Float64 | No | Fee Share |
+| first_enabled_as_quote | String | No | First Enabled As Quote |
+| indexed_at | DateTime | No | Indexed At |
+| is_liquid_base | UInt8 | No | Is Liquid Base |
+| is_liquid_quote | UInt8 | No | Is Liquid Quote |
+| locked | UInt8 | No | Locked |
+| name | String | No | Name |
+| ndo | UInt64 | No | Ndo |
+| nou | UInt64 | No | Nou |
+| nqu | UInt64 | No | Nqu |
+| outcome_class | String | No | Outcome Class |
+| outcome_id | UInt64 | No | Outcome Id |
+| pair_name | String | No | Pair Name |
+| period | String | No | Period |
+| quote_raw | UInt64 | No | Quote Raw |
+| quote_token_idx | UInt64 | No | Quote Token Idx |
+| quote_token_name | String | No | Quote Token Name |
+| quote_token_status | String | No | Quote Token Status |
+| quote_token_usdc_px | Decimal | No | Quote Token Usdc Px |
+| quote_token_usdc_px_raw | UInt64 | No | Quote Token Usdc Px Raw |
+| raw_side_json | String | No | Raw Side Json |
+| raw_spec_json | String | No | Raw Spec Json |
+| side_count | UInt16 | No | Side Count |
+| side_index | UInt8 | No | Side Index |
+| side_name | String | No | Side Name |
+| snapshot_time | DateTime | No | Snapshot Time |
+| spot_deploy_time | String | No | Spot Deploy Time |
+| spot_index | UInt64 | No | Spot Index |
+| spot_resolution | String | No | Spot Resolution |
+| target_price | String | No | Target Price |
+| token_idx | UInt64 | No | Token Idx |
+| token_name | String | No | Token Name |
+| underlying | String | No | Underlying |
+
+#### hyperliquid_outcome_meta
+**Sort Keys:** ⚡ block_number, outcome_id | **Partition:** toYYYYMM(snapshot_time)
+
+Outcome market metadata and configurations.
+
+| Column | Type | Sort Key | Description |
+|--------|------|----------|-------------|
+| block_number | UInt64 | Yes | Block Number |
+| deploy_gas_auction_json | String | No | Deploy Gas Auction Json |
+| description | String | No | Description |
+| expiry | String | No | Expiry |
+| fee_share | Float64 | No | Fee Share |
+| indexed_at | DateTime | No | Indexed At |
+| locked | UInt8 | No | Locked |
+| name | String | No | Name |
+| ndo | UInt64 | No | Ndo |
+| nou | UInt64 | No | Nou |
+| nqu | UInt64 | No | Nqu |
+| outcome_class | String | No | Outcome Class |
+| outcome_id | UInt64 | Yes | Outcome Id |
+| period | String | No | Period |
+| quote_raw | UInt64 | No | Quote Raw |
+| raw_spec_json | String | No | Raw Spec Json |
+| side_count | UInt16 | No | Side Count |
+| snapshot_time | DateTime | No | Snapshot Time |
+| target_price | String | No | Target Price |
+| underlying | String | No | Underlying |
+
+#### hyperliquid_outcome_question_members
+**Sort Keys:** ⚡ block_number, question_id, outcome_id | **Partition:** toYYYYMM(snapshot_time)
+
+Mapping between questions and outcome markets.
+
+| Column | Type | Sort Key | Description |
+|--------|------|----------|-------------|
+| block_number | UInt64 | Yes | Block Number |
+| indexed_at | DateTime | No | Indexed At |
+| is_fallback | UInt8 | No | Is Fallback |
+| is_settled | UInt8 | No | Is Settled |
+| outcome_id | UInt64 | Yes | Outcome Id |
+| question_id | UInt64 | Yes | Question Id |
+| snapshot_time | DateTime | No | Snapshot Time |
+| source | String | No | Source |
+
+#### hyperliquid_outcome_questions
+**Sort Keys:** ⚡ block_number, question_id | **Partition:** toYYYYMM(snapshot_time)
+
+Outcome market questions and settlement data.
+
+| Column | Type | Sort Key | Description |
+|--------|------|----------|-------------|
+| block_number | UInt64 | Yes | Block Number |
+| description | String | No | Description |
+| fallback_outcome | UInt64 | No | Fallback Outcome |
+| indexed_at | DateTime | No | Indexed At |
+| name | String | No | Name |
+| named_outcomes_json | String | No | Named Outcomes Json |
+| question_id | UInt64 | Yes | Question Id |
+| raw_question_json | String | No | Raw Question Json |
+| settled_named_outcomes_json | String | No | Settled Named Outcomes Json |
+| snapshot_time | DateTime | No | Snapshot Time |
+
+#### hyperliquid_outcome_sides
+**Sort Keys:** ⚡ block_number, outcome_id, side_index | **Partition:** toYYYYMM(snapshot_time)
+
+Outcome market sides and token configurations.
+
+| Column | Type | Sort Key | Description |
+|--------|------|----------|-------------|
+| base_token_idx | UInt64 | No | Base Token Idx |
+| block_number | UInt64 | Yes | Block Number |
+| coin | String | No | Coin |
+| indexed_at | DateTime | No | Indexed At |
+| outcome_id | UInt64 | Yes | Outcome Id |
+| quote_token_idx | UInt64 | No | Quote Token Idx |
+| quote_token_name | String | No | Quote Token Name |
+| raw_side_json | String | No | Raw Side Json |
+| side_index | UInt8 | Yes | Side Index |
+| side_m_raw | String | No | Side M Raw |
+| side_m_value | Int64 | No | Side M Value |
+| side_name | String | No | Side Name |
+| snapshot_time | DateTime | No | Snapshot Time |
+| spot_index | UInt64 | No | Spot Index |
+| spot_indices_json | String | No | Spot Indices Json |
+| spot_resolution | String | No | Spot Resolution |
+| token_idx | UInt64 | No | Token Idx |
+| token_name | String | No | Token Name |
 
 ### Portfolio & Positions
 
