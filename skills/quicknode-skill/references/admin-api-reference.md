@@ -391,7 +391,7 @@ Export endpoint metrics in Prometheus format for integration with Grafana or oth
 
 ```
 GET https://api.quicknode.com/exporter/prometheus
-Header: x-api-key: YOUR_API_KEY
+Header: x-api-key: <your-api-key>
 ```
 
 Returns metrics in Prometheus exposition format, suitable for scraping.

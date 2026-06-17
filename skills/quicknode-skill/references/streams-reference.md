@@ -183,7 +183,7 @@ Send data to HTTP endpoints.
   "type": "webhook",
   "url": "https://your-server.com/webhook",
   "headers": {
-    "Authorization": "Bearer YOUR_TOKEN",
+    "Authorization": "Bearer <your-token>",
     "Content-Type": "application/json"
   },
   "retryPolicy": {
@@ -221,8 +221,8 @@ Store data in S3 buckets.
   "format": "json",
   "compression": "gzip",
   "credentials": {
-    "accessKeyId": "YOUR_ACCESS_KEY",
-    "secretAccessKey": "YOUR_SECRET_KEY"
+    "accessKeyId": "<your-access-key-id>",
+    "secretAccessKey": "<your-secret-access-key>"
   }
 }
 ```
@@ -262,8 +262,8 @@ Stream to Snowflake data warehouse.
   "schema": "PUBLIC",
   "table": "EVENTS",
   "credentials": {
-    "username": "YOUR_USERNAME",
-    "password": "YOUR_PASSWORD"
+    "username": "<your-username>",
+    "password": "<your-password>"
   }
 }
 ```

@@ -191,16 +191,16 @@ import { Core } from '@quicknode/sdk';
 // Create clients for multiple chains
 const chains = {
   ethereum: new Core({
-    endpointUrl: 'https://eth-endpoint.quiknode.pro/KEY/'
+    endpointUrl: 'https://<your-eth-endpoint>.quiknode.pro/<your-api-key>/'
   }),
   polygon: new Core({
-    endpointUrl: 'https://polygon-endpoint.quiknode.pro/KEY/'
+    endpointUrl: 'https://<your-polygon-endpoint>.quiknode.pro/<your-api-key>/'
   }),
   arbitrum: new Core({
-    endpointUrl: 'https://arbitrum-endpoint.quiknode.pro/KEY/'
+    endpointUrl: 'https://<your-arbitrum-endpoint>.quiknode.pro/<your-api-key>/'
   }),
   base: new Core({
-    endpointUrl: 'https://base-endpoint.quiknode.pro/KEY/'
+    endpointUrl: 'https://<your-base-endpoint>.quiknode.pro/<your-api-key>/'
   })
 };
 
