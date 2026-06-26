@@ -455,6 +455,24 @@ const results = await response.json();
 
 Batch requests work the same way for Bitcoin (`getblockcount`, `getbestblockhash`, etc.) and any JSON-RPC endpoint. Solana also supports batching via the standard JSON-RPC interface.
 
+## Network Notes
+
+### Solana Networks
+
+| Network | Slug | Notes |
+|---------|------|-------|
+| Mainnet Beta | `solana-mainnet` | Production |
+| Devnet | `solana-devnet` | Development / testing |
+| Alpenglow Testnet | `solana-alpenglow` | New Solana testnet (added 2026) |
+
+### Chain & Network Changes (2026)
+
+> **Story → DATA**: The Story network has been renamed to **DATA**. Use `data-mainnet` / `data-testnet` slugs.
+
+> **Polygon Erigon — Deprecated**: Polygon Erigon endpoints are being deprecated. Migrate to standard Polygon endpoints. The `erigon_*` and `trace_*` namespaces on Polygon may become unavailable.
+
+> **Optimism `rollup_gasPrices` — Deprecated**: The `rollup_gasPrices` RPC method on Optimism is deprecated. Use standard `eth_gasPrice` / `eth_feeHistory` instead.
+
 ## Best Practices
 
 1. **Use WebSocket for subscriptions** — HTTP polling wastes requests and adds latency. Use `wss://` endpoints for real-time data (new blocks, pending transactions, account changes).
@@ -506,4 +524,4 @@ Batch requests work the same way for Bitcoin (`getblockcount`, `getbestblockhash
 
 - [SDK Reference](sdk-reference.md) — Quicknode SDK with typed client methods
 - [Marketplace Add-ons](marketplace-addons.md) — Token API, NFT API, DAS, Jito, trace/debug
-- [Yellowstone gRPC](yellowstone-grpc-reference.md) — Solana Geyser streaming via gRPC
+- [Solana gRPC](solana-grpc-reference.md) — Solana Geyser streaming via gRPC (formerly Yellowstone gRPC)

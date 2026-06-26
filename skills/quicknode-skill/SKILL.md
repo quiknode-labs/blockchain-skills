@@ -1,6 +1,6 @@
 ---
 name: quicknode-skill
-description: "Quicknode blockchain infrastructure: endpoint access for 80+ chains over RPC/WebSocket/gRPC/REST, Streams, Webhooks, SQL Explorer, IPFS, Solana DAS API, Yellowstone and Hypercore gRPC, Key-Value Store, Admin API, x402 and MPP pay-per-request RPC, and Agent Subscriptions. Use for any Quicknode product, qn_ methods, blockchain data access on Ethereum, Solana, Hyperliquid and other supported chains, or wallet-paid agent access (x402, MPP, agent subscription)."
+description: "Quicknode blockchain infrastructure: endpoint access for 80+ chains over RPC/WebSocket/gRPC/REST, Streams, Webhooks, SQL Explorer, IPFS, Solana DAS API, Solana gRPC, Hypercore gRPC, Key-Value Store, Admin API, Quicknode CLI, Quicknode MCP, x402 and MPP pay-per-request RPC, and Agent Subscriptions. Use for any Quicknode product, qn_ methods, blockchain data access on Ethereum, Solana, Hyperliquid and other supported chains, or wallet-paid agent access (x402, MPP, agent subscription)."
 ---
 
 # Quicknode Blockchain Infrastructure
@@ -8,7 +8,7 @@ description: "Quicknode blockchain infrastructure: endpoint access for 80+ chain
 ## Intake Questions
 - Which chain and network should Quicknode target?
 - Is this read-only or should I create infrastructure (streams, webhooks, IPFS writes)?
-- Does this require real-time streaming (gRPC/Yellowstone/Hypercore) or standard RPC?
+- Does this require real-time streaming (Solana gRPC/Hypercore) or standard RPC?
 - What endpoint or API key should I use (default: `QUICKNODE_RPC_URL`, optional `QUICKNODE_WSS_URL` / `QUICKNODE_API_KEY`)?
 - If no API key exists, does the agent want pay-per-request access (x402, MPP) or a wallet-paid Quicknode account via [Agent Subscriptions](#agent-subscriptions)?
 - Any constraints (latency, regions, throughput, destinations)?
@@ -33,13 +33,15 @@ description: "Quicknode blockchain infrastructure: endpoint access for 80+ chain
 | **IPFS** | Decentralized file storage | NFT metadata, asset hosting |
 | **Add-ons** | Enhanced blockchain APIs | Token balances, NFT data, DeFi |
 | **DAS API** | Solana Digital Asset Standard (add-on) | NFT/token queries, compressed NFTs, asset search |
-| **Yellowstone gRPC** | Solana Geyser streaming (add-on) | Real-time account, transaction, slot data |
+| **Solana gRPC** | Solana Geyser streaming — included on Scale/Business, add-on on Build/Accelerate | Real-time account, transaction, slot data |
 | **Hypercore** | Hyperliquid gRPC/JSON-RPC/WS (beta) | Trades, orders, book updates, blocks, TWAP, events, writer actions |
 | **SQL Explorer** | Direct SQL access to indexed blockchain data | Trading analytics, historical queries, market analysis |
 | **Admin API** | REST API for account management | Endpoint CRUD, usage monitoring, billing |
 | **Key-Value Store** | Serverless key-value and list storage (beta) | Persistent state for Streams, dynamic address lists |
-| **x402** | Pay-per-request ($0.001/call) or credit drawdown ($10/1M) RPC via stablecoins | Keyless RPC access, AI agents, pay-as-you-go |
-| **MPP** | Pay-per-request RPC via IETF Payment Authentication headers | AI agents, multi-service payments, high-volume sessions |
+| **Quicknode CLI** | `qn` CLI for endpoints, Streams, Webhooks, KV, and SQL from the terminal | Scripting, CI/CD, infrastructure automation |
+| **Quicknode MCP** | Official Anthropic directory connector — Admin API via MCP | Manage Quicknode from Claude, Cursor, or any MCP-capable AI tool |
+| **x402** | 1M API credits/month/wallet free tier (RPC + SQL Explorer); pay-per-request after free tier via stablecoins | Keyless RPC access, AI agents, pay-as-you-go |
+| **MPP** | 1M API credits/month/wallet free tier (RPC + SQL Explorer); pay-per-request via IETF Payment Authentication headers | AI agents, multi-service payments, high-volume sessions |
 | **Agent Subscriptions** | Wallet-paid Quicknode account creation via x402 or MPP, returns a `QN_*` full platform API key | Autonomous agents that need full platform access without dashboard signup |
 
 ## RPC Endpoints
@@ -80,7 +82,7 @@ For additional security, enable JWT authentication or IP allowlisting in the Qui
 | Category | Networks |
 |----------|----------|
 | **EVM** | Ethereum, Polygon, Arbitrum, Optimism, Base, BSC, Avalanche, Fantom, zkSync, Scroll, Linea, Hyperliquid EVM (HyperEVM) |
-| **Non-EVM** | Solana, Bitcoin, NEAR, Stacks, Cosmos, Sei, Aptos, Sui, TON, Hyperliquid (HyperCore) |
+| **Non-EVM** | Solana (mainnet, devnet, Alpenglow testnet), Bitcoin, NEAR, Stacks, Cosmos, Sei, Aptos, Sui, TON, Hyperliquid (HyperCore), DATA (formerly Story) |
 
 Not exhaustive. Full list: https://www.quicknode.com/chains
 
@@ -265,9 +267,9 @@ const { result } = await response.json();
 
 See [references/solana-das-api-reference.md](references/solana-das-api-reference.md) for complete DAS API documentation with all methods, parameters, and examples.
 
-## Yellowstone gRPC (Solana)
+## Solana gRPC (formerly Yellowstone gRPC)
 
-High-performance Solana Geyser plugin for real-time blockchain data streaming via gRPC. Available as a Marketplace add-on.
+High-performance Solana Geyser plugin for real-time blockchain data streaming via gRPC. Included on Scale and Business plans; available as a Marketplace add-on on Build and Accelerate plans.
 
 ### Quick Setup
 
@@ -319,7 +321,7 @@ stream.write({
 | **blocksMeta** | Block metadata without full contents |
 | **entry** | PoH entry updates |
 
-See [references/yellowstone-grpc-reference.md](references/yellowstone-grpc-reference.md) for complete Yellowstone gRPC documentation.
+See [references/solana-grpc-reference.md](references/solana-grpc-reference.md) for complete Solana gRPC documentation.
 
 ## HyperCore (Hyperliquid)
 
@@ -474,9 +476,69 @@ Serverless storage for lists and key-value sets, primarily accessed from within 
 
 Docs: https://www.quicknode.com/docs/key-value-store
 
+## Quicknode CLI
+
+Command-line tool (`qn`) for managing Quicknode infrastructure from the terminal. Available on all paid plans.
+
+### Installation
+
+```bash
+# Homebrew
+brew install quiknode-labs/tap/qn
+
+# Docker
+docker pull quiknode/qn-cli:latest
+```
+
+### Authentication
+
+Pass `--api-key YOUR_API_KEY` or store the key in `~/.qn/config.yaml`. The CLI does not read from environment variables.
+
+### Key Commands
+
+```bash
+# Endpoints
+qn admin endpoints list
+qn admin endpoints create --chain ethereum --network mainnet
+
+# SQL Explorer
+qn sql query --cluster hyperliquid-core-mainnet --format json "SELECT COUNT(*) FROM hyperliquid_trades"
+qn sql schema --cluster hyperliquid-core-mainnet
+
+# Streams / Webhooks / KV
+qn streams list
+qn webhooks list
+qn kv get --store my-store --key my-key
+```
+
+Use `--format json` for machine-readable output; `--yes` to skip confirmation prompts.
+
+See [references/cli-reference.md](references/cli-reference.md) for complete CLI documentation.
+
+## Quicknode MCP
+
+Official Anthropic directory connector that exposes Quicknode Admin API capabilities to AI assistants via the Model Context Protocol (MCP).
+
+### Setup
+
+**Claude Web/Desktop:** Settings → Customize → Connectors → find Quicknode → Connect.
+
+**Claude Code:**
+```bash
+claude mcp add --transport http https://mcp.quicknode.com
+```
+
+**OpenAI (ChatGPT/Codex):** Use the consolidated OpenAI tab on the Quicknode MCP docs page.
+
+### Capabilities
+
+The MCP server provides tools for endpoint management (list, create, delete, rate limits), security rules, usage monitoring, billing, and chain discovery. Agents and users can manage their Quicknode workspace conversationally without leaving their AI tool.
+
+See [references/mcp-reference.md](references/mcp-reference.md) for the complete tool surface and setup instructions.
+
 ## x402 (Pay-Per-Request RPC)
 
-Pay-per-request RPC access via stablecoin payments. No API key required. Two access patterns: pay-per-request ($0.001/call, no auth needed) and credit drawdown (SIWX auth, $10/1M requests). Supports USDC on Base/Polygon/Solana and USDG on XLayer. Access 140+ chain endpoints.
+Pay-per-request RPC access via stablecoin payments. No API key required. Three payment models: pay-per-request ($0.001/call), nanopayment (batched via Circle Gateway), and credit drawdown (SIWX auth, $10/1M). All three models share a **free tier of 1,000,000 API credits per wallet per month** covering RPC and SQL Explorer — resets on the 1st of each month. Supports USDC on Base/Polygon/Solana and USDG on XLayer. Access 140+ chain endpoints.
 
 ### Quick Setup
 
@@ -513,7 +575,7 @@ See [references/x402-reference.md](references/x402-reference.md) for complete x4
 
 ## MPP (Machine Payments Protocol)
 
-Pay-per-request RPC access via IETF Payment Authentication headers. No API key required. Two intent types: charge ($0.001/request) and session ($0.00001/request via off-chain vouchers). Payment via PathUSD or USDC.e on Tempo mainnet, PathUSD on Tempo testnet, or USDC on Solana. Access 140+ chain endpoints.
+Pay-per-request RPC access via IETF Payment Authentication headers. No API key required. Two intent types: charge ($0.001/request) and session ($0.00001/request via off-chain vouchers). Both intents share a **free tier of 1,000,000 API credits per wallet per month** covering RPC and SQL Explorer — resets on the 1st of each month. Payment via PathUSD or USDC.e on Tempo mainnet, PathUSD on Tempo testnet, or USDC on Solana. Access 140+ chain endpoints.
 
 ### Quick Setup
 
@@ -707,7 +769,7 @@ const ethBalance = await chains.ethereum.client.getBalance({ address: '0x...' })
 3. **Query via Add-ons** for current ownership data
 4. **Query via SDK** for custom API endpoints
 
-### Real-Time Solana Monitoring with Yellowstone gRPC
+### Real-Time Solana Monitoring with Solana gRPC
 
 1. **Connect via gRPC** on port 10000 with your auth token
 2. **Subscribe to transactions** filtering by program or account
@@ -752,8 +814,8 @@ const ethBalance = await chains.ethereum.client.getBalance({ address: '0x...' })
 - Enable zstd compression to reduce bandwidth (up to 70% for Hyperliquid)
 - Implement reconnection logic with exponential backoff — streams can drop
 - Use narrow filters (specific accounts, coins, or programs) to minimize data volume
-- Set appropriate commitment levels (Yellowstone: CONFIRMED for most use cases, FINALIZED for irreversibility)
-- Send keepalive pings (every 10s for Yellowstone, every 30s for Hypercore) to maintain connections
+- Set appropriate commitment levels (Solana gRPC: CONFIRMED for most use cases, FINALIZED for irreversibility)
+- Send keepalive pings (every 10s for Solana gRPC, every 30s for Hypercore) to maintain connections
 
 ### SQL Explorer
 - Always filter by time ranges for partition pruning (`WHERE block_time > ...`)
@@ -772,7 +834,9 @@ const ethBalance = await chains.ethereum.client.getBalance({ address: '0x...' })
 - **SDK**: https://www.quicknode.com/docs/quicknode-sdk
 - **Admin API**: https://www.quicknode.com/docs/admin-api
 - **DAS API (Solana)**: https://www.quicknode.com/docs/solana/solana-das-api
-- **Yellowstone gRPC**: https://www.quicknode.com/docs/solana/yellowstone-grpc/overview
+- **Solana gRPC**: https://www.quicknode.com/docs/solana/grpc/overview
+- **Quicknode CLI**: https://www.quicknode.com/docs/quicknode-cli
+- **Quicknode MCP**: https://www.quicknode.com/docs/build-with-ai/quicknode-mcp
 - **Hyperliquid**: https://www.quicknode.com/docs/hyperliquid
 - **Hyperliquid gRPC**: https://www.quicknode.com/docs/hyperliquid/grpc-api
 - **SQL Explorer**: https://www.quicknode.com/docs/sql-explorer

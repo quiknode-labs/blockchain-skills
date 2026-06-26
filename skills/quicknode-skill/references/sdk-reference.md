@@ -412,6 +412,61 @@ process.on('SIGTERM', async () => {
 });
 ```
 
+## SQL Client
+
+The SDK includes an `sql` client for SQL Explorer queries. Requires the `QN_SDK__SQL__BASE_URL` env var or defaults to `https://api.quicknode.com/sql/rest/v1/`.
+
+```typescript
+import { Core } from '@quicknode/sdk';
+
+const core = new Core({
+  endpointUrl: process.env.QUICKNODE_RPC_URL!,
+});
+
+// Run a SQL query against a cluster
+const result = await core.sql.query({
+  sql: 'SELECT timestamp, coin, price FROM hyperliquid_trades LIMIT 10',
+  cluster: 'hyperliquid-core-mainnet',
+});
+
+// Retrieve schema for a cluster
+const schema = await core.sql.getSchema();
+```
+
+| Method | Description |
+|--------|-------------|
+| `core.sql.query({ sql, cluster })` | Execute a SQL query and return results |
+| `core.sql.getSchema()` | Retrieve the schema for the configured cluster |
+
+Override the base URL via environment variable: `QN_SDK__SQL__BASE_URL`.
+
+## Other Language SDKs
+
+TypeScript/JavaScript is the canonical language for this skill. Quicknode also ships SDKs for Python and Ruby.
+
+### Python
+
+```python
+from quicknode_sdk import QuicknodeSDK
+
+sdk = QuicknodeSDK(endpoint_url="https://your-endpoint.quiknode.pro/TOKEN/")
+```
+
+> **Note:** The import path is `from quicknode_sdk import ...` — the package was renamed from `sdk` to `quicknode_sdk`. Update any existing code that uses `from sdk import`.
+
+Full Python SDK docs: https://www.quicknode.com/docs/quicknode-sdk
+
+### Ruby
+
+```ruby
+require "quicknode_sdk"
+
+sdk = QuicknodeSdk::SDK.from_env
+# Configured via QN_SDK__* environment variables (e.g., QN_SDK__ENDPOINT_URL)
+```
+
+Full Ruby SDK docs: https://www.quicknode.com/docs/quicknode-sdk
+
 ## Documentation
 
 - **SDK Overview**: https://www.quicknode.com/docs/quicknode-sdk

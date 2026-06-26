@@ -20,7 +20,7 @@ When an AI agent loads a skill, it gains the ability to help you build, deploy, 
 
 | Skill | Description |
 |-------|-------------|
-| `quicknode-skill` | Quicknode infrastructure - RPC endpoints (80+ chains), Streams, Webhooks, IPFS, Add-ons, Yellowstone gRPC, Hypercore, SQL Explorer, Key-Value Store, SDK, Admin API, x402, MPP, Agent Subscriptions |
+| `quicknode-skill` | Quicknode infrastructure - RPC endpoints (80+ chains), Streams, Webhooks, IPFS, Add-ons, Solana gRPC, Hypercore, SQL Explorer, Key-Value Store, SDK, Admin API, x402, MPP, Agent Subscriptions, Quicknode CLI, Quicknode MCP |
 
 ## Installation
 
@@ -43,6 +43,8 @@ Once installed, you can use natural language prompts to interact with Quicknode'
 - "Get liquidation data for the last 24 hours"
 - "Pay an RPC call with my wallet using x402 or MPP"
 - "Create a Quicknode account with my wallet and provision an endpoint"
+- "Provision a Stream using the Quicknode CLI"
+- "Connect Claude to my Quicknode workspace via MCP"
 
 ## Quicknode Integration
 
@@ -78,10 +80,24 @@ Extend functionality with marketplace add-ons:
 - Historical data access
 - Enhanced RPC methods
 
+### Quicknode CLI
+
+Command-line access to Quicknode infrastructure for scripting and automation:
+- Install via Homebrew or Docker
+- Manage endpoints, Streams, Webhooks, Key-Value Store, and SQL Explorer from the terminal
+- Available on all paid plans
+
+### Quicknode MCP
+
+Connect AI assistants to your Quicknode workspace via the Model Context Protocol:
+- Official Anthropic directory connector — available directly in Claude's Connectors settings
+- Manage endpoints, monitor usage, configure rate limits, and billing from within Claude or Cursor
+- Use `claude mcp add --transport http https://mcp.quicknode.com` in Claude Code
+
 ### Wallet-Paid Access for Agents
 
 Stablecoin-paid access for autonomous agents, no API key required to start:
-- **x402** and **MPP** for pay-per-request RPC ($0.001/call) on 140+ chains
+- **x402** and **MPP** provide a free tier of 1,000,000 API credits per wallet per month (covers RPC + SQL Explorer), with pay-per-request billing after the free tier resets on the 1st of each month
 - **Agent Subscriptions** to create a Quicknode account and receive a full platform API key in a single payment, unlocking the full product suite
 
 Get your Quicknode endpoint at [Quicknode.com](https://www.quicknode.com/)

@@ -48,15 +48,18 @@ The payment chain does not need to match the chain you query. For example, you c
 | `/:network/ws` | WebSocket | WebSocket RPC connection to a specific chain |
 | `/discovery/resources` | GET | Bazaar-compatible catalog of all supported networks |
 
-## Testnet Caps
+## Free Tier
 
-| Model | Testnet Lifetime Cap |
-|-------|---------------------|
-| Pay-per-request | 1,000 requests |
-| Nanopayment | 10,000 requests |
-| Credit Drawdown | 1,000 credits |
+All three payment models share a **single pool of 1,000,000 API credits per wallet per month**. The pool resets on the 1st of each month and covers both RPC and SQL Explorer calls.
 
-Caps are tracked independently per model. After reaching a cap, switch to the corresponding mainnet.
+| Shared Free Pool | Value |
+|-----------------|-------|
+| Credits per wallet | 1,000,000/month |
+| Reset | 1st of each month |
+| Scope | RPC + SQL Explorer |
+| Shared across | Pay-per-request, Nanopayment, Credit Drawdown |
+
+Once the monthly free tier is exhausted, mainnet billing continues at per-model rates. HTTP 403 `lifetime_limit_reached` now indicates the monthly free tier has been exceeded for your wallet — switch to mainnet or wait for the reset on the 1st.
 
 ## Setup
 

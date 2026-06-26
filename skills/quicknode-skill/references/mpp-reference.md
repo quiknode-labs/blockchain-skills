@@ -60,9 +60,18 @@ Replace `:network` with slugs like `tempo-mainnet`, `ethereum-mainnet`, `solana-
 
 The payment network is independent of the chain you query. For example, you can pay with PathUSD on Tempo and query Ethereum, Solana, or any other supported chain.
 
-## Testnet Caps
+## Free Tier
 
-Testnet caps are limited to 10,000 requests per intent per wallet (charge and session counted separately). After reaching a cap, switch to mainnet for production usage.
+Both intent types share a **single pool of 1,000,000 API credits per wallet per month**. The pool resets on the 1st of each month and covers both RPC and SQL Explorer calls.
+
+| Shared Free Pool | Value |
+|-----------------|-------|
+| Credits per wallet | 1,000,000/month |
+| Reset | 1st of each month |
+| Scope | RPC + SQL Explorer |
+| Shared across | Charge, Session |
+
+Once the monthly free tier is exhausted, mainnet billing continues at per-intent rates. HTTP 403 `lifetime_limit_reached` now indicates the monthly free tier has been exceeded for your wallet — switch to mainnet or wait for the reset on the 1st.
 
 ## Rate Limits
 
