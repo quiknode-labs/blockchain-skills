@@ -1,5 +1,7 @@
 # Solana DAS API (Digital Asset Standard) Reference
 
+> **Naming note:** This product is now documented under its canonical name **Metaplex DAS API**. See [metaplex-das-reference.md](metaplex-das-reference.md) for the current reference. This file is preserved for link compatibility.
+
 The Metaplex Digital Asset Standard (DAS) API is a comprehensive service for querying Solana digital assets efficiently. It supports standard and compressed NFTs, fungible tokens, MPL Core Assets, and Token 2022 Assets.
 
 **Docs:** https://www.quicknode.com/docs/solana/solana-das-api
@@ -529,4 +531,4 @@ do {
 - **getTokenAccounts**: https://www.quicknode.com/docs/solana/getTokenAccounts
 - **getNftEditions**: https://www.quicknode.com/docs/solana/getNftEditions
 - **searchAssets**: https://www.quicknode.com/docs/solana/searchAssets
-- **Marketplace Add-on**: https://marketplace.quicknode.com/add-on/metaplex-digital-asset-standard-api
+- **Marketing**: https://www.quicknode.com/metaplex-das-api

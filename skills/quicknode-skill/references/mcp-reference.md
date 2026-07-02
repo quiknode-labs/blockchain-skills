@@ -1,6 +1,7 @@
 # Quicknode MCP Reference
 
-The Quicknode MCP server exposes Quicknode Admin API capabilities to AI assistants and coding tools via the Model Context Protocol (MCP). Quicknode is an **official Anthropic directory connector** — Claude can connect without any additional install step via the Connectors settings.
+The Quicknode MCP server exposes Quicknode Admin API capabilities to AI assistants and coding tools via the Model Context Protocol (MCP). Quicknode is available as a native connector in Claude, ChatGPT, and Codex, and it can also be configured in generic MCP clients that support Streamable HTTP.
+
 
 **Docs:** https://www.quicknode.com/docs/build-with-ai/quicknode-mcp
 
@@ -11,7 +12,7 @@ The Quicknode MCP server exposes Quicknode Admin API capabilities to AI assistan
 | **Protocol** | Model Context Protocol (MCP) |
 | **Transport** | HTTP (Streamable HTTP) |
 | **Auth** | Quicknode API key (provided at setup) |
-| **Directory** | Official Anthropic MCP connector directory |
+| **Directory** | Native Claude connector; native OpenAI app/plugin surface for ChatGPT and Codex |
 | **Capabilities** | Endpoint management, usage monitoring, rate limits, security rules, billing |
 
 ## Client Setup
@@ -35,7 +36,7 @@ claude mcp add --transport http https://mcp.quicknode.com
 
 ### OpenAI (ChatGPT / Codex)
 
-ChatGPT and Codex MCP support is consolidated under a single **OpenAI** tab on the Quicknode MCP setup page. Follow the connector instructions at https://www.quicknode.com/docs/build-with-ai/quicknode-mcp for step-by-step setup.
+Install Quicknode directly from the ChatGPT Apps catalog or via `/plugin` in Codex when available. ChatGPT and Codex setup is consolidated under the **OpenAI** tab on the Quicknode MCP setup page.
 
 ### Cursor / Windsurf / Generic MCP Clients
 
@@ -98,15 +99,17 @@ The Quicknode MCP server exposes tools covering the Admin API surface:
 - "Show me the per-method rate limits on my endpoint"
 - "Connect my Quicknode workspace to Claude via MCP"
 
-## When to Use MCP vs. CLI vs. Admin API
+## When to Use MCP vs. CLI vs. SDK vs. Admin API
 
 | Interface | Best For |
 |-----------|----------|
 | **MCP** | Conversational management inside Claude, Cursor, or other AI tools |
 | **CLI (`qn`)** | Shell scripts, CI/CD pipelines, direct terminal workflows |
+| **SDK** | Application or agent code that coordinates Quicknode product APIs |
 | **Admin API** | Programmatic infrastructure-as-code from application code |
 
 ## Documentation
 
 - **MCP Docs**: https://www.quicknode.com/docs/build-with-ai/quicknode-mcp
 - **Build with AI Overview**: https://www.quicknode.com/docs/build-with-ai
+- **SDK Docs**: https://www.quicknode.com/docs/quicknode-sdk

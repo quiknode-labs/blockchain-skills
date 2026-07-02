@@ -6,7 +6,7 @@
   },
   "metadata": {
     "description": "Blockchain skills for Claude Code — blockchain development, smart contracts, and decentralized applications",
-    "version": "1.1.0",
+    "version": "1.2.0",
     "repository": "https://github.com/quiknode-labs/blockchain-skills"
   },
   "plugins": [

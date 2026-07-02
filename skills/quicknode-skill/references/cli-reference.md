@@ -1,6 +1,6 @@
 # Quicknode CLI Reference
 
-The `qn` CLI provides command-line access to Quicknode infrastructure — endpoints, Streams, Webhooks, Key-Value Store, and SQL Explorer. Available on all paid plans.
+The `qn` CLI manages Quicknode product APIs from a terminal, script, CI job, or agent shell. Use it for endpoints, Streams, Webhooks, Key-Value Store, SQL Explorer, teams, usage, billing, metrics, and security workflows.
 
 **Docs:** https://www.quicknode.com/docs/quicknode-cli
 
@@ -9,165 +9,200 @@ The `qn` CLI provides command-line access to Quicknode infrastructure — endpoi
 ### Homebrew (macOS / Linux)
 
 ```bash
-brew install quiknode-labs/tap/qn
+brew install quicknode/tap/qn
 qn --version
-```
-
-### Docker
-
-```bash
-docker pull quiknode/qn-cli:latest
-docker run --rm quiknode/qn-cli:latest qn --version
 ```
 
 ## Authentication
 
-The CLI authenticates using a Quicknode API key. Two ways to provide it:
-
-### `--api-key` Flag
-
-Pass the key inline on every command:
+Create an API key in the Quicknode dashboard, then log in and verify access:
 
 ```bash
-qn --api-key YOUR_API_KEY endpoints list
+qn auth login
+qn auth whoami
 ```
 
-### `--config-file` Flag
-
-Store credentials in a YAML config file (default location: `~/.qn/config.yaml`):
-
-```yaml
-api_key: YOUR_API_KEY
-```
-
-Override the config file path:
+For non-interactive environments, pass a key directly or write a config file outside the repository:
 
 ```bash
-qn --config-file /path/to/config.yaml endpoints list
+qn auth login --api-key <KEY>
+qn --api-key <KEY> endpoint list --format json
 ```
 
-**Note:** The CLI reads the API key from `--api-key` or the config file only. It does not read from environment variables.
+Credential precedence:
 
-### API Key vs. JWT
+1. `--api-key <KEY>`
+2. `--config-file <PATH>`
+3. `~/.config/qn/config.toml`
 
-| Credential | Source | Use Case |
-|------------|--------|----------|
-| API key (`QN_*`) | Quicknode dashboard | General CLI use, Admin API |
-| JWT | Issued per-session by some services | x402 credit drawdown (handled automatically, not the CLI `--api-key`) |
+The CLI does not read API keys directly from environment variables. In CI, read the environment secret in the shell and pass it through `--api-key`, or write a temporary config file and pass `--config-file`.
 
-## Global Flags
+## Agent Context
 
-| Flag | Description |
-|------|-------------|
-| `--api-key` | Quicknode API key |
-| `--config-file` | Path to config file (default: `~/.qn/config.yaml`) |
-| `--format` | Output format: `json` or `table` (default: `table`) |
-| `--yes` | Skip all confirmation prompts |
-
-## Command Groups
-
-### `qn admin endpoints` — Admin API
-
-Manage RPC endpoints via the Admin API:
+Use `qn agent context` to print a self-contained CLI usage guide for AI agents. It does not require authentication and makes no network request.
 
 ```bash
-# List all endpoints
-qn admin endpoints list
-
-# Get details for a specific endpoint
-qn admin endpoints get --id <endpoint-id>
-
-# Create a new endpoint
-qn admin endpoints create --chain ethereum --network mainnet
-
-# Delete an endpoint
-qn admin endpoints delete --id <endpoint-id>
-```
-
-### `qn streams` — Streams CRUD
-
-```bash
-# List streams
-qn streams list
-
-# Create a stream
-qn streams create --name my-stream --chain ethereum --network mainnet
-
-# Get stream details
-qn streams get --id <stream-id>
-
-# Update a stream
-qn streams update --id <stream-id> --name new-name
-
-# Delete a stream
-qn streams delete --id <stream-id>
-```
-
-### `qn webhooks` — Webhooks CRUD
-
-```bash
-# List webhooks
-qn webhooks list
-
-# Create a webhook
-qn webhooks create --name my-webhook --url https://your-server.example.com/hook
-
-# Get webhook details
-qn webhooks get --id <webhook-id>
-
-# Delete a webhook
-qn webhooks delete --id <webhook-id>
-```
-
-### `qn kv` — Key-Value Store
-
-```bash
-# List KV stores
-qn kv list
-
-# Get a value by key
-qn kv get --store <store-name> --key <key>
-
-# Set a value
-qn kv set --store <store-name> --key <key> --value <value>
-
-# Delete a key
-qn kv delete --store <store-name> --key <key>
-```
-
-### `qn sql` — SQL Explorer
-
-Run queries and retrieve schema information from SQL Explorer clusters:
-
-```bash
-# Run a SQL query (returns JSON output)
-qn sql query --cluster hyperliquid-core-mainnet --format json \
-  "SELECT timestamp, coin, price, size FROM hyperliquid_trades LIMIT 10"
-
-# Retrieve cluster schema
-qn sql schema --cluster hyperliquid-core-mainnet
-```
-
-The `--cluster` flag is required and specifies the SQL Explorer cluster ID (e.g., `hyperliquid-core-mainnet`). Use `--format json` for machine-readable output suitable for scripting and pipelines.
-
-## RBAC & Members/Teams
-
-Team and member management (RBAC) is available on **all paid plans**. Use `qn admin` subcommands to list and manage team members, teams, and permissions:
-
-```bash
-qn admin members list
-qn admin teams list
+qn agent context
+qn agent context -o json
 ```
 
 ## Output Formats
 
-Use `--format json` for scripting — pipe to `jq` for filtering:
+Set output with `--format` or `-o`.
+
+| Format | Use |
+|--------|-----|
+| `table` | Human-readable terminal output |
+| `json` | Scripts, tests, and `jq` pipelines |
+| `yaml` | Readable structured output |
+| `md` | Markdown tables for issues and docs |
+| `toon` | Compact LLM-oriented structured output |
+
+Examples:
 
 ```bash
-qn streams list --format json | jq '.[] | {id: .id, name: .name}'
-qn sql query --cluster hyperliquid-core-mainnet --format json "SELECT COUNT(*) FROM hyperliquid_trades"
+qn endpoint list --format json
+qn usage summary --from 7d -o yaml
+qn endpoint list --wide
 ```
+
+## Command Groups
+
+### Auth
+
+```bash
+qn auth login
+qn auth login --api-key <KEY>
+qn auth whoami
+qn auth status
+qn auth logout
+```
+
+### Endpoints
+
+```bash
+qn endpoint list --limit 20
+qn endpoint show <endpoint-id>
+qn endpoint urls <endpoint-id>
+qn endpoint logs <endpoint-id> --from 1h --to now --limit 50
+qn endpoint metrics <endpoint-id> --metric method_calls_over_time --period day
+```
+
+Commands that create, pause, resume, archive, or change endpoint security/rate limits prompt before acting.
+
+```bash
+qn endpoint create --chain ethereum --network mainnet
+qn endpoint pause <endpoint-id>
+qn endpoint resume <endpoint-id>
+qn endpoint archive <endpoint-id>
+```
+
+### Endpoint Security and Rate Limits
+
+```bash
+qn endpoint security show <endpoint-id>
+qn endpoint security token create <endpoint-id>
+qn endpoint security ip add <endpoint-id> --ip 203.0.113.10
+qn endpoint security request-filter add <endpoint-id> --method eth_getBalance
+
+qn endpoint rate-limit get <endpoint-id>
+qn endpoint rate-limit set <endpoint-id> --rps 100 --rpm 5000
+qn endpoint rate-limit method-list <endpoint-id>
+qn endpoint rate-limit method-create <endpoint-id> --interval minute --method eth_getLogs --rate 120
+```
+
+### Streams
+
+```bash
+qn stream list --limit 20
+qn stream show <stream-id>
+qn stream enabled-count
+qn stream test-filter \
+  --network ethereum-mainnet \
+  --dataset block \
+  --block 17811625 \
+  --filter-file filter.js
+```
+
+Create and lifecycle commands change Stream state and may prompt:
+
+```bash
+qn stream create \
+  --name blocks \
+  --network ethereum-mainnet \
+  --dataset block \
+  --start 17811625 \
+  --end=-1 \
+  --region usa-east \
+  --webhook https://example.com/webhook
+
+qn stream pause <stream-id>
+qn stream activate <stream-id>
+qn stream delete <stream-id>
+```
+
+### Webhooks
+
+```bash
+qn webhook list --limit 20
+qn webhook show <webhook-id>
+qn webhook enabled-count
+qn webhook create \
+  --name "wallet alerts" \
+  --network ethereum-mainnet \
+  --url https://example.com/webhook \
+  --template evm-wallet \
+  --wallet 0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48
+```
+
+### Key-Value Store
+
+Sets store one value per key:
+
+```bash
+qn kv set put mykey myvalue
+qn kv set get mykey
+qn kv set ls
+qn kv set delete mykey
+```
+
+Lists store ordered values under one key:
+
+```bash
+qn kv list create allowlist 0xabc 0xdef
+qn kv list append allowlist 0x123
+qn kv list contains allowlist 0xabc
+qn kv list get allowlist
+qn kv list delete allowlist
+```
+
+### SQL Explorer
+
+```bash
+qn sql query "SELECT * FROM hyperliquid_trades LIMIT 10" --cluster hyperliquid-core-mainnet
+qn sql schema --cluster hyperliquid-core-mainnet
+qn sql query "SELECT * FROM hyperliquid_trades LIMIT 100" --cluster hyperliquid-core-mainnet --format json
+```
+
+### Account Operations
+
+```bash
+qn team list
+qn team show <team-id>
+qn team endpoints <team-id>
+qn usage summary --from 7d
+qn usage by-endpoint --from 7d
+qn metrics account --period day --metric credits_over_time
+qn chain list
+qn billing invoices
+qn billing payments
+```
+
+## Confirmation Behavior
+
+Commands that delete, archive, pause, revoke, or otherwise change resources prompt before acting. In non-interactive environments, keep examples read-only by default or pass the documented prompt bypass only after explicit user confirmation.
 
 ## Documentation
 
 - **CLI Docs**: https://www.quicknode.com/docs/quicknode-cli
+- **CLI Examples**: https://www.quicknode.com/docs/quicknode-cli/examples

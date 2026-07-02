@@ -1,12 +1,12 @@
-# RPC Endpoints Reference
+# Core RPC API Reference
 
-Quicknode provides low-latency JSON-RPC, WebSocket, and REST endpoints for 80+ blockchain networks with built-in authentication, global load balancing, and per-method documentation.
+Quicknode provides low-latency JSON-RPC, WebSocket, REST, and product-specific gRPC endpoints for 80+ blockchain networks with built-in authentication, global load balancing, and per-method documentation.
 
 ## Overview
 
 | Property | Value |
 |----------|-------|
-| **Protocol** | JSON-RPC 2.0 (HTTP + WebSocket), REST (Beacon Chain) |
+| **Protocol** | JSON-RPC 2.0 (HTTP + WebSocket), REST (Beacon Chain), gRPC for specific products |
 | **Chains** | 80+ networks (EVM, Solana, Bitcoin, and more) |
 | **Authentication** | Token in URL path, optional JWT or IP allowlisting |
 | **EVM Libraries** | ethers.js, viem, web3.js |
@@ -14,6 +14,7 @@ Quicknode provides low-latency JSON-RPC, WebSocket, and REST endpoints for 80+ b
 | **Bitcoin** | Raw JSON-RPC via `fetch` |
 | **Endpoint Format** | `https://{name}.{network}.quiknode.pro/{token}/` |
 | **WebSocket Format** | `wss://{name}.{network}.quiknode.pro/{token}/` |
+| **gRPC** | Use product references such as Solana gRPC and HyperCore gRPC for setup |
 | **Per-Method Docs** | `https://www.quicknode.com/docs/{chain}/{method}` |
 
 ## Connection Setup
@@ -171,12 +172,38 @@ const { result } = await response.json();
 
 ### Debug, Trace & Extended Namespaces
 
+Debug, trace, archive, and extended namespaces are Core RPC API capabilities, not Marketplace add-ons. Availability depends on the chain, endpoint type, plan, and archive configuration.
+
 | Namespace | Methods |
 |-----------|---------|
 | **debug** | `debug_traceTransaction`, `debug_traceCall`, `debug_traceBlock`, `debug_traceBlockByHash`, `debug_traceBlockByNumber`, `debug_getBadBlocks`, `debug_storageRangeAt`, `debug_getTrieFlushInterval` |
 | **trace** (Erigon) | `trace_block`, `trace_call`, `trace_callMany`, `trace_filter`, `trace_rawTransaction`, `trace_replayBlockTransactions`, `trace_replayTransaction`, `trace_transaction` |
 | **erigon** | `erigon_blockNumber`, `erigon_forks`, `erigon_getBlockByTimestamp`, `erigon_getBlockReceiptsByBlockHash`, `erigon_getHeaderByHash`, `erigon_getHeaderByNumber`, `erigon_getLatestLogs`, `erigon_getLogsByHash` |
 | **txpool** (Geth) | `txpool_content`, `txpool_contentFrom`, `txpool_inspect`, `txpool_status` |
+
+### Archive Data
+
+Archive-capable endpoints let applications query historical state at old blocks. Use archive mode for workflows such as historical balances, historical `eth_call`, old contract storage, or backtests against past chain state.
+
+```typescript
+const response = await fetch(process.env.QUICKNODE_RPC_URL!, {
+  method: "POST",
+  headers: { "Content-Type": "application/json" },
+  body: JSON.stringify({
+    jsonrpc: "2.0",
+    id: 1,
+    method: "eth_getBalance",
+    params: [
+      "0xd8dA6BF26964aF9D7eEd9e03E53415D37aA96045",
+      "0xF4240",
+    ],
+  }),
+});
+
+const { result } = await response.json();
+```
+
+For high-volume historical ingestion, prefer Streams Backfills or SQL Explorer when they match the use case.
 
 ### Quicknode Custom Methods (qn_*)
 
@@ -189,16 +216,6 @@ const { result } = await response.json();
 | `qn_broadcastRawTransaction` | Multi-region transaction broadcast |
 | `qn_resolveENS` | Resolve ENS name to address (and reverse) |
 | `qn_sendRawTransactionWithWebhook` | Send transaction and receive webhook notification |
-| `qn_fetchNFTs` | Fetch NFTs owned by an address |
-| `qn_fetchNFTCollectionDetails` | Get collection-level metadata |
-| `qn_fetchNFTsByCollection` | Fetch NFTs from a specific collection |
-| `qn_getTokenMetadataByContractAddress` | Token metadata by contract |
-| `qn_getTokenMetadataBySymbol` | Token metadata by symbol |
-| `qn_getWalletTokenBalance` | All ERC-20 balances for a wallet |
-| `qn_getWalletTokenTransactions` | Token transfer history for a wallet |
-| `qn_getTransactionsByAddress` | Transaction history for an address |
-| `qn_getTransfersByNFT` | Transfer history for an NFT |
-| `qn_verifyNFTsOwner` | Verify NFT ownership |
 
 ### Beacon Chain REST Endpoints
 
@@ -523,5 +540,5 @@ Batch requests work the same way for Bitcoin (`getblockcount`, `getbestblockhash
 ### Related References
 
 - [SDK Reference](sdk-reference.md) — Quicknode SDK with typed client methods
-- [Marketplace Add-ons](marketplace-addons.md) — Token API, NFT API, DAS, Jito, trace/debug
+- [Marketplace Add-ons](marketplace-addons.md) — Current add-ons and pointers to product-specific references
 - [Solana gRPC](solana-grpc-reference.md) — Solana Geyser streaming via gRPC (formerly Yellowstone gRPC)
