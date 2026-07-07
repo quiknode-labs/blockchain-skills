@@ -22,6 +22,18 @@ Activate the **Ordinals & Runes API** add-on on your Quicknode Bitcoin endpoint.
 | `ord_getCollections` | Paginated collection listings |
 | `ord_getRune` | Rune etching details and live supply by ID or name |
 | `ord_getRunes` | Paginated Rune listings |
+| `ord_getStatus` | Ordinals indexer status |
+| `ord_getTx` | Transaction details |
+| `ord_getBlockInfo` | Recursive block info by height |
+| `ord_getBlockHash` | Block hash by height |
+| `ord_getContent` | Raw inscription content |
+| `ord_getCurrentBlockHash` | Latest indexed block hash |
+| `ord_getCurrentBlockHeight` | Latest indexed block height |
+| `ord_getCurrentBlockTime` | Latest indexed block timestamp |
+| `ord_getMetadata` | CBOR-decoded inscription metadata |
+| `ord_getInscriptionRecursive` | Recursive inscription details |
+| `ord_getSatAtIndex` | Inscription ID at an index on a sat |
+| `ord_getSatRecursive` | Paginated inscription IDs on a sat |
 
 Both JSON-RPC and REST interfaces are available on the same endpoint.
 
@@ -35,9 +47,7 @@ const response = await fetch(process.env.QUICKNODE_RPC_URL!, {
     jsonrpc: '2.0',
     id: 1,
     method: 'ord_getInscription',
-    params: {
-      id: '6fb976ab49dcec017f1e201e84395983204ae1a7c2abf7ced0a85d692e442799i0',
-    },
+    params: ['6fb976ab49dcec017f1e201e84395983204ae1a7c2abf7ced0a85d692e442799i0'],
   }),
 });
 
@@ -47,10 +57,14 @@ const { result } = await response.json();
 // result.sat — sat number the inscription is bonded to
 // result.satpoint — current location (txid:vout:offset)
 // result.address — current holder address
-// result.contentType — MIME type of the inscription content
-// result.contentLength — byte length
-// result.genesisHeight — block height of the inscription transaction
-// result.genesisFee — fee paid at inscription
+// result.content_type — MIME type of the inscription content
+// result.content_length — byte length
+// result.height — block height of the inscription transaction
+// result.fee — fee paid at inscription
+// result.charms, result.children, result.parents — relationship and classification arrays
+// result.previous, result.next — neighboring inscription IDs
+// result.rune — associated Rune, if any
+// result.value — output value in sats
 // result.timestamp — Unix timestamp of genesis block
 ```
 
@@ -64,18 +78,17 @@ const response = await fetch(process.env.QUICKNODE_RPC_URL!, {
     jsonrpc: '2.0',
     id: 1,
     method: 'ord_getSat',
-    params: {
-      sat: 1452891330221420,
-    },
+    params: [1452891330221420],
   }),
 });
 
 const { result } = await response.json();
-// result.sat — sat number
-// result.satributes — rarity classification (e.g., "uncommon", "rare")
+// result.number — sat number
+// result.rarity — rarity classification (e.g., "uncommon", "rare")
 // result.percentile — sat's position in total supply
 // result.inscriptions — array of inscription IDs on this sat
 // result.block — block in which this sat was mined
+// result.satpoint, result.timestamp, result.charms — current sat metadata
 ```
 
 ## Get Bitcoin Output
@@ -88,9 +101,7 @@ const response = await fetch(process.env.QUICKNODE_RPC_URL!, {
     jsonrpc: '2.0',
     id: 1,
     method: 'ord_getOutput',
-    params: {
-      output: '7f3a1c2b4d5e6f7a8b9c0d1e2f3a4b5c6d7e8f9a0b1c2d3e4f5a6b7c8d9e0f1a:0',
-    },
+    params: ['7f3a1c2b4d5e6f7a8b9c0d1e2f3a4b5c6d7e8f9a0b1c2d3e4f5a6b7c8d9e0f1a:0'],
   }),
 });
 
@@ -99,6 +110,11 @@ const { result } = await response.json();
 // result.address — output address
 // result.inscriptions — inscriptions held in this output
 // result.runes — Runes and their amounts in this output
+// result.indexed — whether this output is indexed
+// result.sat_ranges — sat ranges in the output
+// result.script_pubkey — script pubkey
+// result.spent — whether the output has been spent
+// result.transaction — transaction ID
 ```
 
 ## Get Rune Details
@@ -111,21 +127,22 @@ const response = await fetch(process.env.QUICKNODE_RPC_URL!, {
     jsonrpc: '2.0',
     id: 1,
     method: 'ord_getRune',
-    params: {
-      rune: 'UNCOMMON•GOODS',  // name with spacers, or numeric ID "840000:1"
-    },
+    params: ['840000:1'],
   }),
 });
 
 const { result } = await response.json();
 // result.id — rune ID (block:tx)
-// result.name — rune name with spacers
-// result.symbol — single character symbol
-// result.supply — total minted supply
-// result.burned — burned amount
-// result.divisibility — decimal places
-// result.etching — genesis transaction details
-// result.mint — mint terms (cap, amount, height range)
+// result.mintable — whether the Rune can still be minted
+// result.parent — parent inscription, if any
+// result.entry.spaced_rune — rune name with spacers
+// result.entry.symbol — single character symbol
+// result.entry.burned — burned amount
+// result.entry.divisibility — decimal places
+// result.entry.etching — etching transaction ID
+// result.entry.mints — number of mints
+// result.entry.premine — premine amount
+// result.entry.terms — mint terms (cap, amount, height, offset)
 ```
 
 ## Troubleshooting

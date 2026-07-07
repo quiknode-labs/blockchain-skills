@@ -430,14 +430,15 @@ stream.write({
 HIP-4 is the Hyperliquid standard for on-chain prediction markets. Key implementation notes as of mid-2026:
 
 - **Collateral currency**: USDC (not USDH — prior guides using USDH are outdated)
-- **REST API**: Prediction market interactions use the `hyperliquidapi.com` REST API directly, not a Quicknode endpoint. The Quicknode endpoint is still used for standard HyperCore and HyperEVM access.
+- **Read API**: Prediction market metadata is exposed by Hyperliquid's Info API via `type: "outcomeMeta"`. On Quicknode, use your Hyperliquid endpoint Info path (`/info`) to query outcome market metadata.
+- **Exchange API**: Quicknode's Hyperliquid Exchange API builder endpoints use `api.hyperliquidapi.com` for zero-custody action construction and submission workflows.
 
 ```typescript
-// HIP-4 prediction market interaction goes through hyperliquidapi.com
-const response = await fetch("https://api.hyperliquidapi.com/info", {
+// HIP-4 outcome market metadata via Hyperliquid Info API
+const response = await fetch("https://[endpoint].hype-mainnet.quiknode.pro/[token]/info", {
   method: "POST",
   headers: { "Content-Type": "application/json" },
-  body: JSON.stringify({ type: "predictionMarketMeta" }),
+  body: JSON.stringify({ type: "outcomeMeta" }),
 });
 ```
 

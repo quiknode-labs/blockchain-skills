@@ -77,8 +77,8 @@ description: "Quicknode blockchain infrastructure for 80+ chains: Core RPC API, 
 
 | Product | Description | Use Case |
 |---------|-------------|----------|
-| **x402** | 1M API credits/month/wallet free tier; pay-per-request via stablecoins | Keyless RPC access, AI agents, pay-as-you-go |
-| **MPP** | 1M API credits/month/wallet free tier; pay-per-request via IETF Payment Authentication | AI agents, multi-service payments, high-volume sessions |
+| **x402** | Testnet monthly cap plus mainnet pay-per-request via stablecoins | Keyless RPC access, AI agents, pay-as-you-go |
+| **MPP** | Testnet monthly cap plus mainnet pay-per-request via IETF Payment Authentication | AI agents, multi-service payments, high-volume sessions |
 | **Agent Subscriptions** | Wallet-paid Quicknode account creation, returns a `QN_*` full platform API key | Autonomous agents needing full platform access |
 | **Quicknode CLI** | `qn` CLI for endpoints, Streams, Webhooks, KV, and SQL from the terminal | Scripting, CI/CD, infrastructure automation |
 | **Quicknode MCP** | Native Claude/OpenAI connector plus generic MCP server — Admin API via MCP | Manage Quicknode from Claude, ChatGPT, Codex, Cursor, or any MCP-capable AI tool |
@@ -550,7 +550,7 @@ const swapResult = await jupiterApi.swapPost({
 // swapResult.swapTransaction — serialized tx ready for signing
 ```
 
-Set `QUICKNODE_METIS_URL` to your Metis endpoint (e.g., `https://jupiter-swap-api.quiknode.pro/YOUR_TOKEN`). Enable the **Metis - Jupiter V6 Swap API** add-on in the Quicknode dashboard.
+Set `QUICKNODE_METIS_URL` to your Metis endpoint (e.g., `https://jupiter-swap-api.quiknode.pro/YOUR_TOKEN`). Enable the **Metis Jupiter Swap API** add-on in the Quicknode dashboard.
 
 See [references/swap-api-reference.md](references/swap-api-reference.md) for provider positioning, verified examples, safety defaults, and troubleshooting.
 
@@ -558,28 +558,22 @@ See [references/swap-api-reference.md](references/swap-api-reference.md) for pro
 
 ## x402 (Pay-Per-Request RPC)
 
-Pay-per-request RPC access via stablecoin payments. No API key required. Three payment models: pay-per-request ($0.001/call), nanopayment (batched via Circle Gateway), and credit drawdown (SIWX auth, $10/1M). All three models share a **free tier of 1,000,000 API credits per wallet per month** covering RPC and SQL Explorer — resets on the 1st of each month. Supports USDC on Base/Polygon/Solana and USDG on XLayer. Access 140+ chain endpoints.
+Pay-per-request RPC access via stablecoin payments. No API key required. Three payment models: pay-per-request ($0.001/call), nanopayment (batched via Circle Gateway), and credit drawdown (SIWX auth, $10/1M mainnet credits). Testnet wallets share a monthly cap of 1,000,000 credits per wallet; mainnet wallets are uncapped. Supports USDC on Base/Polygon/Solana and USDG on XLayer. Access 140+ chain endpoints.
 
 ### Quick Setup
 
 ```typescript
-import { wrapFetch } from "@x402/fetch";
-import { createWalletClient, http } from "viem";
-import { privateKeyToAccount } from "viem/accounts";
-import { base } from "viem/chains";
+import { createQuicknodeX402Client } from "@quicknode/x402";
 
-const account = privateKeyToAccount(process.env.PRIVATE_KEY as `0x${string}`);
-const walletClient = createWalletClient({
-  account,
-  chain: base,
-  transport: http(),
+const client = await createQuicknodeX402Client({
+  baseUrl: "https://x402.quicknode.com",
+  network: "eip155:84532", // Base Sepolia payment network
+  evmPrivateKey: process.env.PRIVATE_KEY as `0x${string}`,
+  paymentModel: "pay-per-request",
 });
 
-// Wrap fetch to auto-handle 402 payments
-const x402Fetch = wrapFetch(fetch, walletClient);
-
-// Use like normal fetch — payments are handled automatically
-const response = await x402Fetch("https://x402.quicknode.com/ethereum-mainnet", {
+// Use like normal fetch — payment negotiation is handled automatically
+const response = await client.fetch("https://x402.quicknode.com/ethereum-mainnet", {
   method: "POST",
   headers: { "Content-Type": "application/json" },
   body: JSON.stringify({
@@ -591,11 +585,11 @@ const response = await x402Fetch("https://x402.quicknode.com/ethereum-mainnet", 
 });
 ```
 
-See [references/x402-reference.md](references/x402-reference.md) for complete x402 documentation including SIWE authentication, credit management, and the `@x402/fetch` wrapper.
+See [references/x402-reference.md](references/x402-reference.md) for complete x402 documentation including SIWX authentication, credit management, and `@quicknode/x402` setup.
 
 ## MPP (Machine Payments Protocol)
 
-Pay-per-request RPC access via IETF Payment Authentication headers. No API key required. Two intent types: charge ($0.001/request) and session ($0.00001/request via off-chain vouchers). Both intents share a **free tier of 1,000,000 API credits per wallet per month** covering RPC and SQL Explorer — resets on the 1st of each month. Payment via PathUSD or USDC.e on Tempo mainnet, PathUSD on Tempo testnet, or USDC on Solana. Access 140+ chain endpoints.
+Pay-per-request RPC access via IETF Payment Authentication headers. No API key required. Two intent types: charge ($0.001/request) and session ($0.00001/request via off-chain vouchers). Tempo testnet wallets share a monthly cap of 1,000,000 credits per wallet; mainnet wallets are uncapped. Payment via PathUSD or USDC.e on Tempo mainnet, PathUSD on Tempo testnet, or USDC on Solana. Access 140+ chain endpoints.
 
 ### Quick Setup
 
@@ -732,9 +726,9 @@ const { api_key } = await subscriptionRes.json() // "QN_..." full platform API k
 
 | Method | Path | Auth | Rate limit | Purpose |
 |--------|------|------|------------|---------|
-| POST | `/api/v1/agent/subscriptions` | Payment header (x402 or MPP) | 30/min | Create account and subscription |
-| POST | `/api/v1/agent/top_up` | API key + payment header | 30/min | Add credits to an existing subscription |
-| GET | `/api/v1/agent/balance` | API key | 60/min | Read current credit balance |
+| POST | `/api/v1/agent/subscriptions` | Payment header (x402 or MPP) | 20/min, 5/hour by IP + email | Create account and subscription |
+| POST | `/api/v1/agent/top_up` | API key + payment header | 30/min by API key | Add credits to an existing subscription |
+| GET | `/api/v1/agent/balance` | API key | 60/min by API key | Read current credit balance |
 
 All requests target `https://www.quicknode.com`.
 
@@ -746,6 +740,7 @@ All requests target `https://www.quicknode.com`.
 
 - **Real funds**: Subscriptions settle in real stablecoins on a mainnet payment network. Confirm plan, interval, and payment network with the user before sending the request.
 - **Duplicate email protection**: Re-using an existing email returns an error. Resume failed requests with the same `email` and `password` instead of creating a duplicate account.
+- **Payment retry safety**: If validation fails after a payment header is generated, retry with the same signed payment header byte-for-byte. Do not sign a fresh payment for the same attempted operation unless the server requires a new challenge.
 - **No free trials**: All subscriptions are production-grade from the first request.
 - **Synchronous creation**: Account creation and subscription activation happen in the same request. There is no async job or webhook to wait for.
 - **No invented details**: Never fabricate billing details, passwords, or email addresses. Require explicit user input. Password must be 8–64 characters with at least one lowercase letter, one uppercase letter, one number, and one special character.
@@ -793,8 +788,8 @@ qn endpoint list
 qn endpoint create --chain ethereum --network mainnet
 
 # SQL Explorer
-qn sql query "SELECT COUNT(*) FROM hyperliquid_trades" --cluster hyperliquid-core-mainnet --format json
-qn sql schema --cluster hyperliquid-core-mainnet
+qn sql query "SELECT COUNT(*) FROM hyperliquid_trades" --cluster-id hyperliquid-core-mainnet --format json
+qn sql schema hyperliquid-core-mainnet
 
 # Streams / Webhooks / KV
 qn stream list
@@ -816,8 +811,10 @@ Native Claude/OpenAI connector and generic MCP server that exposes Quicknode Adm
 
 **Claude Code:**
 ```bash
-claude mcp add --transport http https://mcp.quicknode.com
+claude mcp add --transport http quicknode https://mcp.quicknode.com/mcp
 ```
+
+Interactive setup uses OAuth: log in to Quicknode, select **Viewer** or **Admin**, and approve access. Use Viewer for read-only inspection and Admin only when the assistant needs to create, delete, or modify resources.
 
 **OpenAI (ChatGPT/Codex):** Install Quicknode from the ChatGPT Apps catalog or via `/plugin` in Codex when available. Use the consolidated OpenAI tab on the Quicknode MCP docs page for current setup details.
 
@@ -909,6 +906,7 @@ Serverless storage for lists and key-value sets, primarily accessed from within 
 - `qnLib.qnAddSet` — create a key-value set
 - `qnLib.qnGetSet` — retrieve value by key
 - `qnLib.qnBulkSets` — bulk create/remove sets
+- `qnLib.qnListAllSets` — list all set keys
 - `qnLib.qnDeleteSet` — delete a set
 
 See [references/kv-reference.md](references/kv-reference.md) for REST API usage, size limits, and CLI (`qn kv`) commands.

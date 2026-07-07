@@ -14,7 +14,7 @@ Quicknode KV Store is a serverless storage service for lists and key-value sets.
 
 ## qnLib — Stream Integration
 
-`qnLib` is available inside Streams filter functions without any import. All calls are synchronous within the filter context.
+`qnLib` is available inside Streams filter functions without any import. All calls are asynchronous and should be awaited from an `async function main(...)` filter.
 
 ### List Operations
 
@@ -22,20 +22,22 @@ Manage ordered lists of string items (e.g., a watchlist of wallet addresses).
 
 ```javascript
 // Create or overwrite a list
-qnLib.qnUpsertList('my-watchlist', ['0xAddr1', '0xAddr2']);
+await qnLib.qnUpsertList('my-watchlist', {
+  add_items: ['0xAddr1', '0xAddr2'],
+});
 
 // Add a single item
-qnLib.qnAddListItem('my-watchlist', '0xAddr3');
+await qnLib.qnAddListItem('my-watchlist', '0xAddr3');
 
 // Remove a single item
-qnLib.qnRemoveListItem('my-watchlist', '0xAddr1');
+await qnLib.qnRemoveListItem('my-watchlist', '0xAddr1');
 
 // Check membership (returns array of booleans, one per address)
-const results = qnLib.qnContainsListItems('my-watchlist', ['0xAddr2', '0xAddr3']);
+const results = await qnLib.qnContainsListItems('my-watchlist', ['0xAddr2', '0xAddr3']);
 // results → [true, true]
 
 // Delete the entire list
-qnLib.qnDeleteList('my-watchlist');
+await qnLib.qnDeleteList('my-watchlist');
 ```
 
 ### Set Operations
@@ -44,20 +46,26 @@ Manage key-value pairs (string keys, string values).
 
 ```javascript
 // Create a key-value set entry
-qnLib.qnAddSet('config', 'threshold', '500000');
+await qnLib.qnAddSet('threshold', '500000');
 
 // Read a value by key
-const threshold = qnLib.qnGetSet('config', 'threshold');
+const threshold = await qnLib.qnGetSet('threshold');
 // threshold → "500000"
 
 // Bulk create or update multiple pairs
-qnLib.qnBulkSets('config', [
-  { key: 'threshold', value: '500000' },
-  { key: 'alertEmail', value: 'ops@example.com' },
-]);
+await qnLib.qnBulkSets({
+  add_sets: {
+    threshold: '500000',
+    alertEmail: 'ops@example.com',
+  },
+  delete_sets: [],
+});
+
+// List all set keys
+const setKeys = await qnLib.qnListAllSets();
 
 // Delete a single set entry
-qnLib.qnDeleteSet('config', 'threshold');
+await qnLib.qnDeleteSet('threshold');
 ```
 
 ## REST API
@@ -68,7 +76,7 @@ All REST requests use `https://api.quicknode.com/kv/rest/v1/` and authenticate v
 
 ```typescript
 const response = await fetch(
-  'https://api.quicknode.com/kv/rest/v1/get?storeName=config&key=threshold',
+  'https://api.quicknode.com/kv/rest/v1/sets/threshold',
   { headers: { 'x-api-key': process.env.QUICKNODE_API_KEY! } }
 );
 const { value } = await response.json();
@@ -77,44 +85,74 @@ const { value } = await response.json();
 ### Write a value
 
 ```typescript
-const response = await fetch('https://api.quicknode.com/kv/rest/v1/set', {
+const response = await fetch('https://api.quicknode.com/kv/rest/v1/sets', {
   method: 'POST',
   headers: {
     'x-api-key': process.env.QUICKNODE_API_KEY!,
     'Content-Type': 'application/json',
   },
   body: JSON.stringify({
-    storeName: 'config',
     key: 'threshold',
     value: '750000',
   }),
 });
 ```
 
-### List all keys in a store
+### List all set keys
 
 ```typescript
 const response = await fetch(
-  'https://api.quicknode.com/kv/rest/v1/list?storeName=config',
+  'https://api.quicknode.com/kv/rest/v1/sets',
   { headers: { 'x-api-key': process.env.QUICKNODE_API_KEY! } }
 );
 const { keys } = await response.json();
+```
+
+### List operations
+
+```typescript
+// Create a list
+await fetch('https://api.quicknode.com/kv/rest/v1/lists', {
+  method: 'POST',
+  headers: {
+    'x-api-key': process.env.QUICKNODE_API_KEY!,
+    'Content-Type': 'application/json',
+  },
+  body: JSON.stringify({
+    key: 'allowlist',
+    items: ['0xabc', '0xdef'],
+  }),
+});
+
+// Check one item from outside a Stream filter
+const response = await fetch(
+  'https://api.quicknode.com/kv/rest/v1/lists/allowlist/contains/0xabc',
+  { headers: { 'x-api-key': process.env.QUICKNODE_API_KEY! } }
+);
+const { contains } = await response.json();
 ```
 
 ## CLI — `qn kv`
 
 ```bash
 # Get a value
-qn kv get --store config --key threshold
+qn kv set get threshold
 
 # Set a value
-qn kv set --store config --key threshold --value 750000
+qn kv set put threshold 750000
 
-# List all keys in a store
-qn kv list --store config
+# List all set keys
+qn kv set ls
 
 # Delete a key
-qn kv delete --store config --key threshold
+qn kv set delete threshold
+
+# Manage lists
+qn kv list create allowlist 0xabc 0xdef
+qn kv list append allowlist 0x123
+qn kv list contains allowlist 0xabc
+qn kv list get allowlist
+qn kv list delete allowlist
 ```
 
 ## Limits
@@ -124,7 +162,6 @@ qn kv delete --store config --key threshold
 | Max value size | 64 KB |
 | Max list size | 10,000 items |
 | Max key length | 256 bytes |
-| Max store name length | 64 bytes |
 
 Limits are subject to change — check https://www.quicknode.com/docs/key-value-store for current values.
 

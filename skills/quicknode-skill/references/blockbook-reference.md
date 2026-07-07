@@ -28,12 +28,15 @@ Activate the **Blockbook** add-on for each chain you need in the Quicknode dashb
 | `bb_getXPUB` | XPUB-level balance and transaction history |
 | `bb_getUTXOs` | Unspent transaction outputs (UTXOs) for an address or XPUB |
 | `bb_getBalanceHistory` | Historical balance for an address over time |
-| `bb_getTransaction` | Transaction details by txid |
+| `bb_getTx` | Transaction details by txid |
+| `bb_getTxSpecific` | Backend-native transaction details by txid |
 | `bb_getBlock` | Block data including transactions |
-| `bb_estimateFee` | Fee estimation for a target confirmation window |
-| `bb_getInfo` | Backend and sync status |
+| `bb_getBlockHash` | Block hash by block height |
+| `bb_getEstimateFee` | Fee estimation for a target confirmation window |
+| `bb_getTickers` / `bb_getTickersList` | Fiat ticker data |
+| `bb_sendTransaction` | Broadcast a signed raw transaction |
 
-Both JSON-RPC and ORD-compatible REST interfaces are available on the same endpoint.
+Both JSON-RPC and Blockbook REST interfaces are available on the same endpoint. The REST base path is `/addon/3/api/v2/` on a Bitcoin endpoint with the add-on enabled.
 
 ## Get Address Balance and History
 
@@ -45,12 +48,14 @@ const response = await fetch(process.env.QUICKNODE_RPC_URL!, {
     jsonrpc: '2.0',
     id: 1,
     method: 'bb_getAddress',
-    params: {
-      descriptor: 'bc1qxy2kgdygjrsqtzq2n0yrf2493p83kkfjhx0wlh',
-      details: 'txs',    // basic | tokens | tokenBalances | txids | txs
-      pageSize: 10,
-      page: 1,
-    },
+    params: [
+      'bc1qxy2kgdygjrsqtzq2n0yrf2493p83kkfjhx0wlh',
+      {
+        details: 'txs', // basic | txids | txs
+        size: 10,
+        page: 1,
+      },
+    ],
   }),
 });
 
@@ -74,10 +79,10 @@ const response = await fetch(process.env.QUICKNODE_RPC_URL!, {
     jsonrpc: '2.0',
     id: 1,
     method: 'bb_getUTXOs',
-    params: {
-      descriptor: 'bc1qxy2kgdygjrsqtzq2n0yrf2493p83kkfjhx0wlh',
-      confirmed: true,   // true = confirmed UTXOs only
-    },
+    params: [
+      'bc1qxy2kgdygjrsqtzq2n0yrf2493p83kkfjhx0wlh',
+      { confirmed: true }, // true = confirmed UTXOs only
+    ],
   }),
 });
 
@@ -107,10 +112,10 @@ const response = await fetch(process.env.QUICKNODE_RPC_URL!, {
     jsonrpc: '2.0',
     id: 1,
     method: 'bb_getBalanceHistory',
-    params: {
-      descriptor: 'bc1qxy2kgdygjrsqtzq2n0yrf2493p83kkfjhx0wlh',
-      groupBy: 86400,  // seconds per bucket (86400 = daily)
-    },
+    params: [
+      'bc1qxy2kgdygjrsqtzq2n0yrf2493p83kkfjhx0wlh',
+      { groupBy: 86400 }, // seconds per bucket (86400 = daily)
+    ],
   }),
 });
 
@@ -118,12 +123,19 @@ const { result } = await response.json();
 // result — array of { time, txs, received, sent, sentToSelf, rates }
 ```
 
+## REST Access
+
+```bash
+curl -X GET \
+  "https://YOUR_QUICKNODE_ENDPOINT.com/addon/3/api/v2/address/bc1p72h09wplu60qdxyr8q3ftgdhga7jxnjhdz08qs4u9we9q3lzmqmqa4yzj6?details=txids"
+```
+
 ## Troubleshooting
 
 | Error | Cause | Fix |
 |-------|-------|-----|
 | Method not found | Add-on not enabled | Activate Blockbook for this chain on your endpoint in the dashboard |
-| `descriptor` error | Incorrect address format | Verify address format matches the chain (e.g., bech32 for BTC) |
+| Invalid address | Incorrect address format | Verify address format matches the chain (e.g., bech32 for BTC) |
 | Empty result | Address has no activity | Confirm the address is on the correct network |
 
 ## Documentation

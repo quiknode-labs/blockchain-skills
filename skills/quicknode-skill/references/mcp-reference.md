@@ -11,7 +11,7 @@ The Quicknode MCP server exposes Quicknode Admin API capabilities to AI assistan
 |----------|-------|
 | **Protocol** | Model Context Protocol (MCP) |
 | **Transport** | HTTP (Streamable HTTP) |
-| **Auth** | Quicknode API key (provided at setup) |
+| **Auth** | OAuth 2.1 for interactive setup; bearer API key for CI/non-interactive setup |
 | **Directory** | Native Claude connector; native OpenAI app/plugin surface for ChatGPT and Codex |
 | **Capabilities** | Endpoint management, usage monitoring, rate limits, security rules, billing |
 
@@ -24,23 +24,89 @@ Quicknode is listed in Claude's built-in Anthropic connector directory.
 **Claude Web / Desktop:**
 1. Open Claude settings → **Customize** → **Connectors**
 2. Find **Quicknode** in the directory listing
-3. Click **Connect** and enter your Quicknode API key when prompted
+3. Click **Connect**
+4. Log in to Quicknode in the browser window, select **Admin** or **Viewer**, and approve access
 
 **Claude Code (CLI):**
 
 ```bash
-claude mcp add --transport http https://mcp.quicknode.com
+claude mcp add --transport http quicknode https://mcp.quicknode.com/mcp
 ```
 
-> **Important:** The correct argument order is `--transport http <server-url>`. Do **not** use the older `mcp-remote` flow — Claude's native HTTP transport handles the connection directly.
+By default, Claude Code installs in local scope for the current project. Use `--scope project` to share via project MCP config, or `--scope user` to make it available across your projects:
+
+```bash
+claude mcp add --transport http --scope user quicknode https://mcp.quicknode.com/mcp
+```
 
 ### OpenAI (ChatGPT / Codex)
 
-Install Quicknode directly from the ChatGPT Apps catalog or via `/plugin` in Codex when available. ChatGPT and Codex setup is consolidated under the **OpenAI** tab on the Quicknode MCP setup page.
+Install Quicknode directly from the ChatGPT Apps catalog or via `/plugin` in Codex when available. The interactive flow opens a Quicknode OAuth browser window where the user selects **Admin** or **Viewer** before approving access.
 
-### Cursor / Windsurf / Generic MCP Clients
+### Cursor / VS Code / Windsurf / Zed / Generic MCP Clients
 
-For any MCP-compatible client that supports HTTP transport, configure the server URL in the client's MCP settings. Refer to each client's documentation for the exact configuration format and field names.
+For any MCP-compatible client that supports HTTP transport, configure:
+
+```text
+https://mcp.quicknode.com/mcp
+```
+
+If a client does not support native OAuth or HTTP transport, use `mcp-remote` as a bridge:
+
+```json
+{
+  "mcpServers": {
+    "quicknode": {
+      "command": "npx",
+      "args": ["-y", "mcp-remote", "https://mcp.quicknode.com/mcp"]
+    }
+  }
+}
+```
+
+## Authentication and Roles
+
+Interactive setup uses OAuth 2.1. The user logs in to Quicknode, chooses the account to connect, then selects an API key role:
+
+| Role | Access |
+|------|--------|
+| **Viewer** | Read-only access to endpoints, metrics, logs, usage, billing, and chains |
+| **Admin** | Viewer access plus create/delete endpoints, security changes, and rate-limit updates |
+
+Use **Viewer** for inspection-only workflows. Use **Admin** only when the assistant needs to make Quicknode account changes.
+
+## Non-Interactive / CI Setup
+
+For CI, remote machines, or clients where browser OAuth is unavailable, pass a Quicknode API key as a bearer token. The key's Quicknode role controls MCP permissions.
+
+### Claude Code
+
+```bash
+claude mcp add quicknode --transport http https://mcp.quicknode.com/mcp --header "Authorization: Bearer YOUR_API_KEY"
+```
+
+### Codex
+
+```bash
+codex mcp add quicknode \
+  --url https://mcp.quicknode.com/mcp \
+  --bearer-token-env-var QUICKNODE_API_KEY
+```
+
+### Generic HTTP MCP Config
+
+```json
+{
+  "mcpServers": {
+    "quicknode": {
+      "url": "https://mcp.quicknode.com/mcp",
+      "headers": {
+        "Authorization": "Bearer YOUR_API_KEY"
+      }
+    }
+  }
+}
+```
 
 ## Tool Surface
 
@@ -89,6 +155,10 @@ The Quicknode MCP server exposes tools covering the Admin API surface:
 |------|-------------|
 | `list-chains` | List all supported blockchain networks |
 | `get-billing` | Retrieve billing information |
+
+## MCP Resources
+
+Quicknode MCP also exposes endpoint details as MCP resources in clients that support resource browsing. Reference `@quicknode` in the client UI to attach endpoint context such as `quicknode://endpoints/<endpoint-id>` without first calling a tool.
 
 ## Example Prompts
 

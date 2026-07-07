@@ -97,13 +97,36 @@ qn endpoint resume <endpoint-id>
 qn endpoint archive <endpoint-id>
 ```
 
+### Endpoint Tags
+
+```bash
+qn endpoint tag list
+qn endpoint tag add <endpoint-id> production
+qn endpoint tag remove <endpoint-id> <tag-id>
+qn endpoint tag rename <tag-id> mainnet-production
+qn endpoint tag delete <tag-id>
+```
+
+Tag add, rename, remove, and delete commands change endpoint metadata.
+
+### Bulk Endpoint Operations
+
+```bash
+qn endpoint bulk pause <endpoint-id-1> <endpoint-id-2>
+qn endpoint bulk resume <endpoint-id-1> <endpoint-id-2>
+qn endpoint bulk tag add --label production <endpoint-id-1> <endpoint-id-2>
+qn endpoint bulk tag remove --tag-id <tag-id> <endpoint-id-1> <endpoint-id-2>
+```
+
+Bulk operations can change multiple endpoints in one command.
+
 ### Endpoint Security and Rate Limits
 
 ```bash
 qn endpoint security show <endpoint-id>
 qn endpoint security token create <endpoint-id>
-qn endpoint security ip add <endpoint-id> --ip 203.0.113.10
-qn endpoint security request-filter add <endpoint-id> --method eth_getBalance
+qn endpoint security ip add <endpoint-id> 203.0.113.10
+qn endpoint security request-filter create <endpoint-id> --method eth_getBalance
 
 qn endpoint rate-limit get <endpoint-id>
 qn endpoint rate-limit set <endpoint-id> --rps 100 --rpm 5000
@@ -151,6 +174,7 @@ qn webhook create \
   --name "wallet alerts" \
   --network ethereum-mainnet \
   --url https://example.com/webhook \
+  --compression none \
   --template evm-wallet \
   --wallet 0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48
 ```
@@ -179,9 +203,9 @@ qn kv list delete allowlist
 ### SQL Explorer
 
 ```bash
-qn sql query "SELECT * FROM hyperliquid_trades LIMIT 10" --cluster hyperliquid-core-mainnet
-qn sql schema --cluster hyperliquid-core-mainnet
-qn sql query "SELECT * FROM hyperliquid_trades LIMIT 100" --cluster hyperliquid-core-mainnet --format json
+qn sql query "SELECT * FROM hyperliquid_trades LIMIT 10" --cluster-id hyperliquid-core-mainnet
+qn sql schema hyperliquid-core-mainnet
+qn sql query "SELECT * FROM hyperliquid_trades LIMIT 100" --cluster-id hyperliquid-core-mainnet --format json
 ```
 
 ### Account Operations

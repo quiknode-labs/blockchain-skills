@@ -482,11 +482,11 @@ async function connectWithRetry(maxRetries = 5) {
 
 ## Documentation
 
-- **Solana gRPC Overview**: https://www.quicknode.com/docs/solana/grpc/overview
-- **Subscribe Method**: https://www.quicknode.com/docs/solana/grpc/subscribe
-- **TypeScript Setup**: https://www.quicknode.com/docs/solana/grpc/overview/typescript
-- **Go Setup**: https://www.quicknode.com/docs/solana/grpc/overview/go
-- **Rust Setup**: https://www.quicknode.com/docs/solana/grpc/overview/rust
-- **Python Setup**: https://www.quicknode.com/docs/solana/grpc/overview/python
-- **Marketplace Add-on**: https://marketplace.quicknode.com/add-on/yellowstone-grpc-geyser-plugin
+- **Solana gRPC Overview**: https://www.quicknode.com/docs/solana/solana-grpc/overview
+- **Subscribe Method**: https://www.quicknode.com/docs/solana/solana-grpc/subscribe
+- **TypeScript Setup**: https://www.quicknode.com/docs/solana/solana-grpc/overview/typescript
+- **Go Setup**: https://www.quicknode.com/docs/solana/solana-grpc/overview/go
+- **Rust Setup**: https://www.quicknode.com/docs/solana/solana-grpc/overview/rust
+- **Python Setup**: https://www.quicknode.com/docs/solana/solana-grpc/overview/python
+- **Marketplace Add-on**: https://marketplace.quicknode.com/add-on/solana-grpc-geyser-plugin
 - **Guides**: https://www.quicknode.com/guides/tags/geyser

@@ -407,7 +407,7 @@ console.log('Transaction:', {
 | **Runes** | `ord_getRune`, `ord_getRunes` |
 | **Ordinals Utility** | `ord_getBlockHash`, `ord_getBlockInfo`, `ord_getCurrentBlockHash`, `ord_getCurrentBlockHeight`, `ord_getCurrentBlockTime`, `ord_getOutput`, `ord_getStatus`, `ord_getTx` |
 | **Quicknode** | `qn_getBlockFromTimestamp`, `qn_getBlocksInTimestampRange` |
-| **Blockbook** | `bb_getAddress`, `bb_getBalanceHistory`, `bb_getBlock`, `bb_getBlockHash`, `bb_getTx`, `bb_getTxSpecific`, `bb_getUTXOs`, `bb_getXPUB`, `bb_getTickers`, `bb_getTickersList` |
+| **Blockbook** | `bb_getAddress`, `bb_getBalanceHistory`, `bb_getBlock`, `bb_getBlockHash`, `bb_getEstimateFee`, `bb_getTx`, `bb_getTxSpecific`, `bb_getUTXOs`, `bb_getXPUB`, `bb_getTickers`, `bb_getTickersList`, `bb_sendTransaction` |
 
 ## WebSocket Patterns
 

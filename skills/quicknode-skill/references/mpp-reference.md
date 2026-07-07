@@ -60,18 +60,18 @@ Replace `:network` with slugs like `tempo-mainnet`, `ethereum-mainnet`, `solana-
 
 The payment network is independent of the chain you query. For example, you can pay with PathUSD on Tempo and query Ethereum, Solana, or any other supported chain.
 
-## Free Tier
+## Testnet Monthly Cap
 
-Both intent types share a **single pool of 1,000,000 API credits per wallet per month**. The pool resets on the 1st of each month and covers both RPC and SQL Explorer calls.
+Each wallet gets a **single pool of 1,000,000 API credits per month** across Quicknode's agentic payment surfaces, including x402 and MPP. The pool resets on the 1st of each month and covers both RPC and SQL Explorer calls. Mainnet wallets are uncapped.
 
-| Shared Free Pool | Value |
+| Testnet Pool | Value |
 |-----------------|-------|
 | Credits per wallet | 1,000,000/month |
 | Reset | 1st of each month |
 | Scope | RPC + SQL Explorer |
 | Shared across | Charge, Session |
 
-Once the monthly free tier is exhausted, mainnet billing continues at per-intent rates. HTTP 403 `lifetime_limit_reached` now indicates the monthly free tier has been exceeded for your wallet — switch to mainnet or wait for the reset on the 1st.
+When the testnet cap is exhausted, the server returns HTTP 403 with `{ "error": "monthly_limit_reached" }` and no payment is taken. Switch to a mainnet-funded wallet or wait for the reset.
 
 ## Rate Limits
 
@@ -144,12 +144,13 @@ console.log(await response.json())
 ### Solana
 
 ```bash
-npm install solana-mpp mppx @solana/kit @solana/spl-token
+npm install @solana/mpp mppx @solana/kit
 ```
 
 ```typescript
-import { Mppx, solana } from 'solana-mpp/client'
-import { createKeyPairFromBytes } from '@solana/kit'
+import { Mppx } from 'mppx/client'
+import { solana } from '@solana/mpp/client'
+import { createKeyPairSignerFromBytes } from '@solana/kit'
 import { readFileSync } from 'fs'
 import { homedir } from 'os'
 
@@ -157,11 +158,11 @@ const keypairFile = readFileSync(
   process.env.SOLANA_KEYPAIR_PATH ?? `${homedir()}/.config/solana/id.json`,
   'utf-8'
 )
-const keypair = await createKeyPairFromBytes(
+const signer = await createKeyPairSignerFromBytes(
   new Uint8Array(JSON.parse(keypairFile))
 )
 
-Mppx.create({ methods: [solana({ wallet: keypair })] })
+Mppx.create({ methods: [solana.charge({ signer })] })
 
 const response = await fetch('https://mpp.quicknode.com/solana-mainnet', {
   method: 'POST',
@@ -239,7 +240,7 @@ console.log(receipt.reference) // tx hash (charge) or channelId (session)
 | Status | Code | Meaning |
 |--------|------|---------|
 | 402 | (challenge) | Payment required; see `WWW-Authenticate: Payment` header |
-| 403 | `lifetime_limit_reached` | Testnet lifetime request cap exceeded; switch to mainnet |
+| 403 | `monthly_limit_reached` | Monthly testnet credit cap exceeded; no payment taken; switch to mainnet or wait for reset |
 | 404 | `unsupported_network` | Network slug not found |
 | 429 | `rate_limit_exceeded` | 1,000 req/10s limit exceeded per IP:network |
 | 503 | `mpp_not_configured` | MPP unavailable in this environment |
@@ -254,9 +255,9 @@ console.log(receipt.reference) // tx hash (charge) or channelId (session)
 ## NPM Packages
 
 - **mppx** — Official TypeScript SDK (client, server, middleware, CLI)
-- **solana-mpp** — Solana payment method (client, server)
+- **@solana/mpp** — Solana payment method (client, server)
 - **viem** — Ethereum/Tempo utilities (peer dependency)
-- **@solana/web3.js** — Solana web3 (peer dependency)
+- **@solana/kit** — Solana SDK (peer dependency)
 
 ## Documentation
 

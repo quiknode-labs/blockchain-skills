@@ -48,18 +48,18 @@ The payment chain does not need to match the chain you query. For example, you c
 | `/:network/ws` | WebSocket | WebSocket RPC connection to a specific chain |
 | `/discovery/resources` | GET | Bazaar-compatible catalog of all supported networks |
 
-## Free Tier
+## Testnet Monthly Cap
 
-All three payment models share a **single pool of 1,000,000 API credits per wallet per month**. The pool resets on the 1st of each month and covers both RPC and SQL Explorer calls.
+Each wallet gets a **single pool of 1,000,000 API credits per month** across Quicknode's agentic payment surfaces, including x402 and MPP. The pool resets on the 1st of each month and covers both RPC and SQL Explorer calls. Mainnet wallets are uncapped.
 
-| Shared Free Pool | Value |
+| Testnet Pool | Value |
 |-----------------|-------|
 | Credits per wallet | 1,000,000/month |
 | Reset | 1st of each month |
 | Scope | RPC + SQL Explorer |
 | Shared across | Pay-per-request, Nanopayment, Credit Drawdown |
 
-Once the monthly free tier is exhausted, mainnet billing continues at per-model rates. HTTP 403 `lifetime_limit_reached` now indicates the monthly free tier has been exceeded for your wallet — switch to mainnet or wait for the reset on the 1st.
+When the testnet cap is exhausted, requests return HTTP 403 `monthly_limit_reached` until reset. Switch to a mainnet-funded wallet for uninterrupted access.
 
 ## Setup
 
@@ -228,7 +228,7 @@ console.log('Credits received:', dripResult);
 ## Best Practices
 
 1. **Start with pay-per-request** for simplicity (no auth needed), switch to credit drawdown for sustained usage or streaming protocols.
-2. **Use testnet first.** Call `/drip` (Base Sepolia) or the [Circle faucet](https://faucet.circle.com/) to get testnet USDC before using mainnet.
+2. **Use testnet first.** Call `/drip` for Base Sepolia, or pre-fund other supported testnets with the required stablecoin before using mainnet.
 3. **Use `preAuth: true`** with credit drawdown to speed up the first payment flow.
 4. **Reuse session tokens.** The client caches JWTs automatically (1 hour expiry).
 5. **gRPC-Web and WebSocket require credit drawdown.** Pay-per-request and nanopayment support JSON-RPC and REST only.

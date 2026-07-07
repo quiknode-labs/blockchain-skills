@@ -8,9 +8,9 @@ Programmatic Quicknode account creation for autonomous agents. A single authenti
 
 | Method | Path | Auth | Rate Limit | Purpose |
 |--------|------|------|------------|---------|
-| POST | `/api/v1/agent/subscriptions` | Payment header (x402 or MPP) | 30/min | Create account + subscription |
-| POST | `/api/v1/agent/top_up` | API key + payment header | 30/min | Add credits to existing subscription |
-| GET | `/api/v1/agent/balance` | API key | 60/min | Read current credit balance |
+| POST | `/api/v1/agent/subscriptions` | Payment header (x402 or MPP) | 20/min, 5/hour by IP + email | Create account + subscription |
+| POST | `/api/v1/agent/top_up` | API key + payment header | 30/min by API key | Add credits to existing subscription |
+| GET | `/api/v1/agent/balance` | API key | 60/min by API key | Read current credit balance |
 
 All requests target `https://www.quicknode.com`.
 
@@ -108,11 +108,11 @@ const res = await client.fetch(
       'x-api-key': process.env.QUICKNODE_API_KEY!,
     },
     body: JSON.stringify({
-      amount_usd: 10,  // top-up amount in USD
+      amount: 10.0,  // top-up amount in USD
     }),
   },
 )
-const { credits_added, new_balance } = await res.json()
+const { balance_cents } = await res.json()
 ```
 
 ## Check Credit Balance
@@ -121,10 +121,8 @@ const { credits_added, new_balance } = await res.json()
 const res = await fetch('https://www.quicknode.com/api/v1/agent/balance', {
   headers: { 'x-api-key': process.env.QUICKNODE_API_KEY! },
 })
-const { balance, plan, interval } = await res.json()
-// balance — current API credit balance
-// plan — current plan name
-// interval — monthly | yearly
+const { balance_cents } = await res.json()
+// balance_cents — current balance in cents
 ```
 
 ## Plan IDs
@@ -142,9 +140,11 @@ See https://www.quicknode.com/pricing for current plan pricing and credit alloca
 
 - **Real funds** — Subscriptions settle in real stablecoins on a mainnet payment network. Always confirm plan, interval, and payment network with the user before sending.
 - **Duplicate email** — Re-using an existing email returns an error. Retry with the same `email` and `password` to resume; never create a duplicate account.
+- **Payment retry safety** — If validation fails after a payment header is generated, retry with the same signed payment header byte-for-byte. Do not sign a fresh payment for the same attempted operation unless the server requires a new challenge.
 - **No free trials** — All subscriptions are production-grade from the first request.
 - **Synchronous** — Account and subscription are created in a single request. No async job to poll.
 - **Password requirements** — 8–64 characters, at least one lowercase, one uppercase, one number, one special character. Never fabricate credentials.
+- **Name requirements** — `full_name` and account `name` must each be 4–40 characters. The password must not equal the email.
 
 ## How It Pairs with x402 / MPP
 

@@ -56,11 +56,47 @@ const swap = await jupiterApi.swapPost({
 // swap.swapTransaction is a base64 serialized transaction ready for signing.
 ```
 
+## Hyperliquid Exchange API
+
+Hyperliquid Exchange API is for Hyperliquid exchange workflows, separate from HyperCore data streaming and SQL Explorer analytics.
+
+**Hyperliquid Docs:** https://www.quicknode.com/docs/hyperliquid
+**Build Market Order:** https://www.quicknode.com/docs/hyperliquid/exchange-api/build-market-order
+**Marketing:** https://www.quicknode.com/chains/hyperliquid
+
+Use HyperCore gRPC/JSON-RPC/WebSocket/Info API references for market data. Use the Exchange API only when the user explicitly needs trading/exchange actions and has the required credentials and risk confirmation.
+
+```typescript
+const url = `${process.env.QUICKNODE_HYPERLIQUID_ENDPOINT}/hypercore/exchange`;
+const post = (body) =>
+  fetch(url, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(body),
+  }).then((r) => r.json());
+
+// 1. Build a spot market buy of HYPE (no signature)
+const built = await post({
+  action: { type: 'order', orders: [
+    { asset: 'HYPE', side: 'buy', size: '5', tif: 'market' },
+  ] },
+});
+
+// 2. Sign the EIP-712 hash locally (keys never leave your machine)
+const signature = await wallet.signTypedData(built.typedData);
+
+// 3. Send the signed order
+const { exchangeResponse } = await post({
+  action: built.action, nonce: built.nonce, signature,
+});
+```
+
 ## EVM - 0x Swap API
 
 Use the 0x add-on for EVM aggregated liquidity. The v2 quote endpoint uses Permit2.
 
-**Docs:** https://www.quicknode.com/docs/ethereum/0x-swap-api
+**Marketplace:** https://marketplace.quicknode.com/add-on/0x-swap-api
+**Provider docs:** https://0x.org/docs/api
 
 ```typescript
 const params = new URLSearchParams({
@@ -71,7 +107,7 @@ const params = new URLSearchParams({
   taker: "0xYourAddress...",
 });
 
-const quote = await fetch(`${process.env.QUICKNODE_RPC_URL}/0x/swap/v2/permit2/quote?${params}`)
+const quote = await fetch(`${process.env.QUICKNODE_RPC_URL}/addon/1117/swap/permit2/quote?${params}`)
   .then((res) => res.json());
 
 console.log(quote.transaction);
@@ -81,11 +117,12 @@ console.log(quote.transaction);
 
 OpenOcean provides multi-chain routing. Use the provider docs for the exact chain slug and quote/swap path for the enabled add-on.
 
-**Docs:** https://www.quicknode.com/docs/ethereum/openocean
+**Marketplace:** https://marketplace.quicknode.com/add-on/openocean-v4-swap-api
+**Provider docs:** https://docs.openocean.finance/
 
 ```typescript
+const chain = "eth";
 const params = new URLSearchParams({
-  chain: "eth",
   inTokenAddress: "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
   outTokenAddress: "0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE",
   amount: "100",
@@ -93,7 +130,7 @@ const params = new URLSearchParams({
   account: "0xYourAddress...",
 });
 
-const quote = await fetch(`${process.env.QUICKNODE_RPC_URL}/openocean/v4/quote?${params}`)
+const quote = await fetch(`${process.env.QUICKNODE_RPC_URL}/addon/807/v4/${chain}/quote?${params}`)
   .then((res) => res.json());
 ```
 
@@ -101,34 +138,83 @@ const quote = await fetch(`${process.env.QUICKNODE_RPC_URL}/openocean/v4/quote?$
 
 Aerodrome is the primary liquidity hub on Base. The add-on is used for routing, quote, swap transaction construction, pool analytics, and price feeds.
 
-**Marketing:** https://www.quicknode.com/swap-api
+**Marketplace:** https://marketplace.quicknode.com/add-on/aerodrome-swap-api
 
-Keep implementation details linked to current provider docs or the enabled add-on page; do not invent endpoint paths when they are not present in Quicknode docs.
+```typescript
+const params = new URLSearchParams({
+  quotetarget: "base",
+  from_token: "0x940181a94A35A4569E4529A3CDfB74e38FD98631",
+  to_token: "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913",
+  amount: "1",
+});
+
+const quote = await fetch(`${process.env.QUICKNODE_RPC_URL}/addon/1051/v1/quote?${params}`)
+  .then((res) => res.json());
+
+const swap = await fetch(`${process.env.QUICKNODE_RPC_URL}/addon/1051/v1/swap/build?target=aero`, {
+  method: "POST",
+  headers: { "Content-Type": "application/json" },
+  body: JSON.stringify({
+    from_token: "0x940181a94A35A4569E4529A3CDfB74e38FD98631",
+    to_token: "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913",
+    amount: 1.0,
+    wallet_address: "0xYourAddress...",
+    slippage: 0.01,
+  }),
+}).then((res) => res.json());
+```
 
 ## Optimism - Velodrome Swap API
 
 Velodrome is the primary liquidity hub on Optimism. The add-on is used for routing, quote, swap transaction construction, pool analytics, and price feeds.
 
-**Marketing:** https://www.quicknode.com/swap-api
+**Marketplace:** https://marketplace.quicknode.com/add-on/velodrome-swap-api
 
-Keep implementation details linked to current provider docs or the enabled add-on page; do not invent endpoint paths when they are not present in Quicknode docs.
+```typescript
+const params = new URLSearchParams({
+  target: "velo",
+  limit: "50",
+  symbols: "VELO,USDC",
+});
+
+const prices = await fetch(`${process.env.QUICKNODE_RPC_URL}/addon/1050/v1/prices?${params}`)
+  .then((res) => res.json());
+
+const swap = await fetch(`${process.env.QUICKNODE_RPC_URL}/addon/1050/v1/swap/build?target=velo`, {
+  method: "POST",
+  headers: { "Content-Type": "application/json" },
+  body: JSON.stringify({
+    from_token: "0xYourInputToken...",
+    to_token: "0xYourOutputToken...",
+    amount: 1.0,
+    wallet_address: "0xYourAddress...",
+    slippage: 0.01,
+  }),
+}).then((res) => res.json());
+```
 
 ## Solana - Titan Meta Aggregator
 
 Titan Meta Aggregator provides Solana swap aggregation through REST and WebSocket APIs.
 
-**Marketing:** https://www.quicknode.com/swap-api
+**Marketplace:** https://marketplace.quicknode.com/add-on/titan-swap
 
-Use the Titan add-on docs or dashboard-provided endpoint paths for exact quote, build, and streaming APIs.
+```typescript
+import { decode } from '@msgpack/msgpack';
 
-## Hyperliquid Exchange API
-
-Hyperliquid Exchange API is for Hyperliquid exchange workflows, separate from HyperCore data streaming and SQL Explorer analytics.
-
-**Hyperliquid Docs:** https://www.quicknode.com/docs/hyperliquid
-**Marketing:** https://www.quicknode.com/chains/hyperliquid
-
-Use HyperCore gRPC/JSON-RPC/WebSocket/Info API references for market data. Use the Exchange API only when the user explicitly needs trading/exchange actions and has the required credentials and risk confirmation.
+const res = await fetch(
+  `${process.env.QUICKNODE_ENDPOINT}/addon/1147/api/v1/quote/price?` +
+  new URLSearchParams({
+    inputMint:  'So11111111111111111111111111111111111111112', // SOL
+    outputMint: 'EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v', // USDC
+    amount:     '1000000000', // lamports
+  }),
+  { headers: { Accept: 'application/vnd.msgpack' } }
+);
+const { amountIn, amountOut } = decode(
+  new Uint8Array(await res.arrayBuffer())
+) as { amountIn: number; amountOut: number };
+```
 
 ## Safety Defaults
 
@@ -151,7 +237,12 @@ Use HyperCore gRPC/JSON-RPC/WebSocket/Info API references for market data. Use t
 
 - **Swap API Marketing**: https://www.quicknode.com/swap-api
 - **Metis Overview**: https://www.quicknode.com/docs/solana/metis-overview
-- **0x Swap API**: https://www.quicknode.com/docs/ethereum/0x-swap-api
-- **OpenOcean**: https://www.quicknode.com/docs/ethereum/openocean
+- **0x Swap API Marketplace**: https://marketplace.quicknode.com/add-on/0x-swap-api
+- **OpenOcean V4 Marketplace**: https://marketplace.quicknode.com/add-on/openocean-v4-swap-api
+- **Aerodrome Swap API Marketplace**: https://marketplace.quicknode.com/add-on/aerodrome-swap-api
+- **Velodrome Swap API Marketplace**: https://marketplace.quicknode.com/add-on/velodrome-swap-api
+- **Titan Swap Marketplace**: https://marketplace.quicknode.com/add-on/titan-swap
+- **Titan API Specification**: https://titan-exchange.gitbook.io/titan-exchange/
 - **Hyperliquid**: https://www.quicknode.com/docs/hyperliquid
+- **Hyperliquid Build Market Order**: https://www.quicknode.com/docs/hyperliquid/exchange-api/build-market-order
 - **Marketplace**: https://marketplace.quicknode.com/
