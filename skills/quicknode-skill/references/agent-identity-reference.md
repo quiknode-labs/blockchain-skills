@@ -3,7 +3,6 @@
 On-chain agent discovery and reputation based on the ERC-8004 standard. Agents publish structured records to `erc-8004.quicknode.com` describing their capabilities, supported payment methods, and callable endpoints. Other agents or services look up these records to discover and verify agents without requiring a centralized registry.
 
 **API Base:** https://erc-8004.quicknode.com
-**Explorer:** https://erc-8004.quicknode.com/explorer
 **Spec:** https://eips.ethereum.org/EIPS/eip-8004
 
 ## What an ERC-8004 Record Contains
@@ -86,8 +85,7 @@ const { verified, score, lastActivity } = await response.json();
 
 ## Explorer
 
-Browse registered agents, filter by skill or payment method, and inspect record details at:
-https://erc-8004.quicknode.com/explorer
+Browse registered agents, filter by skill or payment method, and inspect record details at: [https://erc-8004.quicknode.com](https://erc-8004.quicknode.com)
 
 ## Documentation
 
