@@ -124,6 +124,30 @@ const { result } = await response.json();
 // result.tree_id — Merkle tree address
 ```
 
+## getAssetProofs
+
+Retrieve Merkle proofs for multiple compressed assets in one call.
+
+```javascript
+const response = await fetch(process.env.QUICKNODE_RPC_URL, {
+  method: 'POST',
+  headers: { 'Content-Type': 'application/json' },
+  body: JSON.stringify({
+    jsonrpc: '2.0',
+    id: 1,
+    method: 'getAssetProofs',
+    params: {
+      ids: [
+        'D85MZkvir9yQZFDHt8U2ZmS7D3LXKdiSjvw2MBdscJJa',
+        'AnotherCompressedAssetMint...'
+      ]
+    }
+  })
+});
+const { result } = await response.json();
+// result — object keyed by asset ID, each containing root, proof, node_index, leaf, tree_id
+```
+
 ## getAssetsByOwner
 
 List all digital assets owned by a wallet address.
@@ -166,6 +190,28 @@ const { result } = await response.json();
 | `options.showFungible` | boolean | No | Include fungible tokens |
 | `options.showCollectionMetadata` | boolean | No | Include collection metadata |
 
+## getAssetsByCreator
+
+List assets created by a specific address.
+
+```javascript
+const response = await fetch(process.env.QUICKNODE_RPC_URL, {
+  method: 'POST',
+  headers: { 'Content-Type': 'application/json' },
+  body: JSON.stringify({
+    jsonrpc: '2.0',
+    id: 1,
+    method: 'getAssetsByCreator',
+    params: {
+      creatorAddress: '3pMvTLUA9NzZQd4gi725p89mvND1wRNQM3C8XEv1hTdA',
+      limit: 10
+    }
+  })
+});
+const { result } = await response.json();
+// result.total, result.items, result.cursor
+```
+
 ## getAssetsByGroup
 
 List assets by group identifier (e.g., collection address).
@@ -187,6 +233,114 @@ const response = await fetch(process.env.QUICKNODE_RPC_URL, {
 });
 const { result } = await response.json();
 // result.total, result.items, result.cursor
+```
+
+## getAssetsByAuthority
+
+List assets controlled by a specific authority.
+
+```javascript
+const response = await fetch(process.env.QUICKNODE_RPC_URL, {
+  method: 'POST',
+  headers: { 'Content-Type': 'application/json' },
+  body: JSON.stringify({
+    jsonrpc: '2.0',
+    id: 1,
+    method: 'getAssetsByAuthority',
+    params: {
+      authorityAddress: 'AuthorityPubkey...',
+      limit: 10
+    }
+  })
+});
+const { result } = await response.json();
+// result.total, result.items, result.cursor
+```
+
+## getAssetSignatures
+
+Get transaction signatures associated with a compressed asset.
+
+```javascript
+const response = await fetch(process.env.QUICKNODE_RPC_URL, {
+  method: 'POST',
+  headers: { 'Content-Type': 'application/json' },
+  body: JSON.stringify({
+    jsonrpc: '2.0',
+    id: 1,
+    method: 'getAssetSignatures',
+    params: {
+      id: 'CompressedAssetMint...',
+      limit: 10
+    }
+  })
+});
+const { result } = await response.json();
+// result.items — array of transaction signature objects
+```
+
+## getTokenAccounts
+
+List token accounts and balances by mint address or owner address. Useful for finding all holders of a token or all tokens held by a wallet.
+
+```javascript
+// By mint address — find holders of a token
+const response = await fetch(process.env.QUICKNODE_RPC_URL, {
+  method: 'POST',
+  headers: { 'Content-Type': 'application/json' },
+  body: JSON.stringify({
+    jsonrpc: '2.0',
+    id: 1,
+    method: 'getTokenAccounts',
+    params: {
+      mintAddress: 'So11111111111111111111111111111111111111112',
+      limit: 10
+    }
+  })
+});
+const { result } = await response.json();
+// result.total — total token accounts
+// result.token_accounts — array of accounts with:
+//   address, mint, owner, amount, delegated_amount, frozen
+```
+
+```javascript
+// By owner address — find all tokens held by a wallet
+const response = await fetch(process.env.QUICKNODE_RPC_URL, {
+  method: 'POST',
+  headers: { 'Content-Type': 'application/json' },
+  body: JSON.stringify({
+    jsonrpc: '2.0',
+    id: 1,
+    method: 'getTokenAccounts',
+    params: {
+      ownerAddress: 'WalletPubkey...',
+      limit: 10
+    }
+  })
+});
+```
+
+## getNftEditions
+
+Retrieve edition details for a master NFT, including all printed editions.
+
+```javascript
+const response = await fetch(process.env.QUICKNODE_RPC_URL, {
+  method: 'POST',
+  headers: { 'Content-Type': 'application/json' },
+  body: JSON.stringify({
+    jsonrpc: '2.0',
+    id: 1,
+    method: 'getNftEditions',
+    params: {
+      mintAddress: 'MasterEditionMint...',
+      limit: 10
+    }
+  })
+});
+const { result } = await response.json();
+// result.items — array of edition details
 ```
 
 ## searchAssets
@@ -282,7 +436,15 @@ const { result: proof } = await fetch(process.env.QUICKNODE_RPC_URL, {
 
 - **DAS API Overview**: https://www.quicknode.com/docs/solana/solana-das-api
 - **getAsset**: https://www.quicknode.com/docs/solana/getAsset
+- **getAssets**: https://www.quicknode.com/docs/solana/getAssets
+- **getAssetProof**: https://www.quicknode.com/docs/solana/getAssetProof
+- **getAssetProofs**: https://www.quicknode.com/docs/solana/getAssetProofs
+- **getAssetsByAuthority**: https://www.quicknode.com/docs/solana/getAssetsByAuthority
+- **getAssetsByCreator**: https://www.quicknode.com/docs/solana/getAssetsByCreator
+- **getAssetsByGroup**: https://www.quicknode.com/docs/solana/getAssetsByGroup
 - **getAssetsByOwner**: https://www.quicknode.com/docs/solana/getAssetsByOwner
-- **searchAssets**: https://www.quicknode.com/docs/solana/searchAssets
+- **getAssetSignatures**: https://www.quicknode.com/docs/solana/getAssetSignatures
 - **getTokenAccounts**: https://www.quicknode.com/docs/solana/getTokenAccounts
+- **getNftEditions**: https://www.quicknode.com/docs/solana/getNftEditions
+- **searchAssets**: https://www.quicknode.com/docs/solana/searchAssets
 - **Marketing**: https://www.quicknode.com/metaplex-das-api
