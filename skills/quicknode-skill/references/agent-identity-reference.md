@@ -1,94 +1,171 @@
 # Agent Identity Reference (ERC-8004)
 
-On-chain agent discovery and reputation based on the ERC-8004 standard. Agents publish structured records to `erc-8004.quicknode.com` describing their capabilities, supported payment methods, and callable endpoints. Other agents or services look up these records to discover and verify agents without requiring a centralized registry.
+ERC-8004 Explorer indexes ERC-8004 agent registrations, feedback, validations, and reputation across supported EVM networks. The public REST API is read-only and paywalled per request with x402. Use it to search indexed agents and reputation data; use the on-chain ERC-8004 registry contracts to register or update agents.
 
-**API Base:** https://erc-8004.quicknode.com
+**Base URL:** `https://erc-8004.quicknode.com`
+**REST prefix:** `/v1`
 **Spec:** https://eips.ethereum.org/EIPS/eip-8004
+**API docs:** https://erc-8004.quicknode.com/docs/api/v1
 
-## What an ERC-8004 Record Contains
+## Verified Routing
 
-| Field | Description |
-|-------|-------------|
-| `name` | Human-readable agent name |
-| `description` | Short description of the agent's capabilities |
-| `url` | Primary endpoint (agents.md, OpenAPI spec, or homepage) |
-| `skills` | Array of skill identifiers the agent supports |
-| `payments` | Accepted payment protocols (x402, MPP, etc.) |
-| `chains` | Blockchain networks the agent operates on |
-| `version` | Agent version string |
-
-## Look Up an Agent Record
-
-```typescript
-const agentAddress = '0xYourAgentAddress...';
-
-const response = await fetch(
-  `https://erc-8004.quicknode.com/api/v1/agents/${agentAddress}`
-);
-const record = await response.json();
-// record.address — on-chain address
-// record.name, record.description, record.url
-// record.skills — array of skill IDs
-// record.payments — accepted protocols
-// record.chains — supported chains
-// record.verifiedAt — last on-chain verification timestamp
+```bash
+curl -i "https://erc-8004.quicknode.com/v1/agents?network=base-mainnet&page=1&per_page=3"
 ```
 
-## Register an Agent Record
+Without a valid x402 payment header, REST endpoints return HTTP 402 `Payment Required` with an `accepts` array describing the required payment.
 
-Registration writes a record to the ERC-8004 registry contract on the Ethereum network.
+## x402 Payment
 
-```typescript
-const response = await fetch('https://erc-8004.quicknode.com/api/v1/agents', {
-  method: 'POST',
-  headers: { 'Content-Type': 'application/json' },
-  body: JSON.stringify({
-    name: 'My Trading Agent',
-    description: 'Executes swaps and monitors Hyperliquid positions',
-    url: 'https://myagent.example.com/agents.md',
-    skills: ['quicknode-skill', 'defi-skill'],
-    payments: ['x402', 'mpp'],
-    chains: ['eip155:1', 'eip155:8453'],
-    version: '1.0.0',
-  }),
-});
+Every REST API call requires an x402 micropayment.
 
-const { registrationTx } = await response.json();
-// registrationTx — transaction hash of the registry write
+| Item | Value |
+|------|-------|
+| Production payment network | Base mainnet |
+| Staging payment network | Base Sepolia |
+| Currency | USDC |
+| Advertised unauthenticated cost | `maxAmountRequired: "1000"` USDC base units ($0.001) |
+| Payment header on retry | `X-PAYMENT` |
+
+Always parse the 402 response and use its `accepts[0]` payment details instead of hardcoding recipient, token, or amount. The docs state the amount is subject to change and is advertised in each 402 response.
+
+## Rate Limits
+
+| Scope | Limit |
+|-------|-------|
+| Global per source IP | 300 requests/min |
+| `/v1/agents` per source IP | 60 requests/min |
+
+Requests beyond the cap return HTTP 429 with `Retry-After`. Clients behind the same NAT share the source-IP bucket.
+
+## REST Endpoints
+
+All endpoints below are x402-paywalled unless otherwise noted.
+
+| Method | Path | Purpose |
+|--------|------|---------|
+| GET | `/v1/agents` | List/search indexed agents |
+| GET | `/v1/agents/:agent_id` | Fetch one indexed agent |
+| GET | `/v1/agents/:agent_id/feedback` | Fetch feedback for one agent |
+| GET | `/v1/agents/:agent_id/validations` | Fetch validations for one agent |
+| GET | `/v1/agents/:agent_id/validations/summary` | Fetch aggregate validation counts and tag breakdowns |
+| GET | `/v1/agents/:agent_id/reputation` | Fetch live reputation calculation |
+| GET | `/v1/feedback` | Fetch global feedback feed |
+| GET | `/v1/validators/:validator_address/requests` | Fetch validation requests handled by a validator |
+
+The Explorer UI, documentation pages, and static discovery files are not the paid REST API. The REST API catalog is also available as a Postman collection at `https://erc-8004.quicknode.com/docs/collections/postman.json`.
+
+## List Agents
+
+```bash
+curl -i "https://erc-8004.quicknode.com/v1/agents?network=base-mainnet&page=1&per_page=20"
 ```
 
-> The caller must sign the registration transaction with the agent's private key. The API returns the unsigned transaction; sign and broadcast it using your preferred wallet client.
+Query parameters confirmed by the Postman collection:
 
-## Search Agents by Skill
+| Parameter | Notes |
+|-----------|-------|
+| `network` | Network slug, for example `base-mainnet`, `ethereum-mainnet`, `bnb-mainnet`, `avalanche-mainnet`, `mantle-mainnet` |
+| `owner` | Filter by owner address |
+| `include_testnets` | Include testnet networks when supported |
+| `page`, `per_page` | Pagination |
 
-```typescript
-const response = await fetch(
-  'https://erc-8004.quicknode.com/api/v1/agents?skill=quicknode-skill&limit=10'
-);
-const { agents } = await response.json();
-// agents — array of matching agent records
+## Get an Agent
+
+```bash
+curl -i "https://erc-8004.quicknode.com/v1/agents/42?network=base-mainnet"
 ```
 
-## Verify an Agent's Reputation
+Use `network` when the same `agent_id` may exist on multiple chains.
 
-ERC-8004 records include an on-chain signature that proves the record was published by the address that controls the agent. Use `verifiedAt` to check freshness.
+## Agent Feedback
 
-```typescript
-const response = await fetch(
-  `https://erc-8004.quicknode.com/api/v1/agents/${agentAddress}/verify`
-);
-const { verified, score, lastActivity } = await response.json();
-// verified — boolean: signature valid and record current
-// score — reputation score (0–100) based on on-chain activity
-// lastActivity — timestamp of last on-chain action
+```bash
+curl -i "https://erc-8004.quicknode.com/v1/agents/42/feedback?network=base-mainnet&per_page=20"
 ```
 
-## Explorer
+Query parameters:
 
-Browse registered agents, filter by skill or payment method, and inspect record details at: [https://erc-8004.quicknode.com](https://erc-8004.quicknode.com)
+| Parameter | Notes |
+|-----------|-------|
+| `tag1`, `tag2` | Filter by feedback tags |
+| `since`, `until` | ISO 8601 time bounds |
+| `include_revoked` | Include revoked feedback rows; default is false |
+| `network` | Required when the `agent_id` is ambiguous |
+| `page`, `per_page` | Pagination |
+
+## Agent Validations
+
+```bash
+curl -i "https://erc-8004.quicknode.com/v1/agents/42/validations?network=base-mainnet"
+```
+
+Query parameters:
+
+| Parameter | Notes |
+|-----------|-------|
+| `tag` | Filter by validation tag |
+| `has_response` | Filter validations with or without response payload |
+| `since`, `until` | ISO 8601 time bounds |
+| `network` | Required when ambiguous |
+| `page`, `per_page` | Pagination |
+
+## Validation Summary
+
+```bash
+curl -i "https://erc-8004.quicknode.com/v1/agents/42/validations/summary?network=base-mainnet"
+```
+
+Supported filters include `network`, `tag`, `validators`, and `include_testnets`.
+
+## Reputation
+
+```bash
+curl -i "https://erc-8004.quicknode.com/v1/agents/42/reputation?network=base-mainnet"
+```
+
+The agent show route may include cached reputation data. Call `/v1/agents/:agent_id/reputation` directly when the freshest live reputation calculation is needed.
+
+## Global Feedback
+
+```bash
+curl -i "https://erc-8004.quicknode.com/v1/feedback?network=base-mainnet&page=1&per_page=20"
+```
+
+Common filters include `network`, `include_revoked`, `page`, and `per_page`.
+
+## Validator Requests
+
+```bash
+curl -i "https://erc-8004.quicknode.com/v1/validators/0x0000000000000000000000000000000000000000/requests?network=base-mainnet"
+```
+
+Common filters include `network`, `tag`, and `has_response`.
+
+## Register or Update an Agent
+
+The REST API does not expose a verified `POST /v1/agents` registration endpoint. Register agents on-chain by calling the ERC-8004 Identity Registry contract. The registration transaction mints an ERC-721 agent token and emits:
+
+```text
+Registered(uint256 indexed agentId, string agentURI, address indexed owner)
+```
+
+The Explorer indexes that event. After confirmation, the agent page appears at:
+
+```text
+https://erc-8004.quicknode.com/agents/<network-slug>/<tokenId>
+```
+
+Use the official registration tutorial and contracts page for current contract addresses, ABIs, metadata schema, and viem examples:
+
+- https://erc-8004.quicknode.com/tutorials/register-agent
+- https://erc-8004.quicknode.com/docs/contracts
 
 ## Documentation
 
-- **ERC-8004 API**: https://erc-8004.quicknode.com
+- **REST API v1**: https://erc-8004.quicknode.com/docs/api/v1
+- **Agents API**: https://erc-8004.quicknode.com/docs/api/v1/agents
+- **x402 payment flow**: https://erc-8004.quicknode.com/docs/api/v1/x402
+- **Postman collection**: https://erc-8004.quicknode.com/docs/collections/postman.json
+- **Contracts and ABIs**: https://erc-8004.quicknode.com/docs/contracts
 - **EIP-8004 Spec**: https://eips.ethereum.org/EIPS/eip-8004
-- **Quicknode Build with AI**: https://www.quicknode.com/docs/build-with-ai

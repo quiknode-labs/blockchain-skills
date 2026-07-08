@@ -382,11 +382,12 @@ See [references/sql-explorer.md](references/sql-explorer.md) for complete table 
 
 ## Agent Identity (ERC-8004)
 
-On-chain agent identity and capability discovery based on the ERC-8004 standard. Agents publish structured records to `erc-8004.quicknode.com` that describe their capabilities, supported payment methods, and endpoints. Other agents or services can look up these records to discover and verify agents programmatically.
+On-chain agent identity and reputation discovery based on the ERC-8004 standard. `erc-8004.quicknode.com` indexes registrations, feedback, validations, and reputation across supported EVM networks.
 
 **API Base:** https://erc-8004.quicknode.com
+**REST prefix:** `/v1`
 
-See [references/agent-identity-reference.md](references/agent-identity-reference.md) for record structure, registration, and lookup examples.
+See [references/agent-identity-reference.md](references/agent-identity-reference.md) for verified endpoints, x402 behavior, rate limits, and on-chain registration guidance.
 
 ## Blockbook
 
