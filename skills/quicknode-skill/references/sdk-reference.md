@@ -14,10 +14,10 @@ The Quicknode SDK is a unified client for Quicknode product APIs. Use it when an
 
 | Language | Package | Install |
 |----------|---------|---------|
-| Node.js / TypeScript | `@quicknode/sdk` | `npm install @quicknode/sdk` |
-| Python | `quicknode-sdk` | `pip install quicknode-sdk` |
-| Rust | `quicknode-sdk` | `cargo add quicknode-sdk --features rust` |
-| Ruby | `quicknode_sdk` | `gem install quicknode_sdk` |
+| Node.js / TypeScript | `@quicknode/sdk` 3.6.0+ | `npm install @quicknode/sdk` |
+| Python | `quicknode-sdk` 0.6.0+ | `pip install quicknode-sdk` |
+| Rust | `quicknode-sdk` 0.6.0+ | `cargo add quicknode-sdk --features rust` |
+| Ruby | `quicknode_sdk` 0.6.0+ | `gem install quicknode_sdk` |
 
 ## Authentication
 
@@ -42,7 +42,7 @@ Optional base URL overrides:
 
 | Client | Purpose |
 |--------|---------|
-| `admin` | Endpoints, teams, usage, logs, billing, metrics, security, rate limits, tags |
+| `admin` | Account info, per-chain API credits, endpoints, teams, usage, logs, billing, metrics, security, rate limits, tags |
 | `streams` | Stream listing, creation, lifecycle, and filter testing |
 | `webhooks` | Webhook listing, template creation, lifecycle, and enabled counts |
 | `kvstore` | Sets and lists for persisted state, watchlists, cursors, and filters |
@@ -67,6 +67,24 @@ for (const endpoint of endpoints.data) {
   console.log(endpoint.id, endpoint.name, endpoint.status);
 }
 ```
+
+### Account Info and API Credits
+
+```typescript
+import { QuicknodeSdk } from "@quicknode/sdk";
+
+const qn = QuicknodeSdk.fromEnv();
+
+const account = await qn.admin.accountInfo();
+console.log(account.data.id, account.data.name, account.data.billingVersion);
+
+const credits = await qn.admin.getApiCredits("ethereum");
+for (const row of credits.data.slice(0, 5)) {
+  console.log(row.method, row.credits);
+}
+```
+
+`accountInfo()` calls the Admin API account-info endpoint and returns details such as account id, name, creation timestamp, billing version, and current subscription. `getApiCredits(chain)` calls the per-chain API credits endpoint and returns `{ method, credits }` rows for the supplied chain slug. Use `listChains()` to discover valid chain slugs.
 
 ### Streams
 
@@ -151,7 +169,7 @@ Python, Rust, and Ruby expose the same product-client model through language-nat
 - Rust: `QuicknodeSdk::from_env()?`
 - Ruby: `QuicknodeSdk::SDK.from_env`
 
-Use the official SDK examples for current syntax in each language.
+Use the official SDK examples for current syntax in each language. The account-info and API-credit methods are available as language-native equivalents of `account_info` / `accountInfo` and `get_api_credits` / `getApiCredits`.
 
 ## Platform Notes
 

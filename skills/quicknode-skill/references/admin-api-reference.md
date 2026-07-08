@@ -7,6 +7,8 @@ REST API for programmatic management of Quicknode endpoints, usage monitoring, r
 | Resource | Methods | Endpoints |
 |----------|---------|-----------|
 | **Chains** | GET | `/v0/chains` |
+| **Account Info** | GET | `/v0/account/info` |
+| **API Credits** | GET | `/v0/api-credits/{chain}` |
 | **Endpoints** | GET, POST, PATCH, DELETE | `/v0/endpoints`, `/v0/endpoints/{id}` |
 | **Endpoint Status** | PATCH | `/v0/endpoints/{id}/status` |
 | **Endpoint Tags** | GET, POST | `/v0/endpoints/{id}/tags` |
@@ -65,6 +67,41 @@ const chains = await adminApi<{ data: Array<{
 
 chains.data.forEach(c => console.log(`${c.name} (${c.network})`));
 ```
+
+## Account
+
+### Account Info
+
+Retrieve account metadata, including account id, name, creation timestamp, billing version, and current subscription.
+
+```typescript
+const account = await adminApi<{ data: {
+  id: number;
+  name: string;
+  created_at?: string;
+  billing_version?: string;
+  subscription?: unknown;
+} }>('/account/info');
+
+console.log(account.data.id, account.data.name, account.data.billing_version);
+```
+
+### API Credits by Chain
+
+Retrieve per-method API credit costs for a chain. The `{chain}` path parameter is a chain slug such as `ethereum`; discover valid slugs with `GET /v0/chains`.
+
+```typescript
+const credits = await adminApi<{ data: Array<{
+  method: string;
+  credits: number;
+}> }>('/api-credits/ethereum');
+
+credits.data.slice(0, 5).forEach(row =>
+  console.log(`${row.method}: ${row.credits}`)
+);
+```
+
+These values match the account's billing version. Do not hardcode API credit multipliers when the agent can query this endpoint or use the SDK/CLI wrappers.
 
 ## Endpoints
 

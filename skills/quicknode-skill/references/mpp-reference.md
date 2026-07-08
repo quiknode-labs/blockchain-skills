@@ -46,6 +46,12 @@ Payment channels for high-frequency access:
 |----------|--------|-------------|
 | `/:network/*` | POST | Charge-based JSON-RPC and REST proxy |
 | `/session/:network/*` | POST | Session-based JSON-RPC and REST proxy |
+| `/sql/rest/v1/clusters` | GET | List Quicknode SQL Explorer clusters (public, 1-hour CDN cached) |
+| `/sql/rest/v1/schema` | GET | List SQL Explorer schemas across clusters (public, 1-hour CDN cached) |
+| `/sql/rest/v1/schema/:clusterId` | GET | Inspect one SQL Explorer cluster schema (public, 1-hour CDN cached) |
+| `/session/sql/rest/*` | ALL | SQL Explorer REST pass-through via MPP session; variable per-query billing |
+| `/session/v1/text2sql` | POST | Natural-language to SQL generator via MPP session; variable per-token billing |
+| `/networks` | GET | List all supported network slugs (public, rate limited) |
 | `/llms.txt` | GET | Machine-readable documentation |
 
 Replace `:network` with slugs like `tempo-mainnet`, `ethereum-mainnet`, `solana-mainnet`, etc.
@@ -68,14 +74,46 @@ Each wallet gets a **single pool of 1,000,000 API credits per month** across Qui
 |-----------------|-------|
 | Credits per wallet | 1,000,000/month |
 | Reset | 1st of each month |
-| Scope | RPC + SQL Explorer |
+| Scope | RPC + SQL Explorer + text2sql |
 | Shared across | Charge, Session |
 
 When the testnet cap is exhausted, the server returns HTTP 403 with `{ "error": "monthly_limit_reached" }` and no payment is taken. Switch to a mainnet-funded wallet or wait for the reset.
 
 ## Rate Limits
 
-1,000 requests per 10 seconds per IP:network combination.
+| Route | Limit |
+|-------|-------|
+| `/networks` | 10 requests per 10 seconds per IP |
+| `/:network` | 1,000 requests per 10 seconds per IP:network pair |
+| `/session/:network` | 1,000 requests per 10 seconds per IP:session:network pair |
+
+Back off and retry on HTTP 429 `rate_limit_exceeded`.
+
+## SQL Explorer
+
+MPP exposes Quicknode SQL Explorer through session-gated REST pass-through routes at `https://mpp.quicknode.com/session/sql/rest/*`. Paths mirror the upstream `https://api.quicknode.com/sql/rest/*` routes; for example, `POST /session/sql/rest/v1/query` executes a SQL Explorer query through an open MPP session.
+
+Free discovery endpoints require no payment credential and are cached for 1 hour:
+
+- `GET /sql/rest/v1/clusters`
+- `GET /sql/rest/v1/schema`
+- `GET /sql/rest/v1/schema/:clusterId`
+
+Paid SQL endpoints require an MPP session voucher. Billing is variable: the upstream response's `credits` field is charged against the open session channel at $0.00001 per SQL credit. The client tops up vouchers automatically when a query exceeds the currently signed amount.
+
+## text2sql
+
+`POST /session/v1/text2sql` is a Tempo-session-gated natural-language to SQL generator. It shares the same SQL session voucher store as `/session/sql/rest/*`, so one open session can fund both SQL queries and text2sql calls.
+
+Supported modes:
+
+| Mode | Required fields | Description |
+|------|-----------------|-------------|
+| Generate | `prompt` | Generate fresh SQL from natural language |
+| Edit | `prompt`, `sql` | Modify supplied SQL according to the prompt |
+| Fix | `sql`, `validation_errors` | Repair SQL using validation errors |
+
+Limits: `prompt` <= 4000 characters, `sql` <= 10000 characters, and up to 10 validation errors at 2000 characters each. `cluster_id` defaults to the server-configured SQL cluster when omitted. Billing is variable: `(input + output) * $0.00001`, charged against the session after the response.
 
 ## Setup
 
@@ -242,7 +280,7 @@ console.log(receipt.reference) // tx hash (charge) or channelId (session)
 | 402 | (challenge) | Payment required; see `WWW-Authenticate: Payment` header |
 | 403 | `monthly_limit_reached` | Monthly testnet credit cap exceeded; no payment taken; switch to mainnet or wait for reset |
 | 404 | `unsupported_network` | Network slug not found |
-| 429 | `rate_limit_exceeded` | 1,000 req/10s limit exceeded per IP:network |
+| 429 | `rate_limit_exceeded` | Route-specific limit exceeded; see [Rate Limits](#rate-limits) |
 | 503 | `mpp_not_configured` | MPP unavailable in this environment |
 
 ## Best Practices

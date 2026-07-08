@@ -22,6 +22,8 @@ qn auth login
 qn auth whoami
 ```
 
+In CLI v0.4.0 and later, `qn auth whoami` validates the API key and returns account metadata such as account id, account name, plan, plan status, and plan interval.
+
 For non-interactive environments, pass a key directly or write a config file outside the repository:
 
 ```bash
@@ -76,6 +78,21 @@ qn auth login --api-key <KEY>
 qn auth whoami
 qn auth status
 qn auth logout
+```
+
+Use `qn auth whoami --format json` when an agent needs structured account data:
+
+```json
+{
+  "source": "config file",
+  "key": "****abcd",
+  "validated": true,
+  "account_id": 123456,
+  "account_name": "Example Account",
+  "plan": "Accelerate (active, monthly)",
+  "plan_status": "active",
+  "plan_interval": "monthly"
+}
 ```
 
 ### Endpoints
@@ -292,10 +309,13 @@ qn usage by-tag --from 7d
 qn metrics account --period day --metric credits_over_time
 qn metrics endpoint <endpoint-id> --period day --metric response_status_breakdown
 qn chain list
+qn chain credits ethereum
 qn billing invoices
 qn billing payments
 qn completions zsh
 ```
+
+`qn chain credits <chain>` returns the per-method API credit costs for that chain, using the same chain slugs returned by `qn chain list`. Use it when an agent needs account-aware credit costs instead of hardcoding method multipliers.
 
 ## Confirmation Behavior
 

@@ -786,6 +786,10 @@ qn agent context -o json
 qn endpoint list
 qn endpoint create --chain ethereum --network mainnet
 
+# Account and chain metadata
+qn auth whoami --format json
+qn chain credits ethereum --format json
+
 # SQL Explorer
 qn sql query "SELECT COUNT(*) FROM hyperliquid_trades" --cluster-id hyperliquid-core-mainnet --format json
 qn sql schema hyperliquid-core-mainnet
@@ -848,6 +852,9 @@ const endpoints = await qn.admin.getEndpoints({
   sortDirection: 'desc',
 });
 
+const account = await qn.admin.accountInfo();
+const apiCredits = await qn.admin.getApiCredits('ethereum');
+
 const trades = await qn.sql.query(
   'SELECT * FROM hyperliquid_trades LIMIT 5',
   'hyperliquid-core-mainnet'
@@ -865,6 +872,8 @@ REST API for programmatic management of Quicknode endpoints, usage, rate limits,
 | Resource | Methods | Endpoint |
 |----------|---------|----------|
 | Chains | GET | `/v0/chains` |
+| Account Info | GET | `/v0/account/info` |
+| API Credits | GET | `/v0/api-credits/{chain}` |
 | Endpoints | GET, POST, PATCH, DELETE | `/v0/endpoints` |
 | Metrics | GET | `/v0/endpoints/{id}/metrics` |
 | Rate Limits | GET, POST, PUT | `/v0/endpoints/{id}/method-rate-limits`, `/v0/endpoints/{id}/rate-limits` |
