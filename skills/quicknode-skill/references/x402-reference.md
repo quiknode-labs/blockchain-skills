@@ -21,7 +21,7 @@ x402 enables wallet-based RPC access via stablecoin payments. No API key require
 |-------|------|------|-----------|----------|
 | **Pay-per-request** | None | $0.001/request | JSON-RPC, REST | Simple integrations, low volume |
 | **Nanopayment** | None | $0.0001/request | JSON-RPC, REST | High-volume testing (EVM testnets only for payment chain) |
-| **Credit Drawdown** | SIWX + JWT | Testnet: $1/1,000 credits. Mainnet: $10/1,000,000 credits | JSON-RPC, REST, gRPC-Web, WebSocket | Sustained usage, streaming protocols |
+| **Credit Drawdown** | SIWX + JWT | Testnet: $1/100,000 credits. Mainnet: $10/1,000,000 credits | JSON-RPC, REST, gRPC-Web, WebSocket | Sustained usage, streaming protocols |
 
 The payment chain does not need to match the chain you query. For example, you can pay with Base Sepolia USDC and query Ethereum Mainnet.
 
@@ -41,22 +41,56 @@ The payment chain does not need to match the chain you query. For example, you c
 
 | Endpoint | Method | Description |
 |----------|--------|-------------|
-| `/auth` | POST | Authenticate via SIWX, returns JWT (credit drawdown only) |
-| `/credits` | GET | Check credit balance (credit drawdown only) |
+| `/auth` | POST | Exchange SIWE/SIWX message + signature for JWT (public, no auth). Optional `type: "siwx"` field enables multi-chain auth |
+| `/credits` | GET | Check credit balance (JWT required) |
 | `/drip` | POST | Testnet USDC faucet (Base Sepolia only, requires JWT) |
-| `/:network` | POST | JSON-RPC request to a specific chain (e.g., `/ethereum-mainnet`) |
-| `/:network/ws` | WebSocket | WebSocket RPC connection to a specific chain |
-| `/discovery/resources` | GET | Bazaar-compatible catalog of all supported networks |
+| `/networks` | GET | List all supported network slugs (public, rate limited) |
+| `/:network` | POST | JSON-RPC/REST proxy to Quicknode. Anonymous requests return 402 with payment requirements and extensions |
+| `/:network/ws` | GET | WebSocket JSON-RPC proxy (JWT required, credits must exist) |
+| `/sql/rest/v1/clusters` | GET | List Quicknode SQL Explorer clusters (public, 1-hour CDN cached) |
+| `/sql/rest/v1/schema` | GET | List SQL Explorer schemas across clusters (public, 1-hour CDN cached) |
+| `/sql/rest/v1/schema/:clusterId` | GET | Inspect one SQL Explorer cluster schema (public, 1-hour CDN cached) |
+| `/sql/rest/v1/query` | POST | Paid SQL Explorer query endpoint; SIWX drawdown only, variable per-query credit cost |
+| `/sql/rest/*` | ALL | Paid SQL Explorer REST pass-through; paths mirror `https://api.quicknode.com/sql/rest/*` |
+| `/discovery/resources` | GET | Bazaar-compatible catalog of supported networks and payment requirements |
+| `/openapi.json` | GET | OpenAPI 3.1 spec with x402 payment annotations |
 
-## Testnet Caps
+## Testnet Monthly Cap
 
-| Model | Testnet Lifetime Cap |
-|-------|---------------------|
-| Pay-per-request | 1,000 requests |
-| Nanopayment | 10,000 requests |
-| Credit Drawdown | 1,000 credits |
+Each wallet gets a **single pool of 1,000,000 API credits per month** across Quicknode's agentic payment surfaces, including x402 and MPP. The pool resets on the 1st of each month and covers both RPC and SQL Explorer calls. Mainnet wallets are uncapped.
 
-Caps are tracked independently per model. After reaching a cap, switch to the corresponding mainnet.
+| Testnet Pool | Value |
+|-----------------|-------|
+| Credits per wallet | 1,000,000/month |
+| Reset | 1st of each month |
+| Scope | RPC + SQL Explorer |
+| Shared across | Pay-per-request, Nanopayment, Credit Drawdown |
+
+When the testnet cap is exhausted, requests return HTTP 403 `monthly_limit_reached` until reset. Switch to a mainnet-funded wallet for uninterrupted access.
+
+## SQL Explorer
+
+Quicknode SQL Explorer is exposed as a REST pass-through at `https://x402.quicknode.com/sql/rest/*`; every path mirrors the upstream `https://api.quicknode.com/sql/rest/*` route.
+
+Free discovery endpoints require no auth and are cached for 1 hour:
+
+- `GET /sql/rest/v1/clusters`
+- `GET /sql/rest/v1/schema`
+- `GET /sql/rest/v1/schema/:clusterId`
+
+Paid SQL endpoints, such as `POST /sql/rest/v1/query`, require SIWX-authenticated credit drawdown. SQL cost is variable: the response's `credits` value is debited 1:1 from the caller's drawdown balance after the query runs. Because cost is only known after execution, per-request `PAYMENT-SIGNATURE` is not accepted for `/sql/rest/*`; authenticate with SIWX and pre-fund credits instead. An unauthenticated request, or a request that only presents `PAYMENT-SIGNATURE`, returns HTTP 402 with the SIWX drawdown extension and `use-drawdown` guidance.
+
+## Rate Limits
+
+| Route | Limit |
+|-------|-------|
+| `/auth` | 10 requests per 10 seconds per IP |
+| `/credits` | 50 requests per 10 seconds per account |
+| `/drip` | 5 requests per 60 seconds per account |
+| `/networks` | 10 requests per 10 seconds per IP |
+| `/:network` | 1,000 requests per 10 seconds per network:account pair |
+
+Back off and retry on HTTP 429 `rate_limit_exceeded`. Error responses and JSON-RPC errors are not metered.
 
 ## Setup
 
@@ -225,11 +259,12 @@ console.log('Credits received:', dripResult);
 ## Best Practices
 
 1. **Start with pay-per-request** for simplicity (no auth needed), switch to credit drawdown for sustained usage or streaming protocols.
-2. **Use testnet first.** Call `/drip` (Base Sepolia) or the [Circle faucet](https://faucet.circle.com/) to get testnet USDC before using mainnet.
+2. **Use testnet first.** Call `/drip` for Base Sepolia, or pre-fund other supported testnets with the required stablecoin before using mainnet.
 3. **Use `preAuth: true`** with credit drawdown to speed up the first payment flow.
 4. **Reuse session tokens.** The client caches JWTs automatically (1 hour expiry).
 5. **gRPC-Web and WebSocket require credit drawdown.** Pay-per-request and nanopayment support JSON-RPC and REST only.
 6. **Multi-protocol support.** The same client works with JSON-RPC, REST, gRPC-Web (`client.createGrpcTransport()`), and WebSocket (`client.createWebSocket()`).
+7. **Discover dynamically.** Use `/networks`, `/discovery/resources`, or `/openapi.json` instead of hardcoding the supported network list.
 
 ## Documentation
 

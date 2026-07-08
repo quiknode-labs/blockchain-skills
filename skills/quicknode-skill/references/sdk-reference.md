@@ -1,419 +1,183 @@
 # Quicknode SDK Reference
 
-The Quicknode SDK provides a type-safe JavaScript/TypeScript client for interacting with Quicknode services.
+The Quicknode SDK is a unified client for Quicknode product APIs. Use it when an application, script, or agent needs typed access to Admin API, Streams, Webhooks, Key-Value Store, and SQL Explorer from one shared Quicknode API key.
 
-## Installation
+**Docs:** https://www.quicknode.com/docs/quicknode-sdk
+
+## When to Use the SDK
+
+- Use the SDK for Quicknode product workflows: provision endpoints, inspect usage, manage Streams/Webhooks, store KV state, and run SQL Explorer queries.
+- Use direct endpoint URLs plus chain libraries for blockchain RPC calls (`ethers`, `viem`, `@solana/kit`, `@solana/web3.js`, Bitcoin JSON-RPC helpers, etc.).
+- Use the CLI for terminal workflows and CI scripts where shell commands are simpler than application code.
+
+## Packages
+
+| Language | Package | Install |
+|----------|---------|---------|
+| Node.js / TypeScript | `@quicknode/sdk` 3.6.0+ | `npm install @quicknode/sdk` |
+| Python | `quicknode-sdk` 0.6.0+ | `pip install quicknode-sdk` |
+| Rust | `quicknode-sdk` 0.6.0+ | `cargo add quicknode-sdk --features rust` |
+| Ruby | `quicknode_sdk` 0.6.0+ | `gem install quicknode_sdk` |
+
+## Authentication
+
+Create an API key in the Quicknode dashboard, then set:
 
 ```bash
-npm install @quicknode/sdk
+export QN_SDK__API_KEY="YOUR_API_KEY"
 ```
 
-## Core Setup
+Optional base URL overrides:
+
+| Environment variable | Default |
+|----------------------|---------|
+| `QN_SDK__ADMIN__BASE_URL` | `https://api.quicknode.com/v0/` |
+| `QN_SDK__STREAMS__BASE_URL` | `https://api.quicknode.com/streams/rest/v1/` |
+| `QN_SDK__WEBHOOKS__BASE_URL` | `https://api.quicknode.com/webhooks/rest/v1/` |
+| `QN_SDK__KVSTORE__BASE_URL` | `https://api.quicknode.com/kv/rest/v1/` |
+| `QN_SDK__SQL__BASE_URL` | `https://api.quicknode.com/sql/rest/v1/` |
+| `QN_SDK__HTTP__TIMEOUT_SECS` | `30` |
+
+## Product Clients
+
+| Client | Purpose |
+|--------|---------|
+| `admin` | Account info, per-chain API credits, endpoints, teams, usage, logs, billing, metrics, security, rate limits, tags |
+| `streams` | Stream listing, creation, lifecycle, and filter testing |
+| `webhooks` | Webhook listing, template creation, lifecycle, and enabled counts |
+| `kvstore` | Sets and lists for persisted state, watchlists, cursors, and filters |
+| `sql` | SQL Explorer queries and schema retrieval |
+
+## Node.js / TypeScript Examples
+
+### Admin API
 
 ```typescript
-import { Core } from '@quicknode/sdk';
+import { QuicknodeSdk } from "@quicknode/sdk";
 
-const core = new Core({
-  endpointUrl: process.env.QUICKNODE_RPC_URL!,
-});
-```
+const qn = QuicknodeSdk.fromEnv();
 
-## Configuration Options
-
-```typescript
-const core = new Core({
-  // Required: Your Quicknode endpoint URL
-  endpointUrl: process.env.QUICKNODE_RPC_URL!,
-
-  // Optional: Chain ID (auto-detected from endpoint)
-  chain: 1,
-
-  // Optional: Request timeout in milliseconds
-  timeout: 30000,
-
-  // Optional: Custom fetch implementation
-  fetch: customFetch,
-
-  // Optional: Custom headers
-  headers: {
-    'X-Custom-Header': 'value'
-  }
-});
-```
-
-## Standard RPC Methods
-
-### Ethereum/EVM
-
-```typescript
-// Get balance
-const balance = await core.client.getBalance({
-  address: '0xd8dA6BF26964aF9D7eEd9e03E53415D37aA96045'
+const endpoints = await qn.admin.getEndpoints({
+  limit: 20,
+  sortBy: "created_at",
+  sortDirection: "desc",
 });
 
-// Get block
-const block = await core.client.getBlock({
-  blockNumber: 'latest'
-});
-
-// Get transaction
-const tx = await core.client.getTransaction({
-  hash: '0xTransactionHash...'
-});
-
-// Get transaction receipt
-const receipt = await core.client.getTransactionReceipt({
-  hash: '0xTransactionHash...'
-});
-
-// Call contract
-const result = await core.client.call({
-  to: '0xContractAddress...',
-  data: '0xFunctionSelector...'
-});
-
-// Estimate gas
-const gas = await core.client.estimateGas({
-  from: '0xSender...',
-  to: '0xRecipient...',
-  value: '0x0'
-});
-
-// Get logs
-const logs = await core.client.getLogs({
-  address: '0xContractAddress...',
-  fromBlock: 18000000,
-  toBlock: 'latest',
-  topics: ['0xEventSignature...']
-});
-```
-
-## Token API Methods
-
-Requires Token API add-on enabled.
-
-### qn_getWalletTokenBalance
-
-```typescript
-const tokenBalances = await core.client.qn_getWalletTokenBalance({
-  wallet: '0xd8dA6BF26964aF9D7eEd9e03E53415D37aA96045',
-  contracts: [] // Empty for all tokens, or specify addresses
-});
-
-console.log('Tokens:', tokenBalances.assets);
-```
-
-### qn_getTokenMetadataByContractAddress
-
-```typescript
-const metadata = await core.client.qn_getTokenMetadataByContractAddress({
-  contract: '0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48'
-});
-
-console.log(`${metadata.name} (${metadata.symbol})`);
-```
-
-### qn_getTokenMetadataBySymbol
-
-```typescript
-const metadata = await core.client.qn_getTokenMetadataBySymbol({
-  symbol: 'USDC'
-});
-```
-
-## NFT API Methods
-
-Requires NFT API add-on enabled.
-
-### qn_fetchNFTs
-
-```typescript
-const nfts = await core.client.qn_fetchNFTs({
-  wallet: '0xd8dA6BF26964aF9D7eEd9e03E53415D37aA96045',
-  page: 1,
-  perPage: 10,
-  contracts: [] // Optional: filter by contracts
-});
-
-console.log(`Total NFTs: ${nfts.totalItems}`);
-nfts.assets.forEach(nft => {
-  console.log(`${nft.name} - ${nft.collectionName}`);
-});
-```
-
-### qn_fetchNFTCollectionDetails
-
-```typescript
-const collections = await core.client.qn_fetchNFTCollectionDetails({
-  contracts: [
-    '0xBC4CA0EdA7647A8aB7C2061c2E118A18a936f13D',
-    '0x60E4d786628Fea6478F785A6d7e704777c86a7c6'
-  ]
-});
-
-collections.forEach(collection => {
-  console.log(`${collection.name}: ${collection.totalSupply} items`);
-});
-```
-
-### qn_fetchNFTsByCollection
-
-```typescript
-const collectionNFTs = await core.client.qn_fetchNFTsByCollection({
-  collection: '0xBC4CA0EdA7647A8aB7C2061c2E118A18a936f13D',
-  tokens: ['1', '2', '3'], // Optional: specific token IDs
-  page: 1,
-  perPage: 10
-});
-```
-
-### qn_verifyNFTsOwner
-
-```typescript
-const verification = await core.client.qn_verifyNFTsOwner({
-  wallet: '0xOwnerAddress...',
-  contracts: [
-    {
-      address: '0xBC4CA0EdA7647A8aB7C2061c2E118A18a936f13D',
-      tokenIds: ['1234', '5678']
-    }
-  ]
-});
-
-console.log('Owns NFTs:', verification.owner);
-```
-
-## Multi-Chain Setup
-
-```typescript
-import { Core } from '@quicknode/sdk';
-
-// Create clients for multiple chains
-const chains = {
-  ethereum: new Core({
-    endpointUrl: 'https://eth-endpoint.quiknode.pro/KEY/'
-  }),
-  polygon: new Core({
-    endpointUrl: 'https://polygon-endpoint.quiknode.pro/KEY/'
-  }),
-  arbitrum: new Core({
-    endpointUrl: 'https://arbitrum-endpoint.quiknode.pro/KEY/'
-  }),
-  base: new Core({
-    endpointUrl: 'https://base-endpoint.quiknode.pro/KEY/'
-  })
-};
-
-// Use appropriate chain
-async function getBalance(chain: keyof typeof chains, address: string) {
-  return chains[chain].client.getBalance({ address });
-}
-
-const ethBalance = await getBalance('ethereum', '0x...');
-const polyBalance = await getBalance('polygon', '0x...');
-```
-
-## Custom RPC Calls
-
-For methods not directly exposed by the SDK:
-
-```typescript
-// Generic request method
-const result = await core.client.request({
-  method: 'trace_transaction',
-  params: ['0xTransactionHash...']
-});
-
-// Or use raw fetch
-const response = await fetch(core.config.endpointUrl, {
-  method: 'POST',
-  headers: { 'Content-Type': 'application/json' },
-  body: JSON.stringify({
-    jsonrpc: '2.0',
-    id: 1,
-    method: 'debug_traceTransaction',
-    params: ['0xTransactionHash...', { tracer: 'callTracer' }]
-  })
-});
-```
-
-## Error Handling
-
-```typescript
-import { Core, QuicknodeError } from '@quicknode/sdk';
-
-const core = new Core({
-  endpointUrl: process.env.QUICKNODE_RPC_URL!
-});
-
-try {
-  const balance = await core.client.getBalance({
-    address: '0x...'
-  });
-} catch (error) {
-  if (error instanceof QuicknodeError) {
-    console.error('Quicknode Error:', error.message);
-    console.error('Code:', error.code);
-    console.error('Details:', error.data);
-  } else {
-    throw error;
-  }
+for (const endpoint of endpoints.data) {
+  console.log(endpoint.id, endpoint.name, endpoint.status);
 }
 ```
 
-## TypeScript Types
+### Account Info and API Credits
 
 ```typescript
-import type {
-  GetBalanceParams,
-  GetBalanceResult,
-  GetBlockParams,
-  GetBlockResult,
-  QnFetchNFTsParams,
-  QnFetchNFTsResult,
-  QnGetWalletTokenBalanceParams,
-  QnGetWalletTokenBalanceResult
-} from '@quicknode/sdk';
+import { QuicknodeSdk } from "@quicknode/sdk";
 
-// Use types for better IDE support
-const params: QnFetchNFTsParams = {
-  wallet: '0x...',
-  page: 1,
-  perPage: 10
-};
+const qn = QuicknodeSdk.fromEnv();
 
-const result: QnFetchNFTsResult = await core.client.qn_fetchNFTs(params);
-```
+const account = await qn.admin.accountInfo();
+console.log(account.data.id, account.data.name, account.data.billingVersion);
 
-## Common Patterns
-
-### Batch Balance Check
-
-```typescript
-async function getMultipleBalances(addresses: string[]) {
-  const balancePromises = addresses.map(address =>
-    core.client.getBalance({ address })
-  );
-
-  const balances = await Promise.all(balancePromises);
-
-  return addresses.map((address, index) => ({
-    address,
-    balance: balances[index]
-  }));
+const credits = await qn.admin.getApiCredits("ethereum");
+for (const row of credits.data.slice(0, 5)) {
+  console.log(row.method, row.credits);
 }
 ```
 
-### Token Portfolio
+`accountInfo()` calls the Admin API account-info endpoint and returns details such as account id, name, creation timestamp, billing version, and current subscription. `getApiCredits(chain)` calls the per-chain API credits endpoint and returns `{ method, credits }` rows for the supplied chain slug. Use `listChains()` to discover valid chain slugs.
+
+### Streams
 
 ```typescript
-async function getPortfolio(wallet: string) {
-  const [ethBalance, tokens, nfts] = await Promise.all([
-    core.client.getBalance({ address: wallet }),
-    core.client.qn_getWalletTokenBalance({ wallet, contracts: [] }),
-    core.client.qn_fetchNFTs({ wallet, page: 1, perPage: 100 })
-  ]);
+import { QuicknodeSdk, StreamDataset } from "@quicknode/sdk";
 
-  return {
-    eth: ethBalance,
-    tokens: tokens.assets,
-    nfts: nfts.assets,
-    nftCount: nfts.totalItems
-  };
-}
-```
+const qn = QuicknodeSdk.fromEnv();
 
-### Retry with Backoff
+const streams = await qn.streams.listStreams({ limit: 10 });
+const enabled = await qn.streams.getEnabledCount();
 
-```typescript
-async function withRetry<T>(
-  fn: () => Promise<T>,
-  maxRetries = 3,
-  baseDelay = 1000
-): Promise<T> {
-  for (let attempt = 0; attempt < maxRetries; attempt++) {
-    try {
-      return await fn();
-    } catch (error) {
-      if (attempt === maxRetries - 1) throw error;
-
-      const delay = baseDelay * Math.pow(2, attempt);
-      await new Promise(resolve => setTimeout(resolve, delay));
-    }
-  }
-  throw new Error('Max retries exceeded');
-}
-
-// Usage
-const balance = await withRetry(() =>
-  core.client.getBalance({ address: '0x...' })
-);
-```
-
-### Caching Layer
-
-```typescript
-const cache = new Map<string, { data: any; timestamp: number }>();
-const CACHE_TTL = 60000; // 1 minute
-
-async function cachedCall<T>(
-  key: string,
-  fn: () => Promise<T>
-): Promise<T> {
-  const cached = cache.get(key);
-
-  if (cached && Date.now() - cached.timestamp < CACHE_TTL) {
-    return cached.data as T;
-  }
-
-  const data = await fn();
-  cache.set(key, { data, timestamp: Date.now() });
+const filterFunction = Buffer.from(`
+function main(data) {
   return data;
 }
+`).toString("base64");
 
-// Usage
-const balance = await cachedCall(
-  `balance:${address}`,
-  () => core.client.getBalance({ address })
-);
-```
-
-## Browser Usage
-
-```html
-<script type="module">
-import { Core } from 'https://esm.sh/@quicknode/sdk';
-
-const core = new Core({
-  endpointUrl: process.env.QUICKNODE_RPC_URL!
+const test = await qn.streams.testFilter({
+  network: "ethereum-mainnet",
+  dataset: StreamDataset.Block,
+  block: "17811625",
+  filterFunction,
 });
 
-const balance = await core.client.getBalance({
-  address: '0x...'
-});
-console.log('Balance:', balance);
-</script>
+console.log({ streams: streams.pageInfo.total, enabled: enabled.total, result: test.result });
 ```
 
-## Node.js Best Practices
+### Webhooks
 
 ```typescript
-import { Core } from '@quicknode/sdk';
+import { QuicknodeSdk } from "@quicknode/sdk";
 
-// Use environment variables for API keys
-const core = new Core({
-  endpointUrl: process.env.QUICKNODE_ENDPOINT_URL!
-});
+const qn = QuicknodeSdk.fromEnv();
 
-// Graceful shutdown
-process.on('SIGTERM', async () => {
-  // Cleanup if needed
-  process.exit(0);
-});
+const webhooks = await qn.webhooks.listWebhooks({ limit: 10, offset: 0 });
+const enabled = await qn.webhooks.getEnabledCount();
+
+console.log({ count: webhooks.data.length, enabled: enabled.total });
 ```
+
+### Key-Value Store
+
+```typescript
+import { QuicknodeSdk } from "@quicknode/sdk";
+
+const qn = QuicknodeSdk.fromEnv();
+
+const sets = await qn.kvstore.getSets({ limit: 10 });
+const lists = await qn.kvstore.getLists({ limit: 10 });
+
+if (sets.data.length > 0) {
+  const value = await qn.kvstore.getSet(sets.data[0].key);
+  console.log(value.value);
+}
+
+console.log({ sets: sets.data.length, lists: lists.data.keys.length });
+```
+
+### SQL Explorer
+
+```typescript
+import { QuicknodeSdk } from "@quicknode/sdk";
+
+const qn = QuicknodeSdk.fromEnv();
+
+const result = await qn.sql.query(
+  "SELECT action_type, user FROM hyperliquid_system_actions LIMIT 3",
+  "hyperliquid-core-mainnet"
+);
+
+const schema = await qn.sql.getSchema("hyperliquid-core-mainnet");
+
+console.log(`${result.rows} rows, ${result.credits} credits`);
+console.log(schema);
+```
+
+## Other Languages
+
+Python, Rust, and Ruby expose the same product-client model through language-native method names:
+
+- Python: `QuicknodeSdk.from_env()`
+- Rust: `QuicknodeSdk::from_env()?`
+- Ruby: `QuicknodeSdk::SDK.from_env`
+
+Use the official SDK examples for current syntax in each language. The account-info and API-credit methods are available as language-native equivalents of `account_info` / `accountInfo` and `get_api_credits` / `getApiCredits`.
+
+## Platform Notes
+
+The SDK uses a shared Rust core with native language bindings. Published prebuilt targets include Linux glibc, Linux musl, and Apple Silicon macOS. Browsers, Windows native runtime, Intel macOS, and older Linux distributions are not supported by the native packages. Use WSL2 on Windows.
 
 ## Documentation
 
 - **SDK Overview**: https://www.quicknode.com/docs/quicknode-sdk
+- **QuickStart**: https://www.quicknode.com/docs/quicknode-sdk/quick-start
+- **Examples**: https://www.quicknode.com/docs/quicknode-sdk/examples
 - **npm Package**: https://www.npmjs.com/package/@quicknode/sdk
-- **Guides**: https://www.quicknode.com/guides/tags/quicknode-sdk

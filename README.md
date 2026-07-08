@@ -2,6 +2,7 @@
 
 > A collection of AI agent skills for blockchain development, powered by [Quicknode](https://www.quicknode.com/)
 
+
 ## Introduction
 
 This repository contains a curated set of skills that enable AI agents to interact with blockchain networks, smart contracts, and decentralized applications. Each skill provides specialized knowledge and capabilities for specific blockchain ecosystems and protocols.
@@ -20,7 +21,7 @@ When an AI agent loads a skill, it gains the ability to help you build, deploy, 
 
 | Skill | Description |
 |-------|-------------|
-| `quicknode-skill` | Quicknode infrastructure - RPC endpoints (80+ chains), Streams, Webhooks, IPFS, Add-ons, Yellowstone gRPC, Hypercore, SQL Explorer, Key-Value Store, SDK, Admin API, x402, MPP, Agent Subscriptions |
+| `quicknode-skill` | Quicknode blockchain infrastructure across five product categories: **Infrastructure** (Core RPC API, IPFS, Dedicated Clusters), **Real-Time Data** (Streams, Streams Backfills, Webhooks, Solana gRPC), **Indexed Data** (SQL Explorer, HyperCore for Hyperliquid, Metaplex DAS API, Blockbook, Ordinals & Runes API, Agent Identity ERC-8004), **Trading & DeFi** (Swap API), and **Agent Surface** (x402, MPP, Agent Subscriptions, Quicknode CLI, Quicknode MCP) |
 
 ## Installation
 
@@ -41,48 +42,60 @@ Once installed, you can use natural language prompts to interact with Quicknode'
 - "Query recent trades on Hyperliquid for BTC"
 - "Show me whale trades above $500k notional"
 - "Get liquidation data for the last 24 hours"
+- "Quote a swap from USDC to ETH on Base"
+- "Get wallet data and UTXOs for this BTC address"
+- "List recent Solana NFT mints using Metaplex DAS"
+- "Backfill last week of Ethereum blocks into my Stream"
 - "Pay an RPC call with my wallet using x402 or MPP"
 - "Create a Quicknode account with my wallet and provision an endpoint"
+- "Provision a Stream using the Quicknode CLI"
+- "Connect Claude to my Quicknode workspace via MCP"
 
 ## Quicknode Integration
 
 This repository leverages Quicknode's infrastructure for reliable blockchain access:
 
-### RPC Endpoints
+### Infrastructure
 
 Connect to 80+ blockchain networks with low-latency RPC endpoints:
-- Ethereum, Polygon, Arbitrum, Optimism, Base
-- Solana, Bitcoin, TON, TRON, StarkNet
-- And many more...
+- **Core RPC API** — Ethereum, Polygon, Arbitrum, Optimism, Base, Solana, Bitcoin, TON, and many more
+- **IPFS** — Decentralized file storage for NFT metadata and assets
+- **Dedicated Clusters** — Private node clusters for high-throughput production workloads
 
-### Streams
+### Real-Time Data
 
-Real-time blockchain data delivery:
-- Block and transaction streaming
-- Custom filters and transformations
-- Webhook destinations
+Real-time and historical blockchain data delivery:
+- **Streams** — Block, transaction, log, and receipt pipelines with custom JavaScript filters
+- **Streams Backfills** — On-demand historical replay into existing Streams
+- **Webhooks** — Address and event-based notifications over HTTP
+- **Solana gRPC** — Geyser plugin streaming for accounts, transactions, and slots
 
-### SQL Explorer
+### Indexed Data
 
-Direct SQL access to indexed blockchain data:
-- Query indexed Hyperliquid (HyperCore) data at scale
-- Standard SQL syntax with pre-built queries
-- Trading, orders, fills, funding, liquidations, market data
-- REST API for programmatic access
+Query and discover indexed blockchain data:
+- **SQL Explorer** — Direct SQL access to indexed Hyperliquid (HyperCore) data at scale
+- **HyperCore for Hyperliquid** — gRPC, JSON-RPC, WebSocket, and Info API for Hyperliquid L1
+- **Metaplex DAS API** — Solana NFT, compressed NFT, and token queries
+- **Blockbook** — Wallet-centric address balances, UTXOs, and transaction history
+- **Ordinals & Runes API** — Bitcoin inscription and Runes protocol data
+- **Agent Identity (ERC-8004)** — On-chain agent discovery and reputation records
 
-### Add-ons
+### Trading & DeFi
 
-Extend functionality with marketplace add-ons:
-- Token and NFT APIs
-- DeFi data feeds
-- Historical data access
-- Enhanced RPC methods
+- **Swap API** — Multi-DEX aggregated token swaps: Solana (Metis/Jupiter), EVM (0x, OpenOcean, Aerodrome, Velodrome, Titan)
 
-### Wallet-Paid Access for Agents
+### Agent Surface
 
-Stablecoin-paid access for autonomous agents, no API key required to start:
-- **x402** and **MPP** for pay-per-request RPC ($0.001/call) on 140+ chains
-- **Agent Subscriptions** to create a Quicknode account and receive a full platform API key in a single payment, unlocking the full product suite
+Stablecoin-paid access and tooling for autonomous agents:
+- **x402** and **MPP** — Free tier of 1,000,000 API credits per wallet per month (covers RPC + SQL Explorer), with pay-per-request billing after the free tier resets on the 1st of each month
+- **Agent Subscriptions** — Create a Quicknode account and receive a full platform API key in a single payment
+- **Quicknode CLI** — `qn` CLI for managing endpoints, Streams, Webhooks, KV, SQL, usage, billing, and teams from the terminal
+- **Quicknode MCP** — Native Claude/OpenAI connector plus generic MCP server; manage Quicknode from Claude, ChatGPT, Codex, Cursor, or any MCP-capable AI tool
+- **Quicknode SDK** — Product API SDK for Admin API, Streams, Webhooks, KV, and SQL Explorer
+
+### Other Quicknode Products
+
+Agents typically do not invoke these directly: Validator as a Service, Solana Validator, Monad Validator, ChainKit, Dedicated Clusters.
 
 Get your Quicknode endpoint at [Quicknode.com](https://www.quicknode.com/)
 
@@ -92,8 +105,9 @@ Each skill follows a consistent file organization:
 
 ```
 skill-name/
-├── SKILL.md          # Main skill definition
-└── references/       # API and protocol references
+├── SKILL.md              # Main skill definition
+├── PRODUCT_CATALOG.md    # Canonical product map and sync runbook
+└── references/           # API and protocol references
     └── api.md
 ```
 

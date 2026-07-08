@@ -1,6 +1,6 @@
-# Yellowstone gRPC Reference
+# Solana gRPC Reference
 
-Yellowstone gRPC is a high-performance Solana Geyser plugin that enables real-time blockchain data streaming through gRPC interfaces. Available as a Marketplace add-on on Quicknode.
+Solana gRPC (formerly Yellowstone gRPC) is a high-performance Solana Geyser plugin that enables real-time blockchain data streaming through gRPC interfaces. Included on Scale and Business plans; available as a Marketplace add-on on Build and Accelerate plans.
 
 ## Overview
 
@@ -12,7 +12,7 @@ Yellowstone gRPC is a high-performance Solana Geyser plugin that enables real-ti
 | **Compression** | zstd supported |
 | **Commitment Levels** | Processed, Confirmed, Finalized |
 | **Languages** | TypeScript, Rust, Go, Python |
-| **Prerequisite** | Enable [Yellowstone Geyser gRPC add-on](https://marketplace.quicknode.com/add-on/yellowstone-grpc-geyser-plugin) on your Quicknode endpoint |
+| **Plan Availability** | Included on Scale and Business; [add-on](https://marketplace.quicknode.com/add-on/yellowstone-grpc-geyser-plugin) on Build and Accelerate |
 
 ## Endpoint & Authentication
 
@@ -473,7 +473,7 @@ async function connectWithRetry(maxRetries = 5) {
 
 | Issue | Cause | Solution |
 |-------|-------|----------|
-| Connection refused on port 10000 | Yellowstone add-on not enabled | Enable the Yellowstone Geyser gRPC add-on in the Quicknode dashboard |
+| Connection refused on port 10000 | Solana gRPC not enabled | Enable the Solana gRPC add-on in the Quicknode dashboard (or upgrade to Scale/Business) |
 | Authentication failed | Invalid or missing token | Extract the token from your HTTP Provider URL (path segment after endpoint name) |
 | No data received | Filters too restrictive or wrong commitment level | Start with broad filters and narrow down; check commitment level |
 | Stream drops frequently | No keepalive pings | Send periodic pings (every 10s) and implement reconnection logic |
@@ -482,11 +482,11 @@ async function connectWithRetry(maxRetries = 5) {
 
 ## Documentation
 
-- **Yellowstone gRPC Overview**: https://www.quicknode.com/docs/solana/yellowstone-grpc/overview
-- **Subscribe Method**: https://www.quicknode.com/docs/solana/yellowstone-grpc/subscribe
-- **TypeScript Setup**: https://www.quicknode.com/docs/solana/yellowstone-grpc/overview/typescript
-- **Go Setup**: https://www.quicknode.com/docs/solana/yellowstone-grpc/overview/go
-- **Rust Setup**: https://www.quicknode.com/docs/solana/yellowstone-grpc/overview/rust
-- **Python Setup**: https://www.quicknode.com/docs/solana/yellowstone-grpc/overview/python
-- **Marketplace Add-on**: https://marketplace.quicknode.com/add-on/yellowstone-grpc-geyser-plugin
+- **Solana gRPC Overview**: https://www.quicknode.com/docs/solana/solana-grpc/overview
+- **Subscribe Method**: https://www.quicknode.com/docs/solana/solana-grpc/subscribe
+- **TypeScript Setup**: https://www.quicknode.com/docs/solana/solana-grpc/overview/typescript
+- **Go Setup**: https://www.quicknode.com/docs/solana/solana-grpc/overview/go
+- **Rust Setup**: https://www.quicknode.com/docs/solana/solana-grpc/overview/rust
+- **Python Setup**: https://www.quicknode.com/docs/solana/solana-grpc/overview/python
+- **Marketplace Add-on**: https://marketplace.quicknode.com/add-on/solana-grpc-geyser-plugin
 - **Guides**: https://www.quicknode.com/guides/tags/geyser

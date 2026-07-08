@@ -425,6 +425,46 @@ stream.write({
 });
 ```
 
+## HIP-4 Prediction Markets
+
+HIP-4 is the Hyperliquid standard for on-chain prediction markets. Key implementation notes as of mid-2026:
+
+- **Collateral currency**: USDC (not USDH — prior guides using USDH are outdated)
+- **Read API**: Prediction market metadata is exposed by Hyperliquid's Info API via `type: "outcomeMeta"`. On Quicknode, use your Hyperliquid endpoint Info path (`/info`) to query outcome market metadata.
+- **Exchange API**: Quicknode's Hyperliquid Exchange API builder endpoints use `api.hyperliquidapi.com` for zero-custody action construction and submission workflows.
+
+```typescript
+// HIP-4 outcome market metadata via Hyperliquid Info API
+const response = await fetch("https://[endpoint].hype-mainnet.quiknode.pro/[token]/info", {
+  method: "POST",
+  headers: { "Content-Type": "application/json" },
+  body: JSON.stringify({ type: "outcomeMeta" }),
+});
+```
+
+For trading data related to prediction markets (fills, orders, funding), use SQL Explorer or the HyperCore gRPC streams.
+
+## Orderbook Dataset & StreamData Filtering
+
+Hyperliquid orderbook data is available in SQL Explorer as a dedicated dataset alongside trades, orders, and fills. For real-time orderbook updates, use the `BOOK_UPDATES` stream via gRPC.
+
+The `StreamData` gRPC method supports filtering on `BOOK_UPDATES` by `coin` and `side`:
+
+```typescript
+// Filter book updates to BTC asks only
+stream.write({
+  subscribe: {
+    stream_type: "BOOK_UPDATES",
+    filters: {
+      coin: { values: ["BTC"] },
+      side: { values: ["A"] }, // "A" = asks, "B" = bids
+    },
+  },
+});
+```
+
+See the [gRPC Filtering](#grpc-filtering) section for the full filter field reference per stream type.
+
 ## HyperEVM
 
 HyperEVM provides EVM-compatible smart contract execution on Hyperliquid. Two RPC paths are available:

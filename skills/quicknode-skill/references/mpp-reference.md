@@ -46,6 +46,12 @@ Payment channels for high-frequency access:
 |----------|--------|-------------|
 | `/:network/*` | POST | Charge-based JSON-RPC and REST proxy |
 | `/session/:network/*` | POST | Session-based JSON-RPC and REST proxy |
+| `/sql/rest/v1/clusters` | GET | List Quicknode SQL Explorer clusters (public, 1-hour CDN cached) |
+| `/sql/rest/v1/schema` | GET | List SQL Explorer schemas across clusters (public, 1-hour CDN cached) |
+| `/sql/rest/v1/schema/:clusterId` | GET | Inspect one SQL Explorer cluster schema (public, 1-hour CDN cached) |
+| `/session/sql/rest/*` | ALL | SQL Explorer REST pass-through via MPP session; variable per-query billing |
+| `/session/v1/text2sql` | POST | Natural-language to SQL generator via MPP session; variable per-token billing |
+| `/networks` | GET | List all supported network slugs (public, rate limited) |
 | `/llms.txt` | GET | Machine-readable documentation |
 
 Replace `:network` with slugs like `tempo-mainnet`, `ethereum-mainnet`, `solana-mainnet`, etc.
@@ -60,13 +66,54 @@ Replace `:network` with slugs like `tempo-mainnet`, `ethereum-mainnet`, `solana-
 
 The payment network is independent of the chain you query. For example, you can pay with PathUSD on Tempo and query Ethereum, Solana, or any other supported chain.
 
-## Testnet Caps
+## Testnet Monthly Cap
 
-Testnet caps are limited to 10,000 requests per intent per wallet (charge and session counted separately). After reaching a cap, switch to mainnet for production usage.
+Each wallet gets a **single pool of 1,000,000 API credits per month** across Quicknode's agentic payment surfaces, including x402 and MPP. The pool resets on the 1st of each month and covers both RPC and SQL Explorer calls. Mainnet wallets are uncapped.
+
+| Testnet Pool | Value |
+|-----------------|-------|
+| Credits per wallet | 1,000,000/month |
+| Reset | 1st of each month |
+| Scope | RPC + SQL Explorer + text2sql |
+| Shared across | Charge, Session |
+
+When the testnet cap is exhausted, the server returns HTTP 403 with `{ "error": "monthly_limit_reached" }` and no payment is taken. Switch to a mainnet-funded wallet or wait for the reset.
 
 ## Rate Limits
 
-1,000 requests per 10 seconds per IP:network combination.
+| Route | Limit |
+|-------|-------|
+| `/networks` | 10 requests per 10 seconds per IP |
+| `/:network` | 1,000 requests per 10 seconds per IP:network pair |
+| `/session/:network` | 1,000 requests per 10 seconds per IP:session:network pair |
+
+Back off and retry on HTTP 429 `rate_limit_exceeded`.
+
+## SQL Explorer
+
+MPP exposes Quicknode SQL Explorer through session-gated REST pass-through routes at `https://mpp.quicknode.com/session/sql/rest/*`. Paths mirror the upstream `https://api.quicknode.com/sql/rest/*` routes; for example, `POST /session/sql/rest/v1/query` executes a SQL Explorer query through an open MPP session.
+
+Free discovery endpoints require no payment credential and are cached for 1 hour:
+
+- `GET /sql/rest/v1/clusters`
+- `GET /sql/rest/v1/schema`
+- `GET /sql/rest/v1/schema/:clusterId`
+
+Paid SQL endpoints require an MPP session voucher. Billing is variable: the upstream response's `credits` field is charged against the open session channel at $0.00001 per SQL credit. The client tops up vouchers automatically when a query exceeds the currently signed amount.
+
+## text2sql
+
+`POST /session/v1/text2sql` is a Tempo-session-gated natural-language to SQL generator. It shares the same SQL session voucher store as `/session/sql/rest/*`, so one open session can fund both SQL queries and text2sql calls.
+
+Supported modes:
+
+| Mode | Required fields | Description |
+|------|-----------------|-------------|
+| Generate | `prompt` | Generate fresh SQL from natural language |
+| Edit | `prompt`, `sql` | Modify supplied SQL according to the prompt |
+| Fix | `sql`, `validation_errors` | Repair SQL using validation errors |
+
+Limits: `prompt` <= 4000 characters, `sql` <= 10000 characters, and up to 10 validation errors at 2000 characters each. `cluster_id` defaults to the server-configured SQL cluster when omitted. Billing is variable: `(input + output) * $0.00001`, charged against the session after the response.
 
 ## Setup
 
@@ -135,12 +182,13 @@ console.log(await response.json())
 ### Solana
 
 ```bash
-npm install solana-mpp mppx @solana/kit @solana/spl-token
+npm install @solana/mpp mppx @solana/kit
 ```
 
 ```typescript
-import { Mppx, solana } from 'solana-mpp/client'
-import { createKeyPairFromBytes } from '@solana/kit'
+import { Mppx } from 'mppx/client'
+import { solana } from '@solana/mpp/client'
+import { createKeyPairSignerFromBytes } from '@solana/kit'
 import { readFileSync } from 'fs'
 import { homedir } from 'os'
 
@@ -148,11 +196,11 @@ const keypairFile = readFileSync(
   process.env.SOLANA_KEYPAIR_PATH ?? `${homedir()}/.config/solana/id.json`,
   'utf-8'
 )
-const keypair = await createKeyPairFromBytes(
+const signer = await createKeyPairSignerFromBytes(
   new Uint8Array(JSON.parse(keypairFile))
 )
 
-Mppx.create({ methods: [solana({ wallet: keypair })] })
+Mppx.create({ methods: [solana.charge({ signer })] })
 
 const response = await fetch('https://mpp.quicknode.com/solana-mainnet', {
   method: 'POST',
@@ -230,9 +278,9 @@ console.log(receipt.reference) // tx hash (charge) or channelId (session)
 | Status | Code | Meaning |
 |--------|------|---------|
 | 402 | (challenge) | Payment required; see `WWW-Authenticate: Payment` header |
-| 403 | `lifetime_limit_reached` | Testnet lifetime request cap exceeded; switch to mainnet |
+| 403 | `monthly_limit_reached` | Monthly testnet credit cap exceeded; no payment taken; switch to mainnet or wait for reset |
 | 404 | `unsupported_network` | Network slug not found |
-| 429 | `rate_limit_exceeded` | 1,000 req/10s limit exceeded per IP:network |
+| 429 | `rate_limit_exceeded` | Route-specific limit exceeded; see [Rate Limits](#rate-limits) |
 | 503 | `mpp_not_configured` | MPP unavailable in this environment |
 
 ## Best Practices
@@ -245,9 +293,9 @@ console.log(receipt.reference) // tx hash (charge) or channelId (session)
 ## NPM Packages
 
 - **mppx** — Official TypeScript SDK (client, server, middleware, CLI)
-- **solana-mpp** — Solana payment method (client, server)
+- **@solana/mpp** — Solana payment method (client, server)
 - **viem** — Ethereum/Tempo utilities (peer dependency)
-- **@solana/web3.js** — Solana web3 (peer dependency)
+- **@solana/kit** — Solana SDK (peer dependency)
 
 ## Documentation
 
