@@ -1,6 +1,6 @@
 # Quicknode CLI Reference
 
-The `qn` CLI manages Quicknode product APIs from a terminal, script, CI job, or agent shell. Use it for endpoints, Streams, Webhooks, Key-Value Store, SQL Explorer, teams, usage, billing, metrics, and security workflows.
+The `qn` CLI manages Quicknode product APIs from a terminal, script, CI job, or agent shell. Use it for endpoints, Streams, Webhooks, Key-Value Store, SQL Explorer, teams, usage, billing, metrics, security workflows, and making JSON-RPC calls to any supported network via Tooling Access, with no endpoint setup required.
 
 **Docs:** https://www.quicknode.com/docs/quicknode-cli
 
@@ -94,6 +94,51 @@ Use `qn auth whoami --format json` when an agent needs structured account data:
   "plan_interval": "monthly"
 }
 ```
+
+### RPC (Tooling Access)
+
+Requires CLI v0.5.0+. `qn rpc` calls your account's Tooling Access endpoint — a single multichain, read-only endpoint Quicknode provisions automatically, with short-lived JWTs minted and refreshed automatically. No manual endpoint setup required.
+
+```bash
+qn auth login
+qn rpc call eth_getBlockByNumber '["latest", false]' --network base-mainnet
+```
+
+Params: positional (JSON array), by name (JSON object), from a file, or from stdin.
+
+```bash
+qn rpc call eth_blockNumber
+qn rpc call eth_getBalance '["0xabc...", "latest"]'
+qn rpc call getSlot --network solana-mainnet
+qn rpc call eth_call --params-file params.json
+echo '[...]' | qn rpc call eth_call -
+cat params.json | qn rpc call eth_call -f -
+```
+
+`--network <KEY>` selects a network on the multichain endpoint (e.g. `base-mainnet`, `solana-mainnet`, `polygon`, `btc`). Omit it for the default network. `qn rpc list-networks` (alias `ls`) lists available keys — no RPC call made.
+
+```bash
+qn rpc list-networks
+qn rpc list-networks -o json
+```
+
+`--endpoint-url <URL>` sends the call to a self-authenticating URL instead of the Tooling Access endpoint, overriding `[rpc] endpoint_url` in `~/.config/qn/config.toml`. Mutually exclusive with `--network`.
+
+First-run `qn rpc call` prompts `[y/N]` to enable Tooling Access if it isn't provisioned yet. Pass `-y`/`--yes` to auto-confirm non-interactively.
+
+```bash
+qn rpc call eth_blockNumber --network base-mainnet -y
+```
+
+### Tooling Access
+
+```bash
+qn tooling-access status
+qn tooling-access enable
+qn tooling-access disable
+```
+
+`status` shows whether Tooling Access is enabled and the endpoint URL. `enable` provisions the endpoint (idempotent, admin role required). `disable` is idempotent and account-wide — it cuts off blockchain access for all Quicknode developer tooling, not just the current session. Confirm with the user before running it.
 
 ### Endpoints
 
@@ -319,7 +364,7 @@ qn completions zsh
 
 ## Confirmation Behavior
 
-Commands that delete, archive, pause, revoke, or otherwise change resources prompt before acting. In non-interactive environments, keep examples read-only by default or pass the documented prompt bypass only after explicit user confirmation.
+Commands that delete, archive, pause, revoke, or otherwise change resources prompt before acting. In non-interactive environments, keep examples read-only by default or pass the documented prompt bypass only after explicit user confirmation. This includes the first-run Tooling Access auto-enable prompt on `qn rpc call` and `qn tooling-access disable`; pass `-y`/`--yes` to proceed non-interactively.
 
 ## Documentation
 
