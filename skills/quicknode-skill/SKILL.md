@@ -97,6 +97,8 @@ description: "Quicknode blockchain infrastructure for 80+ chains: Core RPC API, 
 
 Quicknode provides low-latency RPC endpoints for 80+ blockchain networks.
 
+`qn rpc call` (CLI) and `qn.rpc.call` (SDK) reach any supported network via **Tooling Access** — a single multichain, read-only endpoint Quicknode provisions automatically with short-lived JWTs. No endpoint setup required. See [references/cli-reference.md](references/cli-reference.md) / [references/sdk-reference.md](references/sdk-reference.md). Use a dedicated endpoint below for a fixed URL, non-read-only methods, or dedicated throughput.
+
 ### Endpoint Setup
 
 ```typescript
@@ -787,6 +789,11 @@ qn agent context -o json
 qn endpoint list
 qn endpoint create --chain ethereum --network mainnet
 
+# RPC (Tooling Access) — no endpoint setup required
+qn tooling-access status
+qn tooling-access enable
+qn rpc call eth_getBlockByNumber '["latest", false]' --network base-mainnet
+
 # Account and chain metadata
 qn auth whoami --format json
 qn chain credits ethereum --format json
@@ -832,7 +839,7 @@ See [references/mcp-reference.md](references/mcp-reference.md) for the complete 
 
 ## Quicknode SDK
 
-Official SDK for Quicknode product APIs: Admin API, Streams, Webhooks, Key-Value Store, and SQL Explorer. For direct blockchain RPC, use your Quicknode endpoint URL with the chain's standard client library.
+Official SDK for Quicknode product APIs: Admin API, Streams, Webhooks, Key-Value Store, and SQL Explorer. The `rpc` client (Node `3.7.0+`, other languages `0.7.0+`) also makes JSON-RPC calls to any supported network via Tooling Access — no endpoint setup required. Chain-specific client libraries still apply for typed chain abstractions or a dedicated endpoint.
 
 ### Installation
 
@@ -879,6 +886,7 @@ REST API for programmatic management of Quicknode endpoints, usage, rate limits,
 | Metrics | GET | `/v0/endpoints/{id}/metrics` |
 | Rate Limits | GET, POST, PUT | `/v0/endpoints/{id}/method-rate-limits`, `/v0/endpoints/{id}/rate-limits` |
 | Security | GET | `/v0/endpoints/{id}/security_options` |
+| Tooling Access | GET, PATCH, POST | `/v0/tooling-access`, `/v0/tooling-access/token` |
 | Usage | GET | `/v0/usage/rpc`, `by-endpoint`, `by-method`, `by-chain` |
 | Billing | GET | `/v0/billing/invoices` |
 | Teams | GET | `/v0/teams` |
@@ -896,7 +904,7 @@ const res = await fetch('https://api.quicknode.com/v0/endpoints', {
 const endpoints = await res.json();
 ```
 
-See [references/admin-api-reference.md](references/admin-api-reference.md) for full Admin API documentation including endpoint CRUD, usage monitoring, rate limit configuration, security options, billing, and teams.
+See [references/admin-api-reference.md](references/admin-api-reference.md) for full Admin API documentation including endpoint CRUD, usage monitoring, rate limit configuration, security options, Tooling Access, billing, and teams.
 
 ## Key-Value Store (Beta)
 

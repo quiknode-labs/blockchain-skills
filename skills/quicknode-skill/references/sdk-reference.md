@@ -7,17 +7,17 @@ The Quicknode SDK is a unified client for Quicknode product APIs. Use it when an
 ## When to Use the SDK
 
 - Use the SDK for Quicknode product workflows: provision endpoints, inspect usage, manage Streams/Webhooks, store KV state, and run SQL Explorer queries.
-- Use direct endpoint URLs plus chain libraries for blockchain RPC calls (`ethers`, `viem`, `@solana/kit`, `@solana/web3.js`, Bitcoin JSON-RPC helpers, etc.).
+- Use the SDK's `rpc` client (Node 3.7.0+, other languages 0.7.0+) for blockchain RPC calls to any supported network via Tooling Access — no endpoint setup required, JWTs auto-mint and refresh. Chain-specific libraries (`ethers`, `viem`, `@solana/kit`, `@solana/web3.js`, Bitcoin JSON-RPC helpers, etc.) still apply for typed chain abstractions or a dedicated endpoint.
 - Use the CLI for terminal workflows and CI scripts where shell commands are simpler than application code.
 
 ## Packages
 
 | Language | Package | Install |
 |----------|---------|---------|
-| Node.js / TypeScript | `@quicknode/sdk` 3.6.0+ | `npm install @quicknode/sdk` |
-| Python | `quicknode-sdk` 0.6.0+ | `pip install quicknode-sdk` |
-| Rust | `quicknode-sdk` 0.6.0+ | `cargo add quicknode-sdk --features rust` |
-| Ruby | `quicknode_sdk` 0.6.0+ | `gem install quicknode_sdk` |
+| Node.js / TypeScript | `@quicknode/sdk` 3.7.0+ | `npm install @quicknode/sdk` |
+| Python | `quicknode-sdk` 0.7.0+ | `pip install quicknode-sdk` |
+| Rust | `quicknode-sdk` 0.7.0+ | `cargo add quicknode-sdk --features rust` |
+| Ruby | `quicknode_sdk` 0.7.0+ | `gem install quicknode_sdk` |
 
 ## Authentication
 
@@ -43,6 +43,7 @@ Optional base URL overrides:
 | Client | Purpose |
 |--------|---------|
 | `admin` | Account info, per-chain API credits, endpoints, teams, usage, logs, billing, metrics, security, rate limits, tags |
+| `rpc` | Direct JSON-RPC calls to any supported network via Tooling Access (auto-minted, auto-refreshed JWTs) |
 | `streams` | Stream listing, creation, lifecycle, and filter testing |
 | `webhooks` | Webhook listing, template creation, lifecycle, and enabled counts |
 | `kvstore` | Sets and lists for persisted state, watchlists, cursors, and filters |
@@ -66,6 +67,60 @@ const endpoints = await qn.admin.getEndpoints({
 for (const endpoint of endpoints.data) {
   console.log(endpoint.id, endpoint.name, endpoint.status);
 }
+```
+
+### RPC & Tooling Access
+
+Tooling Access provisions one multichain, read-only endpoint per account, with short-lived (10-minute) JWTs minted and refreshed automatically. `qn.rpc` calls it directly — no endpoint URL or token to manage.
+
+```typescript
+import { QuicknodeSdk, RpcError } from "@quicknode/sdk";
+
+const qn = QuicknodeSdk.fromEnv();
+
+// Enable once (admin role + eligible plan). Idempotent.
+const status = await qn.admin.toolingAccessStatus();
+if (!status.enabled) {
+  await qn.admin.enableToolingAccess();
+}
+
+// params defaults to []; pass an array (positional) or object (by name).
+const blockNumber = await qn.rpc.call("eth_blockNumber");
+const balance = await qn.rpc.call("eth_getBalance", ["0xabc...", "latest"]);
+
+// Multichain: seed the network map from admin.getEndpointUrls, then select
+// a network by its multichain_urls key as the 3rd argument.
+const endpointId = "your-endpoint-id";
+const urls = await qn.admin.getEndpointUrls(endpointId);
+const networks = Object.fromEntries(
+  Object.entries(urls.data?.multichainUrls ?? {}).map(([key, url]) => [
+    key,
+    url.httpUrl,
+  ]),
+);
+qn.rpc.setNetworks(networks);
+const slot = await qn.rpc.call("getSlot", [], "solana-mainnet");
+
+// Custom endpoint URL (4th arg): bypasses Tooling Access and the JWT
+// entirely. Mutually exclusive with network — a custom URL isn't multichain-routed.
+const block = await qn.rpc.call(
+  "eth_blockNumber",
+  [],
+  undefined,
+  "https://example.solana-mainnet.quiknode.pro/TOKEN/"
+);
+
+// A JSON-RPC error member throws as RpcError (.code, .message).
+try {
+  await qn.rpc.call("eth_getBalance", ["bad"]);
+} catch (e) {
+  if (e instanceof RpcError) console.error(e.code, e.message);
+}
+
+// Disable
+// Account-wide — cuts off blockchain access for all Quicknode developer
+// tooling. Confirm with the user first.
+// await qn.admin.disableToolingAccess();
 ```
 
 ### Account Info and API Credits

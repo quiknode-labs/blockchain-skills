@@ -15,6 +15,7 @@ REST API for programmatic management of Quicknode endpoints, usage monitoring, r
 | **Metrics** | GET | `/v0/endpoints/{id}/metrics` |
 | **Rate Limits** | GET, POST, PUT | `/v0/endpoints/{id}/method-rate-limits`, `/v0/endpoints/{id}/rate-limits` |
 | **Security** | GET | `/v0/endpoints/{id}/security_options` |
+| **Tooling Access** | GET, PATCH, POST | `/v0/tooling-access`, `/v0/tooling-access/token` |
 | **Usage** | GET | `/v0/usage/rpc`, `/v0/usage/rpc/by-endpoint`, `/v0/usage/rpc/by-method`, `/v0/usage/rpc/by-chain` |
 | **Billing** | GET | `/v0/billing/invoices` |
 | **Teams** | GET | `/v0/teams` |
@@ -309,6 +310,89 @@ console.log(security);
 | `ip_allowlist` | Restrict access to specific IP addresses |
 | `referrer_allowlist` | Restrict access to specific HTTP referrers |
 | `token_authentication` | Additional token-based authentication |
+
+## Tooling Access
+
+Tooling Access is the requirement behind `qn rpc` and the SDK's `rpc` client.
+
+### Get Tooling Access Status
+
+```typescript
+const status = await adminApi<{
+  data: {
+    enabled: boolean;
+    endpoint_url: string | null;
+    enabled_at: string | null;
+    endpoint_id: number | null;
+  };
+  error: string | null;
+}>('/tooling-access');
+
+console.log(status.data.enabled, status.data.endpoint_url);
+```
+
+**Response Parameters** (under `data`):
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `enabled` | boolean | Whether Tooling Access is provisioned for the account |
+| `endpoint_url` | string \| null | The multichain Tooling Access endpoint URL, or `null` if not enabled |
+| `enabled_at` | string \| null | ISO 8601 timestamp of when Tooling Access was enabled, or `null` |
+| `endpoint_id` | number \| null | The underlying endpoint's id, or `null` if not enabled |
+
+### Enable / Disable Tooling Access
+
+```typescript
+// Enable (admin role required)
+await adminApi('/tooling-access', {
+  method: 'PATCH',
+  body: JSON.stringify({ enabled: true }),
+});
+
+// Disable
+await adminApi('/tooling-access', {
+  method: 'PATCH',
+  body: JSON.stringify({ enabled: false }),
+});
+```
+
+**Body Parameters:**
+
+| Parameter | Type | Required | Description |
+|-----------|------|----------|--------------|
+| `enabled` | boolean | Yes | `true` to provision/reactivate Tooling Access (admin role required), `false` to disable it account-wide |
+
+**Response Parameters** (under `data`):
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `enabled` | boolean | Whether Tooling Access is now enabled |
+| `endpoint_url` | string \| null | The multichain Tooling Access endpoint URL, or `null` if disabled |
+
+Both directions are idempotent. Disabling is account-wide — it cuts off blockchain access for all Quicknode developer tooling, not just the caller. Confirm with the user before disabling.
+
+### Mint a Tooling Access Token
+
+```typescript
+const minted = await adminApi<{
+  data: {
+    endpoint_url: string;
+    token: string;
+    expires_at: string;
+  };
+  error: string | null;
+}>('/tooling-access/token', { method: 'POST' });
+
+console.log(minted.data.token, minted.data.expires_at);
+```
+
+**Response Parameters** (under `data`):
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `endpoint_url` | string | The multichain Tooling Access endpoint URL the token is scoped to |
+| `token` | string | Short-lived ES256 JWT for the Tooling Access endpoint |
+| `expires_at` | string | ISO 8601 expiry timestamp for the token |
 
 ## Usage
 
