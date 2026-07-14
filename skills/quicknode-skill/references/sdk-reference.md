@@ -93,7 +93,10 @@ const balance = await qn.rpc.call("eth_getBalance", ["0xabc...", "latest"]);
 const endpointId = "your-endpoint-id";
 const urls = await qn.admin.getEndpointUrls(endpointId);
 const networks = Object.fromEntries(
-  Object.entries(urls.multichainUrls ?? {}).map(([key, url]) => [key, url.httpUrl])
+  Object.entries(urls.data?.multichainUrls ?? {}).map(([key, url]) => [
+    key,
+    url.httpUrl,
+  ]),
 );
 qn.rpc.setNetworks(networks);
 const slot = await qn.rpc.call("getSlot", [], "solana-mainnet");
