@@ -60,7 +60,7 @@ description: "Quicknode blockchain infrastructure for 80+ chains: Core RPC API, 
 |---------|-------------|----------|
 | **Swap API** | Multi-DEX aggregated token swaps | Solana (Jupiter/Metis), EVM (0x, OpenOcean, Aerodrome, Velodrome, Titan) |
 
-### Marketplace Add-ons
+### Endpoint Add-ons
 
 | Product | Description | Use Case |
 |---------|-------------|----------|
@@ -228,7 +228,7 @@ See [references/webhooks-reference.md](references/webhooks-reference.md) for API
 
 ## Solana gRPC (formerly Yellowstone gRPC)
 
-High-performance Solana Geyser plugin for real-time blockchain data streaming via gRPC. Included on Scale and Business plans; available as a Marketplace add-on on Build and Accelerate plans.
+High-performance Solana Geyser plugin for real-time blockchain data streaming via gRPC. Included on Scale and Business plans; available as an add-on on Build and Accelerate plans.
 
 ### Quick Setup
 
@@ -462,7 +462,7 @@ See [references/metaplex-das-reference.md](references/metaplex-das-reference.md)
 
 ## Ordinals & Runes API
 
-Bitcoin inscription and Runes protocol data via a Quicknode Marketplace add-on. Query inscription metadata, satoshi data, Rune details, and collection data through JSON-RPC and ORD-compatible REST on your Bitcoin endpoint. 21 methods available.
+Bitcoin inscription and Runes protocol data via the Quicknode Ordinals & Runes API add-on. Query inscription metadata, satoshi data, Rune details, and collection data through JSON-RPC and ORD-compatible REST on your Bitcoin endpoint. 21 methods available.
 
 **Marketing:** https://www.quicknode.com/ordinals-runes
 **Docs:** https://www.quicknode.com/docs/bitcoin/ord_getInscription
@@ -475,7 +475,7 @@ Bitcoin inscription and Runes protocol data via a Quicknode Marketplace add-on. 
 
 See [references/ordinals-runes-reference.md](references/ordinals-runes-reference.md) for supported methods and examples.
 
-## Marketplace Add-ons
+## Add-ons
 
 Endpoint add-ons for specialized capabilities that can be enabled on Quicknode endpoints. Use the add-on docs or dashboard-provided endpoint details for exact API shapes.
 
@@ -517,13 +517,13 @@ Stablecoin balances across supported chains for treasury, payments, and portfoli
 
 Multi-chain wallet and portfolio data, including balances, token holdings, NFT holdings, and transaction history where supported.
 
-See [references/marketplace-addons.md](references/marketplace-addons.md) for current add-on guidance and product-specific reference links.
+See [references/addons.md](references/addons.md) for current add-on guidance and product-specific reference links.
 
 ---
 
 ## Swap API
 
-Multi-DEX aggregated token swaps via Quicknode Marketplace add-ons. Supports Metis/Jupiter, 0x, OpenOcean, Aerodrome, Velodrome, Titan Meta Aggregator, and Hyperliquid Exchange API. Each provider is enabled as a separate add-on or product surface on your endpoint/account.
+Multi-DEX aggregated token swaps via Quicknode add-ons. Supports Metis/Jupiter, 0x, OpenOcean, Aerodrome, Velodrome, Titan Meta Aggregator, and Hyperliquid Exchange API. Each provider is enabled as a separate add-on or product surface on your endpoint/account.
 
 **Marketing:** https://www.quicknode.com/swap-api
 
@@ -1135,6 +1135,6 @@ const [ethBlock, baseBlock] = await Promise.all([
 ### Additional Resources
 - **Quicknode Guides**: https://www.quicknode.com/guides
 - **SDK Reference**: https://www.quicknode.com/docs/sdk
-- **Marketplace**: https://marketplace.quicknode.com/
+- **Add-ons Catalog**: https://www.quicknode.com/add-ons
 - **Sample App Library**: https://www.quicknode.com/sample-app-library
 - **Guide Examples Repo**: https://github.com/quiknode-labs/qn-guide-examples

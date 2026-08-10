@@ -172,7 +172,7 @@ const { result } = await response.json();
 
 ### Debug, Trace & Extended Namespaces
 
-Debug, trace, archive, and extended namespaces are Core RPC API capabilities, not Marketplace add-ons. Availability depends on the chain, endpoint type, plan, and archive configuration.
+Debug, trace, archive, and extended namespaces are Core RPC API capabilities, not endpoint add-ons. Availability depends on the chain, endpoint type, plan, and archive configuration.
 
 | Namespace | Methods |
 |-----------|---------|
@@ -540,5 +540,5 @@ Batch requests work the same way for Bitcoin (`getblockcount`, `getbestblockhash
 ### Related References
 
 - [SDK Reference](sdk-reference.md) — Quicknode SDK with typed client methods
-- [Marketplace Add-ons](marketplace-addons.md) — Current add-ons and pointers to product-specific references
+- [Add-ons](addons.md) — Current add-ons and pointers to product-specific references
 - [Solana gRPC](solana-grpc-reference.md) — Solana Geyser streaming via gRPC (formerly Yellowstone gRPC)
