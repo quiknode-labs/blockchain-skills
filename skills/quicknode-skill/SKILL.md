@@ -80,7 +80,7 @@ description: "Quicknode blockchain infrastructure for 80+ chains: Core RPC API, 
 | **x402** | Testnet monthly cap plus mainnet pay-per-request via stablecoins | Keyless RPC access, AI agents, pay-as-you-go |
 | **MPP** | Testnet monthly cap plus mainnet pay-per-request via IETF Payment Authentication | AI agents, multi-service payments, high-volume sessions |
 | **Agent Subscriptions** | Wallet-paid Quicknode account creation, returns a `QN_*` full platform API key | Autonomous agents needing full platform access |
-| **Quicknode CLI** | `qn` CLI for endpoints, Streams, Webhooks, KV, and SQL from the terminal | Scripting, CI/CD, infrastructure automation |
+| **Quicknode CLI** | `qn` CLI for endpoints, Streams, Webhooks, KV, and SQL from the terminal, plus RPC via Tooling Access or x402/MPP payments | Scripting, CI/CD, infrastructure automation, keyless paid RPC |
 | **Quicknode MCP** | Native Claude/OpenAI connector plus generic MCP server — Admin API via MCP | Manage Quicknode from Claude, ChatGPT, Codex, Cursor, or any MCP-capable AI tool |
 
 ### Platform
@@ -89,7 +89,7 @@ description: "Quicknode blockchain infrastructure for 80+ chains: Core RPC API, 
 |---------|-------------|----------|
 | **Admin API** | REST API for account management | Endpoint CRUD, usage monitoring, billing |
 | **Key-Value Store** | Serverless key-value and list storage (beta) | Persistent state for Streams, dynamic address lists |
-| **Quicknode SDK** | Official SDK for Quicknode product APIs | Admin API, Streams, Webhooks, KV, SQL Explorer |
+| **Quicknode SDK** | Official SDK for Quicknode product APIs, plus RPC via Tooling Access or x402/MPP payments | Admin API, Streams, Webhooks, KV, SQL Explorer, RPC calls |
 
 ---
 
@@ -587,6 +587,8 @@ const response = await client.fetch("https://x402.quicknode.com/ethereum-mainnet
 });
 ```
 
+The fastest path is often the Quicknode CLI or SDK instead of the gateway package: `qn rpc call --x402` (CLI v0.6.0+) or `rpc.payment` with `scheme: "x402"` (SDK Node 3.8.0+, other languages 0.8.0+).
+
 See [references/x402-reference.md](references/x402-reference.md) for complete x402 documentation including SIWX authentication, credit management, and `@quicknode/x402` setup.
 
 ## MPP (Machine Payments Protocol)
@@ -621,6 +623,8 @@ const response = await fetch('https://mpp.quicknode.com/tempo-mainnet', {
 const { result } = await response.json()
 console.log('Block number:', BigInt(result))
 ```
+
+The Quicknode CLI and SDK also wrap this gateway: `qn rpc call --mpp` (CLI v0.6.0+) or `rpc.payment` with `scheme: "mpp"` (SDK Node 3.8.0+, other languages 0.8.0+).
 
 See [references/mpp-reference.md](references/mpp-reference.md) for complete MPP documentation including charge vs session intents, Solana setup, CLI usage, and payment receipts.
 
@@ -753,6 +757,8 @@ See [references/agent-subscriptions-reference.md](references/agent-subscriptions
 
 Command-line tool (`qn`) for managing Quicknode infrastructure from the terminal. Available on all paid plans.
 
+It also has a keyless paid lane (v0.6.0+): `qn wallet` plus `qn rpc call --x402`/`--mpp` pay for RPC calls with stablecoins, with no Quicknode account, API key, login, Tooling Access, or provisioned endpoint.
+
 ### Installation
 
 ```bash
@@ -810,6 +816,31 @@ qn kv set get my-key
 
 Use `--format json` for machine-readable output. Mutating commands prompt before acting; require explicit user confirmation before bypassing prompts in automation.
 
+### Paid RPC (x402 / MPP)
+
+Requires v0.6.0+. Discover offered networks and assets instead of hardcoding them, and set `--max-amount` (a per-call ceiling in the asset's integer base units) on every signing action.
+
+```bash
+# One-time keyless setup — the key is written locally and is not recoverable
+qn wallet generate --vm evm --name payer
+
+# Discover what each gateway accepts
+qn rpc x402 supported-payments
+qn rpc mpp supported-payments
+
+# Pay per request (query network and payment network are independent)
+qn rpc call eth_blockNumber --network ethereum-mainnet \
+  --x402 --payment-wallet payer \
+  --payment-network base-sepolia --payment-asset USDC --max-amount 1000
+
+# Prepaid credits (x402) or an escrow channel (MPP) for sustained usage
+qn rpc x402 buy-credits --network ethereum-mainnet --payment-wallet payer \
+  --payment-network base-sepolia --payment-asset USDC --max-amount 10000000
+qn rpc call eth_blockNumber --network ethereum-mainnet --x402-drawdown --payment-wallet payer
+```
+
+These commands move real funds. Get explicit user confirmation first and use a dedicated, minimally funded wallet. `qn wallet rm`, `qn rpc x402 buy-credits`, and `qn rpc mpp open`/`top-up`/`close` are gated and prompt before acting. Paid calls never auto-retry: exit 2 means nothing settled, exit 3 means the outcome is unknown and the wallet may already have been charged — check the wallet instead of re-running.
+
 See [references/cli-reference.md](references/cli-reference.md) for complete CLI documentation.
 
 ## Quicknode MCP
@@ -841,6 +872,8 @@ See [references/mcp-reference.md](references/mcp-reference.md) for the complete 
 
 Official SDK for Quicknode product APIs: Admin API, Streams, Webhooks, Key-Value Store, and SQL Explorer. The `rpc` client (Node `3.7.0+`, other languages `0.7.0+`) also makes JSON-RPC calls to any supported network via Tooling Access — no endpoint setup required. Chain-specific client libraries still apply for typed chain abstractions or a dedicated endpoint.
 
+The same `rpc` client can pay for calls with stablecoins through x402 or MPP (Node `3.8.0+`, other languages `0.8.0+`), with no Quicknode account or API key.
+
 ### Installation
 
 ```bash
@@ -868,6 +901,34 @@ const trades = await qn.sql.query(
   'hyperliquid-core-mainnet'
 );
 ```
+
+### RPC Micropayments
+
+Set `rpc.payment` and the SDK answers the `402 Payment Required` challenge, signs the payment, and resends the request. No API key is needed for this lane.
+
+```typescript
+import { QuicknodeSdk, generatePaymentWallet } from '@quicknode/sdk';
+
+// One-time: the key is returned once and cannot be recovered. Persist it securely.
+const wallet = generatePaymentWallet('evm'); // 'evm' or 'svm'
+console.log('Fund this address:', wallet.address);
+
+const qn = new QuicknodeSdk({
+  rpc: {
+    payment: {
+      scheme: 'x402', // or 'mpp'
+      key: process.env.QN_PAYMENT_KEY!,
+      payNetwork: 'eip155:84532', // Base Sepolia
+      asset: '0x036CbD53842c5426634e7929541eC2318f3dCF7e', // Base Sepolia USDC
+      maxAmount: '10000', // spend ceiling in base units, not the amount sent
+    },
+  },
+});
+
+const blockNumber = await qn.rpc.call('eth_blockNumber', [], 'ethereum-mainnet');
+```
+
+`callWithReceipt` returns settlement metadata (non-null on MPP, `null` on x402). For sustained usage, use `gatewayAuthenticate`/`gatewayBuyCredits`/`gatewayDrawdownCall` (x402 credits) or `mppOpen`/`mppSessionCall` (MPP channel). This lane moves real funds — get explicit user confirmation first, and never log the payment config, which holds the raw private key.
 
 See [references/sdk-reference.md](references/sdk-reference.md) for complete SDK documentation.
 
@@ -1031,12 +1092,14 @@ const [ethBlock, baseBlock] = await Promise.all([
 - **Solana gRPC**: https://www.quicknode.com/docs/solana/solana-grpc/overview
 - **HyperCore gRPC**: https://www.quicknode.com/docs/hyperliquid/grpc-api
 - **IPFS**: https://www.quicknode.com/docs/ipfs
-- **SDK**: https://www.quicknode.com/docs/quicknode-sdk
+- **SDK**: https://www.quicknode.com/docs/sdk
+- **SDK RPC Micropayments**: https://www.quicknode.com/docs/sdk/micropayments
 - **Admin API**: https://www.quicknode.com/docs/admin-api
 - **Metaplex DAS API (Solana)**: https://www.quicknode.com/docs/solana/solana-das-api
 - **Blockbook**: https://www.quicknode.com/docs/bitcoin/blockbook/overview
 - **Ordinals & Runes API**: https://www.quicknode.com/docs/bitcoin/ord_getInscription
-- **Quicknode CLI**: https://www.quicknode.com/docs/quicknode-cli
+- **Quicknode CLI**: https://www.quicknode.com/docs/cli
+- **CLI RPC Micropayments**: https://www.quicknode.com/docs/cli/micropayments
 - **Quicknode MCP**: https://www.quicknode.com/docs/build-with-ai/quicknode-mcp
 - **Hyperliquid**: https://www.quicknode.com/docs/hyperliquid
 - **SQL Explorer**: https://www.quicknode.com/docs/sql-explorer
@@ -1071,7 +1134,7 @@ const [ethBlock, baseBlock] = await Promise.all([
 
 ### Additional Resources
 - **Quicknode Guides**: https://www.quicknode.com/guides
-- **SDK Reference**: https://www.quicknode.com/docs/quicknode-sdk
+- **SDK Reference**: https://www.quicknode.com/docs/sdk
 - **Marketplace**: https://marketplace.quicknode.com/
 - **Sample App Library**: https://www.quicknode.com/sample-app-library
 - **Guide Examples Repo**: https://github.com/quiknode-labs/qn-guide-examples

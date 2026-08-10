@@ -57,7 +57,7 @@ The payment chain does not need to match the chain you query. For example, you c
 
 ## Testnet Monthly Cap
 
-Each wallet gets a **single pool of 1,000,000 API credits per month** across Quicknode's agentic payment surfaces, including x402 and MPP. The pool resets on the 1st of each month and covers both RPC and SQL Explorer calls. Mainnet wallets are uncapped.
+Each wallet gets a **single pool of 1,000,000 API credits per month** across Quicknode's agentic payment surfaces, including x402 and MPP. The pool resets on the 1st of each month and covers both RPC and SQL Explorer calls. RPC requests consume 1 API credit each; SQL Explorer consumes the variable number of credits the query uses. Mainnet wallets are uncapped.
 
 | Testnet Pool | Value |
 |-----------------|-------|
@@ -265,6 +265,13 @@ console.log('Credits received:', dripResult);
 5. **gRPC-Web and WebSocket require credit drawdown.** Pay-per-request and nanopayment support JSON-RPC and REST only.
 6. **Multi-protocol support.** The same client works with JSON-RPC, REST, gRPC-Web (`client.createGrpcTransport()`), and WebSocket (`client.createWebSocket()`).
 7. **Discover dynamically.** Use `/networks`, `/discovery/resources`, or `/openapi.json` instead of hardcoding the supported network list.
+
+## Using x402 From The CLI Or SDK
+
+The Quicknode CLI and SDK wrap this gateway, so an agent can pay for RPC calls without writing payment code:
+
+- CLI (v0.6.0+): `qn wallet generate` then `qn rpc call --x402`, or prepaid credits via `qn rpc x402 buy-credits` and `--x402-drawdown`. See [cli-reference.md](cli-reference.md#paid-rpc-x402-and-mpp).
+- SDK (Node 3.8.0+, other languages 0.8.0+): set `rpc.payment` with `scheme: "x402"`, or use `gatewayAuthenticate`/`gatewayBuyCredits`/`gatewayDrawdownCall`. See [sdk-reference.md](sdk-reference.md#rpc-micropayments).
 
 ## Documentation
 

@@ -168,5 +168,5 @@ Limits are subject to change — check https://www.quicknode.com/docs/key-value-
 ## Documentation
 
 - **Key-Value Store Docs**: https://www.quicknode.com/docs/key-value-store
-- **Quicknode CLI**: https://www.quicknode.com/docs/quicknode-cli
+- **Quicknode CLI**: https://www.quicknode.com/docs/cli
 - **Streams Integration**: https://www.quicknode.com/docs/streams

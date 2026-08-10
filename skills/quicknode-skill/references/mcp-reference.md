@@ -182,4 +182,4 @@ Quicknode MCP also exposes endpoint details as MCP resources in clients that sup
 
 - **MCP Docs**: https://www.quicknode.com/docs/build-with-ai/quicknode-mcp
 - **Build with AI Overview**: https://www.quicknode.com/docs/build-with-ai
-- **SDK Docs**: https://www.quicknode.com/docs/quicknode-sdk
+- **SDK Docs**: https://www.quicknode.com/docs/sdk
