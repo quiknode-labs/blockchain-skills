@@ -74,9 +74,9 @@ Use this for latency-sensitive transaction submission. For EVM endpoints, prefer
 
 ## Data and Risk Add-ons
 
-### Scorechain Risk Assessment API
+### Risk Assessment API
 
-Scorechain Risk Assessment API provides wallet or transaction risk data for compliance, monitoring, and fraud analysis workflows.
+Risk Assessment API provides wallet or transaction risk data for compliance, monitoring, and fraud analysis workflows.
 
 **Add-on page:** https://www.quicknode.com/add-ons/risk-assessment-api
 
@@ -98,9 +98,9 @@ Multi-chain Stablecoin Balance API returns stablecoin balances across supported 
 
 Use it when the desired output is specifically stablecoin exposure across chains.
 
-### Covalent GoldRush Wallet/Data APIs
+### GoldRush Multichain Data APIs
 
-Covalent GoldRush APIs provide wallet and token/NFT portfolio data across many chains.
+GoldRush Multichain Data APIs provide wallet and token/NFT portfolio data across many chains.
 
 **Add-on page:** https://www.quicknode.com/add-ons/covalent-wallet-api
 

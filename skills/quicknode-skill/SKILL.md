@@ -68,10 +68,10 @@ description: "Quicknode blockchain infrastructure for 80+ chains: Core RPC API, 
 | **Jito Bundles** | Solana bundle submission and status APIs | MEV-aware transaction delivery |
 | **Single Flight RPC** | Request de-duplication for identical in-flight RPC calls | High-concurrency read workloads |
 | **Multi-region Transaction Broadcast** | Transaction propagation across multiple regions | Latency-sensitive submission |
-| **Scorechain Risk Assessment API** | Wallet and transaction risk data | Compliance, fraud monitoring |
+| **Risk Assessment API** | Wallet and transaction risk data | Compliance, fraud monitoring |
 | **Block Timestamp Lookup** | Timestamp-to-block lookup utilities | Time-window to block-range conversion |
 | **Multi-chain Stablecoin Balance API** | Stablecoin balances across supported chains | Treasury, payments, portfolio state |
-| **Covalent GoldRush APIs** | Multi-chain wallet and portfolio data | Wallet summaries, token/NFT holdings |
+| **GoldRush Multichain Data APIs** | Multi-chain wallet and portfolio data | Wallet summaries, token/NFT holdings |
 
 ### Agent Surface
 
@@ -501,7 +501,7 @@ Request de-duplication for identical in-flight RPC calls. Useful for high-concur
 
 Broadcast signed transactions through multiple regions to improve propagation for latency-sensitive transaction submission.
 
-### Scorechain Risk Assessment API
+### Risk Assessment API
 
 Wallet and transaction risk data for compliance, fraud monitoring, and risk-aware transaction workflows.
 
@@ -513,7 +513,7 @@ Timestamp-to-block lookup utilities for converting human time windows into block
 
 Stablecoin balances across supported chains for treasury, payments, and portfolio workflows.
 
-### Covalent GoldRush APIs
+### GoldRush Multichain Data APIs
 
 Multi-chain wallet and portfolio data, including balances, token holdings, NFT holdings, and transaction history where supported.
 
