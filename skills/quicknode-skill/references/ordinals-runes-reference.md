@@ -1,6 +1,6 @@
 # Ordinals & Runes API Reference
 
-Bitcoin inscription and Runes protocol data via a Quicknode Marketplace add-on. 21 methods covering inscriptions, satoshi metadata, Runes, and Bitcoin outputs — available through JSON-RPC and ORD-compatible REST on your Quicknode Bitcoin endpoint. No custom indexer required.
+Bitcoin inscription and Runes protocol data via the Quicknode Ordinals & Runes API add-on. 21 methods covering inscriptions, satoshi metadata, Runes, and Bitcoin outputs — available through JSON-RPC and ORD-compatible REST on your Quicknode Bitcoin endpoint. No custom indexer required.
 
 **Marketing:** https://www.quicknode.com/ordinals-runes
 **Docs:** https://www.quicknode.com/docs/bitcoin/ord_getInscription

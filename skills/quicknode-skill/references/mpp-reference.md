@@ -68,7 +68,7 @@ The payment network is independent of the chain you query. For example, you can 
 
 ## Testnet Monthly Cap
 
-Each wallet gets a **single pool of 1,000,000 API credits per month** across Quicknode's agentic payment surfaces, including x402 and MPP. The pool resets on the 1st of each month and covers both RPC and SQL Explorer calls. Mainnet wallets are uncapped.
+Each wallet gets a **single pool of 1,000,000 API credits per month** across Quicknode's agentic payment surfaces, including x402 and MPP. The pool resets on the 1st of each month and covers both RPC and SQL Explorer calls. RPC requests consume 1 API credit each; SQL Explorer consumes the variable number of credits the query uses. Mainnet wallets are uncapped.
 
 | Testnet Pool | Value |
 |-----------------|-------|
@@ -262,6 +262,13 @@ mppx -X POST -H 'Content-Type: application/json' \
 ```
 
 Environment variables: `MPPX_PRIVATE_KEY`, `MPPX_ACCOUNT`
+
+## Using MPP From The Quicknode CLI Or SDK
+
+The Quicknode CLI and SDK wrap this gateway, so an agent can pay for RPC calls without writing payment code or installing `mppx`:
+
+- CLI (v0.6.0+): `qn wallet generate --vm evm` then `qn rpc call --mpp`, or a channel via `qn rpc mpp open` and `--mpp-session`. See [cli-reference.md](cli-reference.md#paid-rpc-x402-and-mpp).
+- SDK (Node 3.8.0+, other languages 0.8.0+): set `rpc.payment` with `scheme: "mpp"`, or use `mppOpen`/`mppSessionCall`. See [sdk-reference.md](sdk-reference.md#rpc-micropayments).
 
 ## Payment Receipts
 

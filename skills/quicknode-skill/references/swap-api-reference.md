@@ -95,7 +95,7 @@ const { exchangeResponse } = await post({
 
 Use the 0x add-on for EVM aggregated liquidity. The v2 quote endpoint uses Permit2.
 
-**Marketplace:** https://marketplace.quicknode.com/add-on/0x-swap-api
+**Add-on page:** https://www.quicknode.com/add-ons/0x-swap-api
 **Provider docs:** https://0x.org/docs/api
 
 ```typescript
@@ -117,7 +117,7 @@ console.log(quote.transaction);
 
 OpenOcean provides multi-chain routing. Use the provider docs for the exact chain slug and quote/swap path for the enabled add-on.
 
-**Marketplace:** https://marketplace.quicknode.com/add-on/openocean-v4-swap-api
+**Add-on page:** https://www.quicknode.com/add-ons/openocean-v4-swap-api
 **Provider docs:** https://docs.openocean.finance/
 
 ```typescript
@@ -138,7 +138,7 @@ const quote = await fetch(`${process.env.QUICKNODE_RPC_URL}/addon/807/v4/${chain
 
 Aerodrome is the primary liquidity hub on Base. The add-on is used for routing, quote, swap transaction construction, pool analytics, and price feeds.
 
-**Marketplace:** https://marketplace.quicknode.com/add-on/aerodrome-swap-api
+**Add-on page:** https://www.quicknode.com/add-ons/aerodrome-swap-api
 
 ```typescript
 const params = new URLSearchParams({
@@ -168,7 +168,7 @@ const swap = await fetch(`${process.env.QUICKNODE_RPC_URL}/addon/1051/v1/swap/bu
 
 Velodrome is the primary liquidity hub on Optimism. The add-on is used for routing, quote, swap transaction construction, pool analytics, and price feeds.
 
-**Marketplace:** https://marketplace.quicknode.com/add-on/velodrome-swap-api
+**Add-on page:** https://www.quicknode.com/add-ons/velodrome-swap-api
 
 ```typescript
 const params = new URLSearchParams({
@@ -197,7 +197,7 @@ const swap = await fetch(`${process.env.QUICKNODE_RPC_URL}/addon/1050/v1/swap/bu
 
 Titan Meta Aggregator provides Solana swap aggregation through REST and WebSocket APIs.
 
-**Marketplace:** https://marketplace.quicknode.com/add-on/titan-swap
+**Add-on page:** https://www.quicknode.com/add-ons/titan-swap
 
 ```typescript
 import { decode } from '@msgpack/msgpack';
@@ -237,12 +237,12 @@ const { amountIn, amountOut } = decode(
 
 - **Swap API Marketing**: https://www.quicknode.com/swap-api
 - **Metis Overview**: https://www.quicknode.com/docs/solana/metis-overview
-- **0x Swap API Marketplace**: https://marketplace.quicknode.com/add-on/0x-swap-api
-- **OpenOcean V4 Marketplace**: https://marketplace.quicknode.com/add-on/openocean-v4-swap-api
-- **Aerodrome Swap API Marketplace**: https://marketplace.quicknode.com/add-on/aerodrome-swap-api
-- **Velodrome Swap API Marketplace**: https://marketplace.quicknode.com/add-on/velodrome-swap-api
-- **Titan Swap Marketplace**: https://marketplace.quicknode.com/add-on/titan-swap
+- **0x Swap API Add-on**: https://www.quicknode.com/add-ons/0x-swap-api
+- **OpenOcean V4 Add-on**: https://www.quicknode.com/add-ons/openocean-v4-swap-api
+- **Aerodrome Swap API Add-on**: https://www.quicknode.com/add-ons/aerodrome-swap-api
+- **Velodrome Swap API Add-on**: https://www.quicknode.com/add-ons/velodrome-swap-api
+- **Titan Swap Add-on**: https://www.quicknode.com/add-ons/titan-swap
 - **Titan API Specification**: https://titan-exchange.gitbook.io/titan-exchange/
 - **Hyperliquid**: https://www.quicknode.com/docs/hyperliquid
 - **Hyperliquid Build Market Order**: https://www.quicknode.com/docs/hyperliquid/exchange-api/build-market-order
-- **Marketplace**: https://marketplace.quicknode.com/
+- **Add-ons Catalog**: https://www.quicknode.com/add-ons

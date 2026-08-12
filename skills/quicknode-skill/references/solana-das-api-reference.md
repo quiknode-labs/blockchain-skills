@@ -8,7 +8,7 @@ The Metaplex Digital Asset Standard (DAS) API is a comprehensive service for que
 
 ## Prerequisites
 
-Enable the **Metaplex Digital Asset Standard (DAS) API** add-on on your QuickNode Solana endpoint via the [Marketplace](https://marketplace.quicknode.com/).
+Enable **Metaplex DAS API** on your Quicknode Solana endpoint from the Quicknode dashboard. Product page: https://www.quicknode.com/metaplex-das-api
 
 ## Methods Overview
 

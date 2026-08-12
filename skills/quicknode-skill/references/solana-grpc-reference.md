@@ -1,6 +1,6 @@
 # Solana gRPC Reference
 
-Solana gRPC (formerly Yellowstone gRPC) is a high-performance Solana Geyser plugin that enables real-time blockchain data streaming through gRPC interfaces. Included on Scale and Business plans; available as a Marketplace add-on on Build and Accelerate plans.
+Solana gRPC (formerly Yellowstone gRPC) is a high-performance Solana Geyser plugin that enables real-time blockchain data streaming through gRPC interfaces. Included on Scale and Business plans; available as an add-on on Build and Accelerate plans.
 
 ## Overview
 
@@ -12,7 +12,7 @@ Solana gRPC (formerly Yellowstone gRPC) is a high-performance Solana Geyser plug
 | **Compression** | zstd supported |
 | **Commitment Levels** | Processed, Confirmed, Finalized |
 | **Languages** | TypeScript, Rust, Go, Python |
-| **Plan Availability** | Included on Scale and Business; [add-on](https://marketplace.quicknode.com/add-on/yellowstone-grpc-geyser-plugin) on Build and Accelerate |
+| **Plan Availability** | Included on Scale and Business; [add-on](https://www.quicknode.com/add-ons/solana-grpc-geyser-plugin) on Build and Accelerate |
 
 ## Endpoint & Authentication
 
@@ -488,5 +488,5 @@ async function connectWithRetry(maxRetries = 5) {
 - **Go Setup**: https://www.quicknode.com/docs/solana/solana-grpc/overview/go
 - **Rust Setup**: https://www.quicknode.com/docs/solana/solana-grpc/overview/rust
 - **Python Setup**: https://www.quicknode.com/docs/solana/solana-grpc/overview/python
-- **Marketplace Add-on**: https://marketplace.quicknode.com/add-on/solana-grpc-geyser-plugin
+- **Add-on Page**: https://www.quicknode.com/add-ons/solana-grpc-geyser-plugin
 - **Guides**: https://www.quicknode.com/guides/tags/geyser
